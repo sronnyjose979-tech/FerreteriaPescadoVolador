@@ -11,8 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('customer__addresses', function (Blueprint $table) {
+        Schema::create('customer_addresses', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('customer_id')->constrained()->cascadeOnDelete();
+            $table->string('province', 50);
+            $table->string('canton', 50);
+            $table->string('district', 50);
+            $table->text('exact_address');
             $table->timestamps();
         });
     }

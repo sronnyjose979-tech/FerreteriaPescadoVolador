@@ -2,11 +2,31 @@
 
 namespace App\Models;
 
+use Database\Factories\OrderItemsFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Order_Items extends Model
 {
-    /** @use HasFactory<\Database\Factories\OrderItemsFactory> */
+    /** @use HasFactory<OrderItemsFactory> */
     use HasFactory;
+
+    /**
+     * Pedido al que pertenece el item.
+     * DER: Orders_items (N) — (1) Order via id_order
+     */
+    public function order(): BelongsTo
+    {
+        return $this->belongsTo(Orders::class, 'id_order', 'id_order');
+    }
+
+    /**
+     * Producto del item.
+     * DER: Orders_items (N) — (1) Product via id_product
+     */
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(Products::class, 'id_product', 'id_Product');
+    }
 }

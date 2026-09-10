@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Suppliers;
 use Illuminate\Database\Seeder;
 
 class SuppliersSeeder extends Seeder
@@ -12,6 +12,7 @@ class SuppliersSeeder extends Seeder
      */
     public function run(): void
     {
-        //
+       /* Suppliers::truncate();
+        Suppliers::factory()->create(10);*/
     }
 }

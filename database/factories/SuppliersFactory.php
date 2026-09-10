@@ -18,7 +18,7 @@ class SuppliersFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            //'Unit_name' => fake()->randomElement(['Unidad', 'Caja','Paquete']),
         ];
     }
 }

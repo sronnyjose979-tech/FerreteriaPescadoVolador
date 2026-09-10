@@ -18,7 +18,8 @@ class CategoriesFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'Category_name' => fake()->randomElement(['Hogar', 'Ligero','Fontaneria','Electricidad']),
+            'Description' => fake()->randomElement(['En inventario','Producto de mejor calidad']),
         ];
     }
 }

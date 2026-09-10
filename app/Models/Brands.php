@@ -7,6 +7,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class Brands extends Model
 {
-    /** @use HasFactory<\Database\Factories\BrandsFactory> */
     use HasFactory;
+
+    protected $table = 'brands';
+
+    protected $primaryKey = 'id_Brand';
+
+    public $timestamps = false;
+
+    protected $fillable = [
+        'Brand_name'
+    ];
 }

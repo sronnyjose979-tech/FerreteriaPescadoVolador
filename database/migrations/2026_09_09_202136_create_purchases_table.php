@@ -13,6 +13,11 @@ return new class extends Migration
     {
         Schema::create('purchases', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained(); // Bodeguero
+            $table->foreignId('supplier_id')->constrained();
+            $table->dateTime('purchase_date');
+            $table->decimal('total', 12, 2);
+            $table->string('status', 20)->default('received');
             $table->timestamps();
         });
     }

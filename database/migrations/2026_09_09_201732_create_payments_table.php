@@ -13,6 +13,10 @@ return new class extends Migration
     {
         Schema::create('payments', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('sale_id')->constrained()->cascadeOnDelete();
+            $table->string('payment_method', 50); // cash, card, sinpe
+            $table->string('transaction_reference')->nullable();
+            $table->string('status', 20)->default('completed'); 
             $table->timestamps();
         });
     }

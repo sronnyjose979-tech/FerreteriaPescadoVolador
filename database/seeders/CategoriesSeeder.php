@@ -14,6 +14,6 @@ class CategoriesSeeder extends Seeder
     public function run(): void
     {
          Categories::Truncate();
-        Categories::factory()->count(10)->create();
+        Categories::factory()->count(20)->create();
     }
 }

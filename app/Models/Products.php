@@ -13,6 +13,44 @@ class Products extends Model
     /** @use HasFactory<ProductsFactory> */
     use HasFactory;
 
+    protected $fillable = [
+        'category_id',
+        'brand_id',
+        'unit_id',
+        'name',
+        'description',
+        'sku',
+        'barcode',
+        'price',
+        'tax_rate',
+        'stock_quantity',
+        'minimum_stock',
+        'maximum_stock',
+        'weight',
+        'image_url',
+        'is_active'
+    ];
+
+    protected $hidden = [
+        'created_at',
+        'updated_at',
+        'deleted_at'
+    ];
+
+
+    protected function casts(): array
+    {
+        return [
+            'price' => 'decimal:2',
+            'tax_rate' => 'decimal:2',
+            'weight' => 'decimal:2',
+            'is_active' => 'boolean',
+            'stock_quantity' => 'integer',
+            'minimum_stock' => 'integer',
+            'maximum_stock' => 'integer',
+        ];
+    }
+
     /**
      * Marca del producto.
      * DER: Product (N) — (1) Brands via id_brand
@@ -84,4 +122,14 @@ class Products extends Model
     {
         return $this->hasMany(Inventory_Movements::class, 'id_product', 'id_Product');
     }
+
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    public function scopeLowStock($query)
+    {
+        return $query->whereColumn('stock_quantity', '<=', 'minimum_stock');
+    }   
 }

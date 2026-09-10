@@ -2,11 +2,60 @@
 
 namespace App\Models;
 
+use Database\Factories\OrdersFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Orders extends Model
 {
-    /** @use HasFactory<\Database\Factories\OrdersFactory> */
+    /** @use HasFactory<OrdersFactory> */
     use HasFactory;
+
+    /**
+     * Cliente del pedido.
+     * DER: Order (N) — (1) Customer via id_customer
+     */
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customers::class, 'id_customer', 'id_Customer');
+    }
+
+    /**
+     * Dirección de entrega del pedido.
+     * DER: Order (N) — (1) Customer_Address via id_customer_address
+     */
+    public function customerAddress(): BelongsTo
+    {
+        return $this->belongsTo(Customer_Address::class, 'id_customer_address', 'id_customer_address');
+    }
+
+    /**
+     * Items del pedido.
+     * DER: Order (1) — (N) Orders_items via Orders_items.id_order
+     */
+    public function orderItems(): HasMany
+    {
+        return $this->hasMany(Order_Items::class, 'id_order', 'id_order');
+    }
+
+    /**
+     * Pago del pedido.
+     * DER: Order (1) — (1) Payments via Payments.id_order
+     */
+    public function payment(): HasOne
+    {
+        return $this->hasOne(Payments::class, 'id_order', 'id_order');
+    }
+
+    /**
+     * Venta generada desde el pedido.
+     * DER: Sale.id_order → Order.id_order
+     */
+    public function sale(): HasOne
+    {
+        return $this->hasOne(Sales::class, 'id_order', 'id_order');
+    }
 }

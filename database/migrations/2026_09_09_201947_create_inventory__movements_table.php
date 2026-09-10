@@ -13,6 +13,11 @@ return new class extends Migration
     {
         Schema::create('inventory__movements', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('product_id')->constrained();
+            $table->morphs('movementable');
+            $table->string('type', 20);
+            $table->integer('quantity');
+            $table->integer('stock_after');
             $table->timestamps();
         });
     }

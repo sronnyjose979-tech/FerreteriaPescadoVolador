@@ -2,23 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\fs;
+use App\Models\Purchase_Items as ModelsPurchase_Items;
 use Illuminate\Http\Request;
 
 class Purchase_Items extends Controller
 {
-    /**
+  /**
      * Display a listing of the resource.
      */
     public function index()
-    {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
     {
         //
     }
@@ -34,15 +26,7 @@ class Purchase_Items extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(fs $fs)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(fs $fs)
+    public function show(string $id)
     {
         //
     }
@@ -50,7 +34,7 @@ class Purchase_Items extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, fs $fs)
+    public function update(Request $request, string $id)
     {
         //
     }
@@ -58,7 +42,7 @@ class Purchase_Items extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(fs $fs)
+    public function destroy(string $id)
     {
         //
     }

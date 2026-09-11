@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Purchase_Items as ModelsPurchase_Items;
 use Illuminate\Http\Request;
 
-class Roles extends Controller
+class Purchase_ItemsController extends Controller
 {
-    /**
+  /**
      * Display a listing of the resource.
      */
     public function index()

@@ -12,7 +12,7 @@ class PurchaseItemSeeder extends Seeder
      */
     public function run(): void
     {
-         PurchaseItem::Truncate();
+        PurchaseItem::Truncate();
         PurchaseItem::factory()->count(20)->create();
     }
 }

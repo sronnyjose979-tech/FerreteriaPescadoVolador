@@ -24,6 +24,10 @@ class StoreCategoryRequest extends FormRequest
     {
         return [
             //
+            'category_name' => 'required|string|max:200',
+            'description' => 'required|string|max:200',
+
+
         ];
     }
 }

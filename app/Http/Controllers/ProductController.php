@@ -22,7 +22,6 @@ class ProductController extends Controller
     {
         $products = Product::active()
             ->when($request->has('low_stock'), fn($q) => $q->lowStock())
-            ->with(['category', 'brand', 'unit'])
             ->paginate(10);
 
         return $products;

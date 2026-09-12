@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
-use Database\Factories\CategoriesFactory;
+use Database\Factories\CategorieFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Categories extends Model
+class Categorie extends Model
 {
     /** @use HasFactory<CategoriesFactory> */
     use HasFactory;
@@ -18,6 +18,6 @@ class Categories extends Model
      */
     public function products(): HasMany
     {
-        return $this->hasMany(Products::class, 'id_Category', 'id_Category');
+        return $this->hasMany(Product::class, 'id_Category', 'id_Category');
     }
 }

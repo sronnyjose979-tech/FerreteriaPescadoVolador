@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
-class Inventory_Movements extends Model
+class Inventory_Movement extends Model
 {
     /** @use HasFactory<InventoryMovementsFactory> */
     use HasFactory;
@@ -19,7 +19,7 @@ class Inventory_Movements extends Model
      */
     public function product(): BelongsTo
     {
-        return $this->belongsTo(Products::class, 'id_product', 'id_Product');
+        return $this->belongsTo(Product::class, 'id_product', 'id_Product');
     }
 
     /**

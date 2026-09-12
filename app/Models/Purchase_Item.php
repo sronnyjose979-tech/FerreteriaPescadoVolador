@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Purchase_Items extends Model
+class Purchase_Item extends Model
 {
     /** @use HasFactory<PurchaseItemsFactory> */
     use HasFactory;
@@ -18,7 +18,7 @@ class Purchase_Items extends Model
      */
     public function purchase(): BelongsTo
     {
-        return $this->belongsTo(Purchases::class, 'id_Purchase', 'id_Purchase');
+        return $this->belongsTo(Purchase::class, 'id_Purchase', 'id_Purchase');
     }
 
     /**
@@ -27,6 +27,6 @@ class Purchase_Items extends Model
      */
     public function product(): BelongsTo
     {
-        return $this->belongsTo(Products::class, 'id_product', 'id_Product');
+        return $this->belongsTo(Product::class, 'id_product', 'id_Product');
     }
 }

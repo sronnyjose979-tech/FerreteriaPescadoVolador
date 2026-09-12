@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Sales extends Model
+class Sale extends Model
 {
     /** @use HasFactory<SalesFactory> */
     use HasFactory;
@@ -28,7 +28,7 @@ class Sales extends Model
      */
     public function customer(): BelongsTo
     {
-        return $this->belongsTo(Customers::class, 'id_customer', 'id_Customer');
+        return $this->belongsTo(Customer::class, 'id_customer', 'id_Customer');
     }
 
     /**
@@ -37,7 +37,7 @@ class Sales extends Model
      */
     public function order(): BelongsTo
     {
-        return $this->belongsTo(Orders::class, 'id_order', 'id_order');
+        return $this->belongsTo(Order::class, 'id_order', 'id_order');
     }
 
     /**
@@ -46,6 +46,6 @@ class Sales extends Model
      */
     public function saleItems(): HasMany
     {
-        return $this->hasMany(Sale_Items::class, 'id_sale', 'id_Sale');
+        return $this->hasMany(Sale_Item::class, 'id_sale', 'id_Sale');
     }
 }

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Suppliers extends Model
+class Supplier extends Model
 {
     /** @use HasFactory<SuppliersFactory> */
     use HasFactory;
@@ -18,6 +18,6 @@ class Suppliers extends Model
      */
     public function purchases(): HasMany
     {
-        return $this->hasMany(Purchases::class, 'id_supplier', 'id_Supplier');
+        return $this->hasMany(Purchase::class, 'id_supplier', 'id_Supplier');
     }
 }

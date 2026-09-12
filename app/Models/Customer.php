@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Customers extends Model
+class Customer extends Model
 {
     /** @use HasFactory<CustomersFactory> */
     use HasFactory;
@@ -27,7 +27,7 @@ class Customers extends Model
      */
     public function orders(): HasMany
     {
-        return $this->hasMany(Orders::class, 'id_customer', 'id_Customer');
+        return $this->hasMany(Order::class, 'id_customer', 'id_Customer');
     }
 
     /**
@@ -36,7 +36,7 @@ class Customers extends Model
      */
     public function sales(): HasMany
     {
-        return $this->hasMany(Sales::class, 'id_customer', 'id_Customer');
+        return $this->hasMany(Sale::class, 'id_customer', 'id_Customer');
     }
 
     /**
@@ -45,6 +45,6 @@ class Customers extends Model
      */
     public function shoppingCarts(): HasMany
     {
-        return $this->hasMany(Shopping_carts::class, 'Customer_id', 'id_Customer');
+        return $this->hasMany(Shopping_cart::class, 'Customer_id', 'id_Customer');
     }
 }

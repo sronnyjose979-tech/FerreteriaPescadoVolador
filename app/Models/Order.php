@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
-class Orders extends Model
+class Order extends Model
 {
     /** @use HasFactory<OrdersFactory> */
     use HasFactory;
@@ -20,7 +20,7 @@ class Orders extends Model
      */
     public function customer(): BelongsTo
     {
-        return $this->belongsTo(Customers::class, 'id_customer', 'id_Customer');
+        return $this->belongsTo(Customer::class, 'id_customer', 'id_Customer');
     }
 
     /**
@@ -38,7 +38,7 @@ class Orders extends Model
      */
     public function orderItems(): HasMany
     {
-        return $this->hasMany(Order_Items::class, 'id_order', 'id_order');
+        return $this->hasMany(Order_Item::class, 'id_order', 'id_order');
     }
 
     /**
@@ -47,7 +47,7 @@ class Orders extends Model
      */
     public function payment(): HasOne
     {
-        return $this->hasOne(Payments::class, 'id_order', 'id_order');
+        return $this->hasOne(Payment::class, 'id_order', 'id_order');
     }
 
     /**
@@ -56,6 +56,6 @@ class Orders extends Model
      */
     public function sale(): HasOne
     {
-        return $this->hasOne(Sales::class, 'id_order', 'id_order');
+        return $this->hasOne(Sale::class, 'id_order', 'id_order');
     }
 }

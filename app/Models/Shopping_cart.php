@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Shopping_carts extends Model
+class Shopping_cart extends Model
 {
     /** @use HasFactory<ShoppingCartsFactory> */
     use HasFactory;
@@ -19,7 +19,7 @@ class Shopping_carts extends Model
      */
     public function customer(): BelongsTo
     {
-        return $this->belongsTo(Customers::class, 'Customer_id', 'id_Customer');
+        return $this->belongsTo(Customer::class, 'Customer_id', 'id_Customer');
     }
 
     /**
@@ -28,6 +28,6 @@ class Shopping_carts extends Model
      */
     public function cartItems(): HasMany
     {
-        return $this->hasMany(Cart_Items::class, 'Cart_id', 'id_shopping_cart');
+        return $this->hasMany(Cart_Item::class, 'Cart_id', 'id_shopping_cart');
     }
 }

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Sale_Items extends Model
+class Sale_Item extends Model
 {
     /** @use HasFactory<SaleItemsFactory> */
     use HasFactory;
@@ -18,7 +18,7 @@ class Sale_Items extends Model
      */
     public function sale(): BelongsTo
     {
-        return $this->belongsTo(Sales::class, 'id_sale', 'id_Sale');
+        return $this->belongsTo(Sale::class, 'id_sale', 'id_Sale');
     }
 
     /**
@@ -27,6 +27,6 @@ class Sale_Items extends Model
      */
     public function product(): BelongsTo
     {
-        return $this->belongsTo(Products::class, 'id_product', 'id_Product');
+        return $this->belongsTo(Product::class, 'id_product', 'id_Product');
     }
 }

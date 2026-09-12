@@ -2,13 +2,12 @@
 
 namespace Database\Factories;
 
-use App\Models\Units;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<Units>
+ * @extends Factory<Brands>
  */
-class UnitsFactory extends Factory
+class BrandFactory extends Factory
 {
     /**
      * Define the model's default state.
@@ -18,7 +17,7 @@ class UnitsFactory extends Factory
     public function definition(): array
     {
         return [
-            'Unit_name' => fake()->randomElement(['Cm', 'kg','ml']),
+            'brand_name' => fake()->randomElement(['Trooper', 'ToolsFaster']),
         ];
     }
 }

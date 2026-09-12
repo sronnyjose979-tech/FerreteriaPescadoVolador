@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Order_Items extends Model
+class Order_Item extends Model
 {
     /** @use HasFactory<OrderItemsFactory> */
     use HasFactory;
@@ -18,7 +18,7 @@ class Order_Items extends Model
      */
     public function order(): BelongsTo
     {
-        return $this->belongsTo(Orders::class, 'id_order', 'id_order');
+        return $this->belongsTo(Order::class, 'id_order', 'id_order');
     }
 
     /**
@@ -27,6 +27,6 @@ class Order_Items extends Model
      */
     public function product(): BelongsTo
     {
-        return $this->belongsTo(Products::class, 'id_product', 'id_Product');
+        return $this->belongsTo(Product::class, 'id_product', 'id_Product');
     }
 }

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Purchases extends Model
+class Purchase extends Model
 {
     /** @use HasFactory<PurchasesFactory> */
     use HasFactory;
@@ -28,7 +28,7 @@ class Purchases extends Model
      */
     public function supplier(): BelongsTo
     {
-        return $this->belongsTo(Suppliers::class, 'id_supplier', 'id_Supplier');
+        return $this->belongsTo(Supplier::class, 'id_supplier', 'id_Supplier');
     }
 
     /**
@@ -37,6 +37,6 @@ class Purchases extends Model
      */
     public function purchaseItems(): HasMany
     {
-        return $this->hasMany(Purchase_Items::class, 'id_Purchase', 'id_Purchase');
+        return $this->hasMany(Purchase_Item::class, 'id_Purchase', 'id_Purchase');
     }
 }

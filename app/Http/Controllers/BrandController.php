@@ -37,6 +37,7 @@ class BrandController extends Controller
      */
     public function show(string $id)
     {
+        $brand = Brand::find($id);
         //
     }
 

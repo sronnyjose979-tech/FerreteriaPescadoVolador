@@ -131,5 +131,5 @@ class Product extends Model
     public function scopeLowStock($query)
     {
         return $query->whereColumn('stock_quantity', '<=', 'minimum_stock');
-    }   
+    }
 }

@@ -48,7 +48,7 @@ class User extends Authenticatable
      */
     public function role(): BelongsTo
     {
-        return $this->belongsTo(Roles::class, 'id_role', 'id_role');
+        return $this->belongsTo(Role::class, 'id_role', 'id_role');
     }
 
     /**
@@ -57,7 +57,7 @@ class User extends Authenticatable
      */
     public function sales(): HasMany
     {
-        return $this->hasMany(Sales::class, 'id_user', 'id_User');
+        return $this->hasMany(Sale::class, 'id_user', 'id_User');
     }
 
     /**
@@ -66,7 +66,8 @@ class User extends Authenticatable
      */
     public function purchases(): HasMany
     {
-        return $this->hasMany(Purchases::class, 'id_user', 'id_User');
+        //return $this->hasMany(Purchase::class, 'id_user', 'id_User');
+        return $this->hasMany(Purchase::class, 'id_user', 'id');//trabaja con el unico user
     }
 
     /**
@@ -75,6 +76,6 @@ class User extends Authenticatable
      */
     public function inventoryMovements(): HasMany
     {
-        return $this->hasMany(Inventory_Movements::class, 'id_user', 'id_User');
+        return $this->hasMany(InventoryMovement::class, 'id_user', 'id_User');
     }
 }

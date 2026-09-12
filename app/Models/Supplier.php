@@ -11,7 +11,23 @@ class Supplier extends Model
 {
     /** @use HasFactory<SuppliersFactory> */
     use HasFactory;
+    protected $table = 'suppliers';
 
+    protected $primaryKey = 'id_Supplier';
+
+    public $incrementing = false;
+
+    protected $keyType = 'string';
+
+    protected $fillable = [
+        'id_Supplier',
+        'Supplier_First_name',
+        'Supplier_Last_name',
+        'Supplier_Phone',
+        'Supplier_Address',
+        'Supplier_Email',
+        'Supplier_Type',
+    ];
     /**
      * Compras al proveedor.
      * DER: Supplier (1) — (N) Purchase via Purchase.id_supplier

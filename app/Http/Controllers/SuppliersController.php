@@ -25,7 +25,6 @@ class SuppliersController extends Controller
             return $query->where('Supplier_First_name', 'like', "$name%");
         })
             ->paginate(10);
-        return $data;
     }
 
     /**

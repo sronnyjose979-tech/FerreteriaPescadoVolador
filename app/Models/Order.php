@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Database\Factories\OrdersFactory;
+use Database\Factories\OrderFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -29,7 +29,7 @@ class Order extends Model
      */
     public function customerAddress(): BelongsTo
     {
-        return $this->belongsTo(Customer_Address::class, 'id_customer_address', 'id_customer_address');
+        return $this->belongsTo(CustomerAddress::class, 'id_customer_address', 'id_customer_address');
     }
 
     /**
@@ -38,7 +38,7 @@ class Order extends Model
      */
     public function orderItems(): HasMany
     {
-        return $this->hasMany(Order_Item::class, 'id_order', 'id_order');
+        return $this->hasMany(OrderItem::class, 'id_order', 'id_order');
     }
 
     /**

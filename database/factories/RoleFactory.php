@@ -2,13 +2,13 @@
 
 namespace Database\Factories;
 
-use App\Models\CustomerAddress;
+use App\Models\Role;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<Customer_Address>
+ * @extends Factory<Roles>
  */
-class CustomerAddressFactory extends Factory
+class RoleFactory extends Factory
 {
     /**
      * Define the model's default state.

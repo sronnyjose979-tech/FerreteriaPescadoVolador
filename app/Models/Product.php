@@ -66,7 +66,7 @@ class Product extends Model
      */
     public function category(): BelongsTo
     {
-        return $this->belongsTo(Categorie::class, 'id_Category', 'id_Category');
+        return $this->belongsTo(Category::class, 'id_Category', 'id_Category');
     }
 
     /**
@@ -84,7 +84,7 @@ class Product extends Model
      */
     public function saleItems(): HasMany
     {
-        return $this->hasMany(Sale_Item::class, 'id_product', 'id_Product');
+        return $this->hasMany(SaleItem::class, 'id_product', 'id_Product');
     }
 
     /**
@@ -93,7 +93,7 @@ class Product extends Model
      */
     public function orderItems(): HasMany
     {
-        return $this->hasMany(Order_Item::class, 'id_product', 'id_Product');
+        return $this->hasMany(OrderItem::class, 'id_product', 'id_Product');
     }
 
     /**
@@ -102,7 +102,7 @@ class Product extends Model
      */
     public function cartItems(): HasMany
     {
-        return $this->hasMany(Cart_Item::class, 'Product_id', 'id_Product');
+        return $this->hasMany(CartItem::class, 'Product_id', 'id_Product');
     }
 
     /**
@@ -111,7 +111,7 @@ class Product extends Model
      */
     public function purchaseItems(): HasMany
     {
-        return $this->hasMany(Purchase_Item::class, 'id_product', 'id_Product');
+        return $this->hasMany(PurchaseItem::class, 'id_product', 'id_Product');
     }
 
     /**
@@ -120,7 +120,7 @@ class Product extends Model
      */
     public function inventoryMovements(): HasMany
     {
-        return $this->hasMany(Inventory_Movement::class, 'id_product', 'id_Product');
+        return $this->hasMany(InventoryMovement::class, 'id_product', 'id_Product');
     }
 
     public function scopeActive($query)

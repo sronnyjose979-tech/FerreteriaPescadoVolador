@@ -2,17 +2,17 @@
 
 namespace Database\Seeders;
 
-use App\Models\CustomerAddress;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\PurchaseItem;
 use Illuminate\Database\Seeder;
 
-class CustomerAddressSeeder extends Seeder
+class PurchaseItemSeeder extends Seeder
 {
     /**
      * Run the database seeds.
      */
     public function run(): void
     {
-       //
+         PurchaseItem::Truncate();
+        PurchaseItem::factory()->count(20)->create();
     }
 }

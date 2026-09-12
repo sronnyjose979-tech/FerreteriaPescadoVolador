@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Database\Factories\SalesFactory;
+use Database\Factories\SaleFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -46,6 +46,6 @@ class Sale extends Model
      */
     public function saleItems(): HasMany
     {
-        return $this->hasMany(Sale_Item::class, 'id_sale', 'id_Sale');
+        return $this->hasMany(SaleItem::class, 'id_sale', 'id_Sale');
     }
 }

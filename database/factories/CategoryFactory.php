@@ -2,13 +2,12 @@
 
 namespace Database\Factories;
 
-use App\Models\CustomerAddress;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<Customer_Address>
+ * @extends Factory<Categories>
  */
-class CustomerAddressFactory extends Factory
+class CategoryFactory extends Factory
 {
     /**
      * Define the model's default state.
@@ -18,7 +17,8 @@ class CustomerAddressFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'category_name' => fake()->randomElement(['Hogar', 'Ligero','Fontaneria','Electricidad']),
+            'description' => fake()->randomElement(['En inventario','Producto de mejor calidad']),
         ];
     }
 }

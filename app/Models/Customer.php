@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Database\Factories\CustomersFactory;
+use Database\Factories\CustomerFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -18,7 +18,7 @@ class Customer extends Model
      */
     public function addresses(): HasMany
     {
-        return $this->hasMany(Customer_Address::class, 'id_customer', 'id_Customer');
+        return $this->hasMany(CustomerAddress::class, 'id_customer', 'id_Customer');
     }
 
     /**
@@ -45,6 +45,6 @@ class Customer extends Model
      */
     public function shoppingCarts(): HasMany
     {
-        return $this->hasMany(Shopping_cart::class, 'Customer_id', 'id_Customer');
+        return $this->hasMany(ShoppingCart::class, 'Customer_id', 'id_Customer');
     }
 }

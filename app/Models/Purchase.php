@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Database\Factories\PurchasesFactory;
+use Database\Factories\PurchaseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -37,6 +37,6 @@ class Purchase extends Model
      */
     public function purchaseItems(): HasMany
     {
-        return $this->hasMany(Purchase_Item::class, 'id_Purchase', 'id_Purchase');
+        return $this->hasMany(PurchaseItem::class, 'id_Purchase', 'id_Purchase');
     }
 }

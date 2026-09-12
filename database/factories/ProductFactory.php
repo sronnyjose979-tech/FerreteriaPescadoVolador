@@ -18,7 +18,7 @@ class ProductFactory extends Factory
     public function definition(): array
     {
         return [
-            'category_id' => \App\Models\Categorie::factory(),
+            'category_id' => \App\Models\Category::factory(),
             'brand_id' => \App\Models\Brand::factory(),
             'unit_id' =>  \App\Models\Unit::factory(),
 

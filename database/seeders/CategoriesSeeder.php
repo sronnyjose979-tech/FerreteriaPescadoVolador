@@ -13,7 +13,7 @@ class CategoriesSeeder extends Seeder
      */
     public function run(): void
     {
-         Categories::Truncate();
+        Categories::Truncate();
         Categories::factory()->count(20)->create();
     }
 }

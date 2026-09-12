@@ -12,7 +12,7 @@ class ProductsSeeder extends Seeder
      */
     public function run(): void
     {
-        Products::truncate();
+         Products::Truncate();
         Products::factory()->count(20)->create();
     }
 }

@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Inventory_Movement;
 use Illuminate\Database\Seeder;
 
 class InventoryMovementsSeeder extends Seeder
@@ -12,6 +12,7 @@ class InventoryMovementsSeeder extends Seeder
      */
     public function run(): void
     {
-        //
+        Inventory_Movement::Truncate();
+        Inventory_Movement::factory()->count(20)->create();
     }
 }

@@ -4,6 +4,7 @@ use App\Http\Controllers\BrandController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PurchaseController;
+use App\Http\Controllers\PurchaseItemController;
 use App\Http\Controllers\SuppliersController;
 use App\Http\Controllers\UnitController;
 use Illuminate\Http\Request;
@@ -54,3 +55,10 @@ Route::post('/purchases', [PurchaseController::class, 'store']);
 Route::get('/purchases/{purchase}', [PurchaseController::class, 'show']);
 Route::put('/purchases/{purchase}', [PurchaseController::class, 'update']);
 Route::delete('/purchases/{purchase}', [PurchaseController::class, 'destroy']);
+
+//crud de purchaseItems(Russell)
+Route::get('/purchaseItems', [PurchaseItemController::class, 'index']);
+Route::post('/purchaseItems', [PurchaseItemController::class, 'store']);
+Route::get('/purchaseItems/{purchaseItem}', [PurchaseItemController::class, 'show']);
+Route::put('/purchaseItems/{purchaseItem}', [PurchaseItemController::class, 'update']);
+Route::delete('/purchaseItems/{purchaseItem}', [PurchaseItemController::class, 'destroy']);

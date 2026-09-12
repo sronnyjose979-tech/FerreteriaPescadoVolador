@@ -14,12 +14,21 @@ return new class extends Migration
         Schema::create('purchase__item', function (Blueprint $table) {
             $table->id();
 
+            $table->foreignId('id_product')
+                ->constrained('products')
+                ->cascadeOnDelete();
+
             $table->string('id_Purchase');
-            $table->foreign('id_Purchase')->references('id_Purchase')->on('purchases')->cascadeOnDelete();
+
+            $table->foreign('id_Purchase')
+                ->references('id_Purchase')
+                ->on('purchases')
+                ->cascadeOnDelete();
 
             $table->integer('quantity');
             $table->decimal('unit_cost', 12, 2);
             $table->decimal('subtotal', 12, 2);
+
             $table->timestamps();
         });
     }

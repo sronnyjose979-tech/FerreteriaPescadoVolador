@@ -12,6 +12,13 @@ class PurchaseItem extends Model
     /** @use HasFactory<PurchaseItemsFactory> */
     use HasFactory;
     protected $table = 'purchase__item';
+    protected $fillable = [
+        'id_Purchase',
+        'id_product',
+        'quantity',
+        'unit_cost',
+        'subtotal',
+    ];
     /**
      * Compra del item.
      * DER: Purchase_Items (N) — (1) Purchase via id_Purchase
@@ -27,6 +34,6 @@ class PurchaseItem extends Model
      */
     public function product(): BelongsTo
     {
-        return $this->belongsTo(Product::class, 'id_product', 'id_Product');
+        return $this->belongsTo(Product::class, 'id_product', 'id');
     }
 }

@@ -2,18 +2,18 @@
 
 namespace Database\Seeders;
 
-use App\Models\Units;
+use App\Models\Categorie;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
-class UnitsSeeder extends Seeder
+class CategorieSeeder extends Seeder
 {
     /**
      * Run the database seeds.
      */
     public function run(): void
     {
-        Units::Truncate();
-        Units::factory()->count(20)->create();
+         Categorie::Truncate();
+        Categorie::factory()->count(20)->create();
     }
 }

@@ -2,13 +2,12 @@
 
 namespace Database\Factories;
 
-use App\Models\Brands;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<Brands>
+ * @extends Factory<Categories>
  */
-class BrandsFactory extends Factory
+class CategorieFactory extends Factory
 {
     /**
      * Define the model's default state.
@@ -18,7 +17,8 @@ class BrandsFactory extends Factory
     public function definition(): array
     {
         return [
-            'Brand_name' => fake()->randomElement(['Trooper', 'ToolsFaster']),
+            'category_name' => fake()->randomElement(['Hogar', 'Ligero','Fontaneria','Electricidad']),
+            'description' => fake()->randomElement(['En inventario','Producto de mejor calidad']),
         ];
     }
 }

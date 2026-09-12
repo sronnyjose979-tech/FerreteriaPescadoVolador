@@ -2,13 +2,13 @@
 
 namespace Database\Factories;
 
-use App\Models\Inventory_Movement;
+use App\Models\Unit;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<Inventory_Movements>
+ * @extends Factory<Units>
  */
-class InventoryMovementsFactory extends Factory
+class UnitFactory extends Factory
 {
     /**
      * Define the model's default state.
@@ -18,7 +18,7 @@ class InventoryMovementsFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'unit_name' => fake()->randomElement(['Cm', 'kg','ml']),
         ];
     }
 }

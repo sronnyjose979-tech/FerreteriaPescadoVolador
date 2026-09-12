@@ -19,7 +19,7 @@ class Customer_Address extends Model
      */
     public function customer(): BelongsTo
     {
-        return $this->belongsTo(Customers::class, 'id_customer', 'id_Customer');
+        return $this->belongsTo(Customer::class, 'id_customer', 'id_Customer');
     }
 
     /**
@@ -28,6 +28,6 @@ class Customer_Address extends Model
      */
     public function orders(): HasMany
     {
-        return $this->hasMany(Orders::class, 'id_customer_address', 'id_customer_address');
+        return $this->hasMany(Order::class, 'id_customer_address', 'id_customer_address');
     }
 }

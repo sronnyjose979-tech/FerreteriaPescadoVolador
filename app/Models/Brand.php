@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Brands extends Model
+class Brand extends Model
 {
     use HasFactory;
 
@@ -26,6 +26,6 @@ class Brands extends Model
      */
     public function products(): HasMany
     {
-        return $this->hasMany(Products::class, 'id_brand', 'id_Brand');
+        return $this->hasMany(Product::class, 'id_brand', 'id_Brand');
     }
 }

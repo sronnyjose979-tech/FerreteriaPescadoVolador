@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
-use Database\Factories\UnitsFactory;
+use Database\Factories\UnitFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Units extends Model
+class Unit extends Model
 {
     /** @use HasFactory<UnitsFactory> */
     use HasFactory;
@@ -18,6 +18,6 @@ class Units extends Model
      */
     public function products(): HasMany
     {
-        return $this->hasMany(Products::class, 'id_unit', 'id_unit');
+        return $this->hasMany(Product::class, 'id_unit', 'id_unit');
     }
 }

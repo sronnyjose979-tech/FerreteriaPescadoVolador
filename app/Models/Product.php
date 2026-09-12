@@ -2,13 +2,13 @@
 
 namespace App\Models;
 
-use Database\Factories\ProductsFactory;
+use Database\Factories\ProductFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Products extends Model
+class Product extends Model
 {
     /** @use HasFactory<ProductsFactory> */
     use HasFactory;
@@ -57,7 +57,7 @@ class Products extends Model
      */
     public function brand(): BelongsTo
     {
-        return $this->belongsTo(Brands::class, 'id_brand', 'id_Brand');
+        return $this->belongsTo(Brand::class, 'id_brand', 'id_Brand');
     }
 
     /**
@@ -66,7 +66,7 @@ class Products extends Model
      */
     public function category(): BelongsTo
     {
-        return $this->belongsTo(Categories::class, 'id_Category', 'id_Category');
+        return $this->belongsTo(Categorie::class, 'id_Category', 'id_Category');
     }
 
     /**
@@ -75,7 +75,7 @@ class Products extends Model
      */
     public function unit(): BelongsTo
     {
-        return $this->belongsTo(Units::class, 'id_unit', 'id_unit');
+        return $this->belongsTo(Unit::class, 'id_unit', 'id_unit');
     }
 
     /**
@@ -84,7 +84,7 @@ class Products extends Model
      */
     public function saleItems(): HasMany
     {
-        return $this->hasMany(Sale_Items::class, 'id_product', 'id_Product');
+        return $this->hasMany(Sale_Item::class, 'id_product', 'id_Product');
     }
 
     /**
@@ -93,7 +93,7 @@ class Products extends Model
      */
     public function orderItems(): HasMany
     {
-        return $this->hasMany(Order_Items::class, 'id_product', 'id_Product');
+        return $this->hasMany(Order_Item::class, 'id_product', 'id_Product');
     }
 
     /**
@@ -102,7 +102,7 @@ class Products extends Model
      */
     public function cartItems(): HasMany
     {
-        return $this->hasMany(Cart_Items::class, 'Product_id', 'id_Product');
+        return $this->hasMany(Cart_Item::class, 'Product_id', 'id_Product');
     }
 
     /**
@@ -111,7 +111,7 @@ class Products extends Model
      */
     public function purchaseItems(): HasMany
     {
-        return $this->hasMany(Purchase_Items::class, 'id_product', 'id_Product');
+        return $this->hasMany(Purchase_Item::class, 'id_product', 'id_Product');
     }
 
     /**
@@ -120,7 +120,7 @@ class Products extends Model
      */
     public function inventoryMovements(): HasMany
     {
-        return $this->hasMany(Inventory_Movements::class, 'id_product', 'id_Product');
+        return $this->hasMany(Inventory_Movement::class, 'id_product', 'id_Product');
     }
 
     public function scopeActive($query)

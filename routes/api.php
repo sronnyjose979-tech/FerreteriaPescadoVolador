@@ -3,7 +3,8 @@
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ProductController;
-use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\PurchaseController;
+use App\Http\Controllers\SuppliersController;
 use App\Http\Controllers\UnitController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -40,9 +41,16 @@ Route::get('/units/{unit}', [UnitController::class, 'show']);
 Route::put('/units/{unit}', [UnitController::class, 'update']);
 Route::delete('/units/{unit}', [UnitController::class, 'destroy']);
 
-//crud de items de compra(rusell)
-Route::get('/Suppliers', [SupplierController::class, 'index']);
-Route::post('/Suppliers', [SupplierController::class, 'store']);
-Route::get('/Suppliers/{supplier}', [SupplierController::class, 'show']);
-Route::put('/Suppliers/{supplier}', [SupplierController::class, 'update']);
-Route::delete('/Suppliers/{supplier}', [SupplierController::class, 'destroy']);
+//crud de supplies(Russell)
+Route::get('/suppliers', [SuppliersController::class, 'index']);
+Route::post('/suppliers', [SuppliersController::class, 'store']);
+Route::get('/suppliers/{supplier}', [SuppliersController::class, 'show']);
+Route::put('/suppliers/{supplier}', [SuppliersController::class, 'update']);
+Route::delete('/suppliers/{supplier}', [SuppliersController::class, 'destroy']);
+
+//curd de purchase(Russell)
+Route::get('/purchases', [PurchaseController::class, 'index']);
+Route::post('/purchases', [PurchaseController::class, 'store']);
+Route::get('/purchases/{purchase}', [PurchaseController::class, 'show']);
+Route::put('/purchases/{purchase}', [PurchaseController::class, 'update']);
+Route::delete('/purchases/{purchase}', [PurchaseController::class, 'destroy']);

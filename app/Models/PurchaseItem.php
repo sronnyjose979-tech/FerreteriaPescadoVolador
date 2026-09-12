@@ -11,7 +11,7 @@ class PurchaseItem extends Model
 {
     /** @use HasFactory<PurchaseItemsFactory> */
     use HasFactory;
-
+    protected $table = 'purchase__item';
     /**
      * Compra del item.
      * DER: Purchase_Items (N) — (1) Purchase via id_Purchase

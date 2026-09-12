@@ -36,4 +36,5 @@ class Supplier extends Model
     {
         return $this->hasMany(Purchase::class, 'id_supplier', 'id_Supplier');
     }
+    
 }

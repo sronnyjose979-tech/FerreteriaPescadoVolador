@@ -12,12 +12,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('purchases', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained(); // Bodeguero
-            $table->foreignId('id_Supplier')->constrained();
-            $table->dateTime('purchase_date');
-            $table->decimal('total', 12, 2);
-            $table->string('status', 20)->default('received');
+            $table->string('id_Purchase')->primary();
+
+            //$table->string('id_user');
+            $table->foreignId('id_user')->constrained('users', 'id');//Con esto trabajo solo con el unico usuario
+            $table->string('id_Supplier');
+
+            $table->foreign('id_Supplier')->references('id_Supplier')->on('suppliers');
+
+            $table->decimal('Purchase_Total', 12, 2);
+
+            $table->string('Purchase_status', 20);
+
             $table->timestamps();
         });
     }

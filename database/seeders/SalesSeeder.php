@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\Sales;
+use App\Models\Sale;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -13,7 +13,7 @@ class SalesSeeder extends Seeder
      */
     public function run(): void
     {
-         Sales::Truncate();
-        Sales::factory()->count(20)->create();
+         Sale::Truncate();
+        Sale::factory()->count(20)->create();
     }
 }

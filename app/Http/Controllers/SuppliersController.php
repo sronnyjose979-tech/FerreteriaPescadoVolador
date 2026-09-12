@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Suppliers;
+use App\Models\Supplier;
 use Illuminate\Http\Request;
 use App\Services\SupplierServices;
 use App\Http\Requests\StoreSupplierRequest;
@@ -21,7 +21,7 @@ class SuppliersController extends Controller
 
         $name = $request->input('name');
 
-        return Suppliers::when($name, function ($query, $name) {
+        return Supplier::when($name, function ($query, $name) {
             return $query->where('Supplier_First_name', 'like', "$name%");
         })
             ->paginate(10);
@@ -42,7 +42,7 @@ class SuppliersController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Suppliers $supplier)
+    public function show(Supplier $supplier)
     {
         return $supplier->load('products'); //Retorno el producto del supplier
     }
@@ -51,7 +51,7 @@ class SuppliersController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Suppliers $supplier)
+    public function update(Request $request, Supplier $supplier)
     {
         $ValidatedData = $request->validate([
             'id_Supplier' => ['required', Rule::unique('Supplier', 'id_Supplier')->ignore($supplier->id)],
@@ -68,7 +68,7 @@ class SuppliersController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Suppliers $supplier)
+    public function destroy(Supplier $supplier)
     {
         $supplier->delete();
         return response()->json(null, 204);

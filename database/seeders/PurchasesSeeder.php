@@ -2,8 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\Purchases;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Purchase;
 use Illuminate\Database\Seeder;
 
 class PurchasesSeeder extends Seeder
@@ -13,7 +12,7 @@ class PurchasesSeeder extends Seeder
      */
     public function run(): void
     {
-         Purchases::Truncate();
-        Purchases::factory()->count(20)->create();
+         Purchase::Truncate();
+        Purchase::factory()->count(20)->create();
     }
 }

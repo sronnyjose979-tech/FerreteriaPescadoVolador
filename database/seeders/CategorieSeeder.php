@@ -13,7 +13,7 @@ class CategorieSeeder extends Seeder
      */
     public function run(): void
     {
-         Categorie::Truncate();
+        Categorie::Truncate();
         Categorie::factory()->count(20)->create();
     }
 }

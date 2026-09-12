@@ -3,7 +3,8 @@
 use App\Http\Controllers\BrandsController;
 use App\Http\Controllers\CategoriesController;
 use App\Http\Controllers\ProductsController;
-use App\Models\Products;
+use App\Http\Controllers\SuppliersController;
+use App\Http\Controllers\UnitsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -40,5 +41,8 @@ Route::put('/units/{unit}', [UnitsController::class, 'update']);
 Route::delete('/units/{unit}', [UnitsController::class, 'destroy']);
 
 //crud de items de compra(rusell)
-
-
+Route::get('/Suppliers', [SuppliersController::class, 'index']);
+Route::post('/Suppliers', [SuppliersController::class, 'store']);
+Route::get('/Suppliers/{supplier}', [SuppliersController::class, 'show']);
+Route::put('/Suppliers/{supplier}', [SuppliersController::class, 'update']);
+Route::delete('/Suppliers/{supplier}', [SuppliersController::class, 'destroy']);

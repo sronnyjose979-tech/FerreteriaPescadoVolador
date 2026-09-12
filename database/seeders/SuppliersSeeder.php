@@ -12,7 +12,7 @@ class SuppliersSeeder extends Seeder
      */
     public function run(): void
     {
-        Suppliers::Truncate();
-        Suppliers::factory()->count(20)->create();
+        Supplier::Truncate();
+        Supplier::factory()->count(20)->create();
     }
 }

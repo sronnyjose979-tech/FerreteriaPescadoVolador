@@ -2,8 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\Order_Items;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Order_Item;
 use Illuminate\Database\Seeder;
 
 class OrderItemsSeeder extends Seeder
@@ -13,7 +12,7 @@ class OrderItemsSeeder extends Seeder
      */
     public function run(): void
     {
-        Order_Items::Truncate();
-        Order_Items::factory()->count(20)->create();
+        Order_Item::Truncate();
+        Order_Item::factory()->count(20)->create();
     }
 }

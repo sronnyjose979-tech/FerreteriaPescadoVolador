@@ -2,11 +2,14 @@
 
 namespace Database\Factories;
 
-
+use App\Models\Brand;
+use App\Models\Category;
+use App\Models\Product;
+use App\Models\Unit;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<Products>
+ * @extends Factory<Product>
  */
 class ProductFactory extends Factory
 {
@@ -18,9 +21,9 @@ class ProductFactory extends Factory
     public function definition(): array
     {
         return [
-            'category_id' => \App\Models\Category::factory(),
-            'brand_id' => \App\Models\Brand::factory(),
-            'unit_id' =>  \App\Models\Unit::factory(),
+            'category_id' => Category::inRandomOrder()->first()?->id ?? Category::factory(),
+            'brand_id' => Brand::inRandomOrder()->first()?->id ?? Brand::factory(),
+            'unit_id' => Unit::inRandomOrder()->first()?->id ?? Unit::factory(),
 
             // Datos comerciales
             'name' => fake()->words(3, true),
@@ -28,7 +31,7 @@ class ProductFactory extends Factory
             'sku' => fake()->unique()->numerify('FERR-#####'),
             'barcode' => fake()->unique()->ean13(),
 
-            // Precios e Impuestos 
+            // Precios e Impuestos
             'price' => fake()->randomFloat(2, 1000, 50000),
             'tax_rate' => 0.13,
 

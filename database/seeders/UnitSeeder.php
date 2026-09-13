@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Unit;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class UnitSeeder extends Seeder
@@ -13,7 +12,7 @@ class UnitSeeder extends Seeder
      */
     public function run(): void
     {
-        Unit::Truncate();
-        Unit::factory()->count(20)->create();
+        Unit::truncate();
+        Unit::factory()->count(3)->create();
     }
 }

@@ -10,22 +10,16 @@ class Brand extends Model
 {
     use HasFactory;
 
-    protected $table = 'brands';
-
-    protected $primaryKey = 'id_Brand';
-
-    public $timestamps = false;
-
     protected $fillable = [
-        'Brand_name',
+        'brand_name',
     ];
 
     /**
      * Productos de la marca.
-     * DER: Brands (1) — (N) Product via Product.id_brand
+     * DER: Brands (1) — (N) Product via Product.brand_id
      */
     public function products(): HasMany
     {
-        return $this->hasMany(Product::class, 'id_brand', 'id_Brand');
+        return $this->hasMany(Product::class, 'brand_id', 'id');
     }
 }

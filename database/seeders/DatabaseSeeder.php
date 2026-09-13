@@ -2,8 +2,13 @@
 
 namespace Database\Seeders;
 
+use App\Models\Brand;
+use App\Models\Category;
+use App\Models\Product;
+use App\Models\Purchase;
+use App\Models\PurchaseItem;
+use App\Models\Unit;
 use App\Models\User;
-use Database\Seeders\SupplierSeeder;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -16,6 +21,13 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        PurchaseItem::truncate();
+        Purchase::truncate();
+        Product::truncate();
+        Category::truncate();
+        Brand::truncate();
+        Unit::truncate();
+
         User::truncate();
 
         User::factory()->create([

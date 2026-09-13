@@ -9,27 +9,32 @@ use Illuminate\Http\Request;
 
 class BrandController extends Controller
 {
-    public function __construct(protected BrandService $brandsService) {}
+    public function __construct(protected BrandService $brandsService)// aqui se esta inyectando la clase BrandService para poder usarla en los funciones de este controlador
+    {
+        $this->brandsService = $brandsService;
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-        $data = Brand::all();
-        return $data;
+        $brands = Brand::paginate(10);
+
+        return $brands;
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreBrandRequest $request)
+    public function store(StoreBrandRequest $request) // menos de 10 lineas de codigo, se esta usando el request para validar los datos
     {
         $validated = $request->validated();
 
         $validated = $request->validated();
-        $product = $this->brandsService->createBrand($validated);
+        $brand = $this->brandsService->createBrand($validated);
 
-        return $product;
+        return $brand;
     }
 
     /**
@@ -37,8 +42,9 @@ class BrandController extends Controller
      */
     public function show(string $id)
     {
-        $brand = Brand::find($id);
-        //
+        $brand = Brand::findOrFail($id);
+
+        return $brand;
     }
 
     /**
@@ -46,7 +52,15 @@ class BrandController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $brand = Brand::findOrFail($id);
+
+        $validated = $request->validate([
+            'brand_name' => 'string|max:200',
+        ]);
+
+        $brand->update($validated);
+
+        return $brand;
     }
 
     /**
@@ -54,6 +68,11 @@ class BrandController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $brand = Brand::findOrFail($id);
+        $brand->delete();
+
+        $success = true;
+
+        return $success;
     }
 }

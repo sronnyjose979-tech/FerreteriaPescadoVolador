@@ -9,15 +9,20 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Category extends Model
 {
-    /** @use HasFactory<CategoriesFactory> */
+    /** @use HasFactory<CategoryFactory> */
     use HasFactory;
+
+    protected $fillable = [
+        'category_name',
+        'description',
+    ];
 
     /**
      * Productos de la categoría.
-     * DER: Category (1) — (N) Product via Product.id_Category
+     * DER: Category (1) — (N) Product via Product.category_id
      */
     public function products(): HasMany
     {
-        return $this->hasMany(Product::class, 'id_Category', 'id_Category');
+        return $this->hasMany(Product::class, 'category_id', 'id');
     }
 }

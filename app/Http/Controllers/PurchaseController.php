@@ -3,73 +3,56 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StorePurchaseRequest;
+use App\Http\Requests\UpdatePurchaseRequest;
 use App\Models\Purchase;
-use Illuminate\Http\Request;
 use App\Services\PurchaseService;
-use Illuminate\Validation\Rule;
-
+use Illuminate\Http\Request;
 
 class PurchaseController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-
-    public function __construct(public PurchaseService $purchaseService)
-    {
-        $this->purchaseService = $purchaseService;
-    }
+    public function __construct(public PurchaseService $purchaseService) {}
 
     public function index(Request $request)
     {
-        $id = $request->input('id');
-        return Purchase::when($id, function ($query, $id) {
-            return $query->where('id_Purchase', 'like', "$id%");
-        })
-            ->paginate(10);
+        return $this->purchaseService->listPaginated($request->all());
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StorePurchaseRequest $request)
+    public function store(Request $request)
     {
-        $validatedData = $request->validated(); //retornamos los datos validados, si no son validos retornará un error 422 en el request
+        if ($request->has('items')) {
+            $request->validate((new StorePurchaseRequest)->rules(), (new StorePurchaseRequest)->messages());
+            $purchase = $this->purchaseService->crearConDetalle($request->only(['id_Purchase', 'id_user', 'id_Supplier', 'Purchase_status', 'Purchase_Total']), $request->input('items'));
 
-        $purchase = $this->purchaseService->crear($validatedData); //llamamos al servicio para crear el pedido
-
-        if ($purchase->total > 1000) {
+            return response()->json($purchase, 201)->header('Location', url("/api/purchases/{$purchase->id_Purchase}"));
         }
-        return $purchase;
+
+        $validated = app(StorePurchaseRequest::class)->validated();
+        $purchase = $this->purchaseService->crear($validated);
+
+        return response()->json($purchase, 201)->header('Location', url("/api/purchases/{$purchase->id_Purchase}"));
     }
 
-    /**
-     * Display the specified resource.
-     */
+    public function storeSimple(StorePurchaseRequest $request)
+    {
+        $purchase = $this->purchaseService->crear($request->validated());
+
+        return response()->json($purchase, 201)->header('Location', url("/api/purchases/{$purchase->id_Purchase}"));
+    }
+
     public function show(Purchase $purchase)
     {
-        $purchase->load('purchaseItems');
-        return $purchase;
+        return $purchase->load('purchaseItems');
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Purchase $purchase)
+    public function update(UpdatePurchaseRequest $request, Purchase $purchase)
     {
-        $ValidatedData=$request->validate([
-         'id_Purchase' => ['required', Rule::unique('Purchase', 'id_Purchase')->ignore($purchase->id)],
-        ]);
-         $purchase->update($ValidatedData);
-        return $purchase;
+        return $this->purchaseService->actualizar($purchase, $request->validated());
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Purchase $purchase)
     {
-         $purchase->delete();
+        $this->purchaseService->eliminar($purchase);
+
         return response()->json(null, 204);
     }
 }

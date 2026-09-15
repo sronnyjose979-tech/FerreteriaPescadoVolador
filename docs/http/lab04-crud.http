@@ -1,0 +1,113 @@
+### Listado productos con paginacion, orden y filtros
+GET http://localhost:8000/api/products?per_page=10&sort=price&direction=desc&q=Martillo&category_id=1&brand_id=2
+Accept: application/json
+
+### Crear producto valido
+POST http://localhost:8000/api/products
+Content-Type: application/json
+Accept: application/json
+
+{
+  "category_id": 1,
+  "brand_id": 1,
+  "unit_id": 1,
+  "name": "Martillo Profesional 16oz",
+  "description": "Martillo de acero forjado",
+  "sku": "SKU-MART-016-999",
+  "barcode": "7501234567899",
+  "price": 12500.00,
+  "tax_rate": 13.00,
+  "stock_quantity": 45,
+  "minimum_stock": 10,
+  "maximum_stock": 100,
+  "weight": 0.45,
+  "image_url": "https://ferreteria-ucr.com/images/martillo-16oz.jpg",
+  "is_active": true
+}
+
+### Crear producto datos invalidos
+POST http://localhost:8000/api/products
+Content-Type: application/json
+Accept: application/json
+
+{
+  "name": "",
+  "price": -5,
+  "sku": "SKU-MART-016-001"
+}
+
+### Actualizar producto
+PUT http://localhost:8000/api/products/1
+Content-Type: application/json
+Accept: application/json
+
+{
+  "price": 13500.00,
+  "stock_quantity": 50
+}
+
+### Eliminar producto con dependencias (espera 409)
+DELETE http://localhost:8000/api/products/1
+Accept: application/json
+
+### Listado proveedores paginado
+GET http://localhost:8000/api/suppliers?per_page=5&sort=Supplier_First_name&direction=asc&q=Juan
+Accept: application/json
+
+### Crear proveedor
+POST http://localhost:8000/api/suppliers
+Content-Type: application/json
+Accept: application/json
+
+{
+  "id_Supplier": "SUP999",
+  "Supplier_First_name": "Juan",
+  "Supplier_Last_name": "Perez",
+  "Supplier_Phone": "88888888",
+  "Supplier_Address": "Calle 1",
+  "Supplier_Email": "juan.perez@example.com",
+  "Supplier_Type": "Herramientas"
+}
+
+### Crear compra con detalle y descuento
+POST http://localhost:8000/api/purchases
+Content-Type: application/json
+Accept: application/json
+
+{
+  "id_Purchase": "PUR-100",
+  "id_user": 1,
+  "id_Supplier": "SUP999",
+  "Purchase_status": "pendiente",
+  "Purchase_Total": 11400,
+  "items": [
+    {"id_product": 1, "quantity": 2, "unit_cost": 6000, "subtotal": 12000}
+  ]
+}
+
+### Crear compra sin detalle (espera 422)
+POST http://localhost:8000/api/purchases
+Content-Type: application/json
+Accept: application/json
+
+{
+  "id_Purchase": "PUR-101",
+  "id_user": 1,
+  "id_Supplier": "SUP999",
+  "Purchase_status": "pendiente",
+  "Purchase_Total": 0,
+  "items": []
+}
+
+### Crear detalle con subtotal incoherente (espera 422)
+POST http://localhost:8000/api/purchaseItems
+Content-Type: application/json
+Accept: application/json
+
+{
+  "id_Purchase": "PUR-100",
+  "id_product": 1,
+  "quantity": 2,
+  "unit_cost": 100,
+  "subtotal": 999
+}

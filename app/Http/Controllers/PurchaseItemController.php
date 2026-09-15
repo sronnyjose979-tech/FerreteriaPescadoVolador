@@ -2,77 +2,41 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\PurchaseItem;
-use Illuminate\Http\Request;
-use App\Services\PurchaseItemService;
 use App\Http\Requests\StorePurchaseItemRequest;
-
+use App\Http\Requests\UpdatePurchaseItemRequest;
+use App\Models\PurchaseItem;
+use App\Services\PurchaseItemService;
+use Illuminate\Http\Request;
 
 class PurchaseItemController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function __construct(public PurchaseItemService $purchaseItemService)
-    {
-        $this->purchaseItemService = $purchaseItemService;
-    }
+    public function __construct(public PurchaseItemService $purchaseItemService) {}
 
     public function index(Request $request)
     {
-        $id = $request->input('id');
-        return PurchaseItem::when($id, function ($query, $id) {
-            return $query->where('id_PurchaseItem', 'like', "$id%");
-        })
-            ->paginate(10);
+        return $this->purchaseItemService->listPaginated($request->all());
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(StorePurchaseItemRequest $request)
     {
-        $validatedData = $request->validated();
+        $item = $this->purchaseItemService->crear($request->validated());
 
-        $purchaseItem = $this->purchaseItemService->crear($validatedData);
-
-        return $purchaseItem;
+        return response()->json($item, 201)->header('Location', url("/api/purchaseItems/{$item->id}"));
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(PurchaseItem $purchaseItem)
     {
-        $purchaseItem->load(['purchase', 'product']);
-
-        return $purchaseItem;
+        return $purchaseItem->load(['purchase', 'product']);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, PurchaseItem $purchaseItem)
+    public function update(UpdatePurchaseItemRequest $request, PurchaseItem $purchaseItem)
     {
-        $validatedData = $request->validate([
-            'quantity' => ['required', 'integer', 'min:1'],
-
-            'unit_cost' => ['required', 'numeric', 'min:0'],
-
-            'subtotal' => ['required', 'numeric', 'min:0'],
-        ]);
-
-        $purchaseItem->update($validatedData);
-
-        return $purchaseItem;
+        return $this->purchaseItemService->actualizar($purchaseItem, $request->validated());
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(PurchaseItem $purchaseItem)
     {
-        $purchaseItem->delete();
+        $this->purchaseItemService->eliminar($purchaseItem);
 
         return response()->json(null, 204);
     }

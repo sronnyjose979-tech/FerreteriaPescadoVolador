@@ -14,51 +14,30 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 // crud de productos
-Route::get('/products', [ProductController::class, 'index']);
-Route::post('/products', [ProductController::class, 'store']);
+Route::apiResource('/products', ProductController::class);
 Route::get('/products/inventory-summary', [ProductController::class, 'inventorySummary']);
-Route::get('/products/{product}', [ProductController::class, 'show']);
-Route::put('/products/{product}', [ProductController::class, 'update']);
-Route::delete('/products/{product}', [ProductController::class, 'destroy']);
 
 //crud de categorias
-Route::get('/categories', [CategoryController::class, 'index']);
-Route::post('/categories', [CategoryController::class, 'store']);
-Route::get('/categories/{category}', [CategoryController::class, 'show']);
-Route::put('/categories/{category}', [CategoryController::class, 'update']);
-Route::delete('/categories/{category}', [CategoryController::class, 'destroy']);
+Route::apiResource('/categories', CategoryController::class);
 
 //crud de marcas
-Route::get('/brands', [BrandController::class, 'index']);
-Route::post('/brands', [BrandController::class, 'store']);
-Route::get('/brands/{brand}', [BrandController::class, 'show']);
-Route::put('/brands/{brand}', [BrandController::class, 'update']);
-Route::delete('/brands/{brand}', [BrandController::class, 'destroy']);
+Route::apiResource('/brands', BrandController::class);
 
 //crud de unidades de medida
-Route::get('/units', [UnitController::class, 'index']);
-Route::post('/units', [UnitController::class, 'store']);
-Route::get('/units/{unit}', [UnitController::class, 'show']);
-Route::put('/units/{unit}', [UnitController::class, 'update']);
-Route::delete('/units/{unit}', [UnitController::class, 'destroy']);
+Route::apiResource('/units', UnitController::class);
+
 
 //crud de supplies(Russell)
-Route::get('/suppliers', [SuppliersController::class, 'index']);
-Route::post('/suppliers', [SuppliersController::class, 'store']);
-Route::get('/suppliers/{supplier}', [SuppliersController::class, 'show']);
-Route::put('/suppliers/{supplier}', [SuppliersController::class, 'update']);
-Route::delete('/suppliers/{supplier}', [SuppliersController::class, 'destroy']);
+Route::apiResource('/suppliers', SuppliersController::class);
+
+//crud de purchase(Russell)
+Route::apiResource('/purchases', PurchaseController::class);
+
+
 
 //curd de purchase(Russell)
-Route::get('/purchases', [PurchaseController::class, 'index']);
-Route::post('/purchases', [PurchaseController::class, 'store']);
-Route::get('/purchases/{purchase}', [PurchaseController::class, 'show']);
-Route::put('/purchases/{purchase}', [PurchaseController::class, 'update']);
-Route::delete('/purchases/{purchase}', [PurchaseController::class, 'destroy']);
+Route::apiResource('/purchases', PurchaseItemController::class);
+
 
 //crud de purchaseItems(Russell)
-Route::get('/purchaseItems', [PurchaseItemController::class, 'index']);
-Route::post('/purchaseItems', [PurchaseItemController::class, 'store']);
-Route::get('/purchaseItems/{purchaseItem}', [PurchaseItemController::class, 'show']);
-Route::put('/purchaseItems/{purchaseItem}', [PurchaseItemController::class, 'update']);
-Route::delete('/purchaseItems/{purchaseItem}', [PurchaseItemController::class, 'destroy']);
+Route::apiResource('/purchaseItems', PurchaseItemController::class);

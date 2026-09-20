@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StorePurchaseItemRequest;
 use App\Http\Requests\UpdatePurchaseItemRequest;
+use App\Http\Resources\PurchaseItemResource;
 use App\Models\PurchaseItem;
 use App\Services\PurchaseItemService;
 use Illuminate\Http\Request;
@@ -14,24 +15,36 @@ class PurchaseItemController extends Controller
 
     public function index(Request $request)
     {
-        return $this->purchaseItemService->listPaginated($request->all());
+        $purchaseItems = $this->purchaseItemService->listPaginated($request->all());
+        return PurchaseItemResource::collection($purchaseItems);
     }
 
     public function store(StorePurchaseItemRequest $request)
     {
         $item = $this->purchaseItemService->crear($request->validated());
 
-        return response()->json($item, 201)->header('Location', url("/api/purchaseItems/{$item->id}"));
+        return (new PurchaseItemResource($item))
+            ->response()
+            ->setStatusCode(201)
+            ->header(
+                'Location',
+                url("/api/purchase-items/{$item->id}")
+            );
     }
 
     public function show(PurchaseItem $purchaseItem)
     {
-        return $purchaseItem->load(['purchase', 'product']);
+        return new PurchaseItemResource($purchaseItem);
     }
 
     public function update(UpdatePurchaseItemRequest $request, PurchaseItem $purchaseItem)
     {
-        return $this->purchaseItemService->actualizar($purchaseItem, $request->validated());
+        $purchaseItems = $this->purchaseItemService->actualizar(
+            $purchaseItem,
+            $request->validated()
+        );
+
+        return new PurchaseItemResource($purchaseItems);
     }
 
     public function destroy(PurchaseItem $purchaseItem)

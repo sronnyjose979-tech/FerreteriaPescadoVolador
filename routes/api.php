@@ -12,7 +12,7 @@ use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\PurchaseItemController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\ShoppingCartController;
-use App\Http\Controllers\SuppliersController;
+use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\UnitController;
 use App\Models\CustomerAddress;
 use Illuminate\Http\Request;
@@ -53,7 +53,7 @@ Route::middleware('auth:sanctum')->group(function () {
     //CRUD DE PURCHASE
     Route::apiResource('purchase', PurchaseController::class);
     //CRUD DE SUPPLIER
-    Route::apiResource('supplier', SuppliersController::class);
+    Route::apiResource('supplier', SupplierController::class);
     //CRUD DE PURCHASEITEM 
     Route::apiResource('purchase-items', PurchaseItemController::class);
     //CRUD DE CUSTOMER

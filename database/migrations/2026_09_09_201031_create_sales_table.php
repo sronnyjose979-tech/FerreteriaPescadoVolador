@@ -15,12 +15,12 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained(); // El cajero
             $table->string('id_Customer')->nullable();
-            $table->foreign('id_Customer')->references('id_Customer')->on('customers')->nullOnDelete(); // Cliente (null si es venta de contado rápida)
+            $table->foreign('id_Customer')->references('id_Customer')->on('customers')->nullOnDelete(); 
             $table->foreignId('order_id')->nullable()->constrained(); // Si viene de la web
             $table->dateTime('sale_date');
             $table->decimal('total', 12, 2);
-            $table->decimal('tax_amount', 12, 2)->default(0); // Sugerencia de revisión
-            $table->decimal('discount', 12, 2)->default(0);   // Sugerencia de revisión
+            $table->decimal('tax_amount', 12, 2)->default(0); 
+            $table->decimal('discount', 12, 2)->default(0);   
             $table->string('status', 20)->default('completed');
             $table->timestamps();
         });
@@ -34,3 +34,4 @@ return new class extends Migration
         Schema::dropIfExists('sales');
     }
 };
+ //$table->string('id_Customer')->primary();

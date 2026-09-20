@@ -18,7 +18,7 @@ class CartItem extends Model
      */
     public function shoppingCart(): BelongsTo
     {
-        return $this->belongsTo(Shoppingcart::class, 'Cart_id', 'id_shopping_cart');
+        return $this->belongsTo(Shoppingcart::class,);
     }
 
     /**
@@ -27,6 +27,6 @@ class CartItem extends Model
      */
     public function product(): BelongsTo
     {
-        return $this->belongsTo(Product::class, 'Product_id', 'id_Product');
+        return $this->belongsTo(Product::class);
     }
 }

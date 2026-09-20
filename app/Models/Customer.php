@@ -18,7 +18,7 @@ class Customer extends Model
      */
     public function addresses(): HasMany
     {
-        return $this->hasMany(CustomerAddress::class, 'id_customer', 'id_Customer');
+        return $this->hasMany(CustomerAddress::class);
     }
 
     /**
@@ -27,7 +27,7 @@ class Customer extends Model
      */
     public function orders(): HasMany
     {
-        return $this->hasMany(Order::class, 'id_customer', 'id_Customer');
+        return $this->hasMany(Order::class);
     }
 
     /**
@@ -36,7 +36,7 @@ class Customer extends Model
      */
     public function sales(): HasMany
     {
-        return $this->hasMany(Sale::class, 'id_customer', 'id_Customer');
+        return $this->hasMany(Sale::class);
     }
 
     /**
@@ -45,6 +45,6 @@ class Customer extends Model
      */
     public function shoppingCarts(): HasMany
     {
-        return $this->hasMany(ShoppingCart::class, 'Customer_id', 'id_Customer');
+        return $this->hasMany(ShoppingCart::class);
     }
 }

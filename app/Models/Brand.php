@@ -20,6 +20,8 @@ class Brand extends Model
      */
     public function products(): HasMany
     {
-        return $this->hasMany(Product::class, 'brand_id', 'id');
+        //cuando se crea la migracion de forma de laravel con id, se puede usar asi,
+        // si no se debe especificar el nombre de la llave primari
+        return $this->hasMany(Product::class);
     }
 }

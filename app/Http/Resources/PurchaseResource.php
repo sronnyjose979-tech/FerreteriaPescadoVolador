@@ -5,7 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class PurchaseResource extends JsonResource
+class PurchaseResource extends JsonResource //esto 
 {
     /**
      * Transform the resource into an array.
@@ -16,7 +16,7 @@ class PurchaseResource extends JsonResource
     {
         // return parent::toArray($request);
         return [
-            'id_Purchase',
+            'id_Purchase', //falto poner el id de la compra
             'id_user' => $this->id_user,
             'id_Supplier' => $this->id_Supplier,
             'Purchase_Total' => $this->Purchase_Total,

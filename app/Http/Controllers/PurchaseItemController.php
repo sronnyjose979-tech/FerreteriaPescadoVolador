@@ -8,6 +8,7 @@ use App\Http\Resources\PurchaseItemResource;
 use App\Models\PurchaseItem;
 use App\Services\PurchaseItemService;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Attributes\Controllers\Authorize;
 
 class PurchaseItemController extends Controller
 {
@@ -19,6 +20,7 @@ class PurchaseItemController extends Controller
         return PurchaseItemResource::collection($purchaseItems);
     }
 
+    #[Authorize('view', 'PurchaseItem')]
     public function store(StorePurchaseItemRequest $request)
     {
         $item = $this->purchaseItemService->crear($request->validated());

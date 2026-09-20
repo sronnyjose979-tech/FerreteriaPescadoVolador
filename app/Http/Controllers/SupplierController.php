@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreSupplierRequest;
 use App\Http\Requests\UpdateSupplierRequest;
+use App\Http\Resources\SupplierResource;
 use App\Models\Supplier;
 use App\Services\SupplierServices;
 use Illuminate\Http\Request;
@@ -14,7 +15,10 @@ class SupplierController extends Controller
 
     public function index(Request $request)
     {
-        return $this->orderSupplier->listPaginated($request->all());
+        //return $this->orderSupplier->listPaginated($request->all());
+        $suppliers = $this->orderSupplier->listPaginated($request->all());
+
+        return SupplierResource::collection($suppliers);
     }
 
     public function store(StoreSupplierRequest $request)
@@ -26,7 +30,8 @@ class SupplierController extends Controller
 
     public function show(Supplier $supplier)
     {
-        return $supplier->load('purchases');
+        //return $supplier->load('purchases');
+        return new SupplierResource($supplier);
     }
 
     public function update(UpdateSupplierRequest $request, Supplier $supplier)

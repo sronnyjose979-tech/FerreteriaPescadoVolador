@@ -2,47 +2,66 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreCustomerRequest;
+use App\Http\Requests\UpdateCustomerRequest;
+use App\Http\Resources\CustomerResource;
+use App\Services\CustomerServices;
 use Illuminate\Http\Request;
+use App\Models\Customer;
 
 class CustomerController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function __construct(public CustomerServices $customer)
     {
-        //
+        $this->customer = $customer;
+    }
+    public function index(Request $request)
+    {
+        $customer = $this->customer->listPaginated($request->all());
+
+        return CustomerResource::collection($customer);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreCustomerRequest $request)
     {
-        //
+        $customer = $this->customer->crear($request->validated());
+
+        return response()->json($customer, 201);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Customer $customer)
     {
-        //
+        return new CustomerResource($customer);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(UpdateCustomerRequest $request, Customer $customer)
     {
-        //
+        $customer = $this->customer->actualizar(
+            $customer,
+            $request->validated()
+        );
+
+        return new CustomerResource($customer);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Customer $customer)
     {
-        //
+        $this->customer->eliminar($customer);
+        return response()->json(null, 204);
     }
 }

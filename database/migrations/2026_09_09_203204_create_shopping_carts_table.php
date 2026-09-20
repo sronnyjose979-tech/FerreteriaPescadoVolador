@@ -13,7 +13,9 @@ return new class extends Migration
     {
         Schema::create('shopping_carts', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('customer_id')->constrained()->cascadeOnDelete();
+            
+            $table->string('id_Customer');
+            $table->foreign('id_Customer')->references('id_Customer')->on('customers')->cascadeOnDelete();
             $table->timestamps();
         });
     }

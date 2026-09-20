@@ -5,30 +5,23 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
+use Illuminate\Http\Request as LoginRequest;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
-
 class LoginController extends Controller
 {
-     public function __invoke(Request $request): JsonResponse
+    public function __invoke(LoginRequest $request): JsonResponse
     {
-        $usuario = User::where('email', $request->email)->first();
+        $usuario = User::where('email', $request->email)->first(); //bucsa el usuario por correo, si no existe devuelve null
 
         // Mensaje idéntico exista o no la cuenta
-        if (! $usuario || ! Hash::check($request->password, $usuario->password)) {
+        if (! $usuario || ! Hash::check($request->password, $usuario->password)) { // si el usuario no existe o la contraseña no coincide
             throw ValidationException::withMessages([
                 'email' => ['Las credenciales proporcionadas son incorrectas.'],
             ]);
         }
-       // $token = $usuario->createToken($request->device_name ?? 'default'); PARA EL NOMBRE DEL DISPOSITIVO
-        $token = $usuario->createToken(
-            name: 'api'
-            /* name: 'api',
-        abilities: ['pedidos:leer', 'pedidos:escribir'],
-        expiresAt: now()->addMinutes(30)*/
-            //asi queda sencillo
-        );
+
+        $token = $usuario->createToken('api');
 
         return response()->json(['token' => $token->plainTextToken], 200);
     }

@@ -13,10 +13,8 @@ class Product extends Model
     /** @use HasFactory<ProductsFactory> */
     use HasFactory;
 
-    protected $fillable = [
-        'category_id',
-        'brand_id',
-        'unit_id',
+    protected $fillable = [  
+        
         'name',
         'description',
         'sku',
@@ -27,14 +25,17 @@ class Product extends Model
         'minimum_stock',
         'maximum_stock',
         'weight',
-        'image_url',
         'is_active'
     ];
 
-    protected $hidden = [
+    protected $hidden = [//los que no se van a mostrar 
         'created_at',
         'updated_at',
-        'deleted_at'
+        'deleted_at',
+        'image_url',
+        'category_id',
+        'brand_id',
+        'unit_id',
     ];
 
 
@@ -57,7 +58,7 @@ class Product extends Model
      */
     public function brand(): BelongsTo
     {
-        return $this->belongsTo(Brand::class, 'id_brand', 'id_Brand');
+        return $this->belongsTo(Brand::class);
     }
 
     /**
@@ -66,7 +67,7 @@ class Product extends Model
      */
     public function category(): BelongsTo
     {
-        return $this->belongsTo(Category::class, 'id_Category', 'id_Category');
+        return $this->belongsTo(Category::class);
     }
 
     /**
@@ -75,7 +76,7 @@ class Product extends Model
      */
     public function unit(): BelongsTo
     {
-        return $this->belongsTo(Unit::class, 'id_unit', 'id_unit');
+        return $this->belongsTo(Unit::class);
     }
 
     /**
@@ -84,7 +85,7 @@ class Product extends Model
      */
     public function saleItems(): HasMany
     {
-        return $this->hasMany(SaleItem::class, 'id_product', 'id_Product');
+        return $this->hasMany(SaleItem::class, );
     }
 
     /**
@@ -93,7 +94,7 @@ class Product extends Model
      */
     public function orderItems(): HasMany
     {
-        return $this->hasMany(OrderItem::class, 'id_product', 'id_Product');
+        return $this->hasMany(OrderItem::class);
     }
 
     /**
@@ -102,7 +103,7 @@ class Product extends Model
      */
     public function cartItems(): HasMany
     {
-        return $this->hasMany(CartItem::class, 'Product_id', 'id_Product');
+        return $this->hasMany(CartItem::class);
     }
 
     /**
@@ -111,7 +112,7 @@ class Product extends Model
      */
     public function purchaseItems(): HasMany
     {
-        return $this->hasMany(PurchaseItem::class, 'id_product', 'id_Product');
+        return $this->hasMany(PurchaseItem::class);
     }
 
     /**
@@ -120,7 +121,7 @@ class Product extends Model
      */
     public function inventoryMovements(): HasMany
     {
-        return $this->hasMany(InventoryMovement::class, 'id_product', 'id_Product');
+        return $this->hasMany(InventoryMovement::class);
     }
 
     public function scopeActive($query)

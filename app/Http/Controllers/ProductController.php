@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
+use App\Http\Resources\ProductResource;
 use App\Models\Product;
 use App\Services\ProductService;
 use Illuminate\Http\Request;
@@ -15,7 +16,8 @@ class ProductController extends Controller
 
     public function index(Request $request)
     {
-        return $this->productService->listPaginated($request->all());
+     $product = $this->productService->listPaginated($request->all());
+        return ProductResource::collection($product);
     }
 
     public function inventorySummary()
@@ -39,7 +41,7 @@ class ProductController extends Controller
 
     public function show(string $id)
     {
-        return Product::with(['category', 'brand', 'unit'])->findOrFail($id);
+        return Product::with(['Category', 'Brand', 'Unit'])->findOrFail($id);
     }
 
     public function update(UpdateProductRequest $request, string $id)

@@ -50,9 +50,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
     //CRUD DE PURCHASE (Russell)
-    Route::apiResource('purchase', PurchaseController::class);
+    Route::apiResource('purchases', PurchaseController::class);
     //CRUD DE SUPPLIER (Russell)
-    Route::apiResource('supplier', SuppliersController::class);
+    Route::apiResource('suppliers', SuppliersController::class);
     //CRUD DE PURCHASEITEM (Russell)
     Route::apiResource('purchase-items', PurchaseItemController::class);
 

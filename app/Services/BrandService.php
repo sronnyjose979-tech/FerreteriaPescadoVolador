@@ -1,15 +1,39 @@
 <?php
 
-namespace App\Services; // esto es para indicar que esta clase pertenece a la carpeta Services
+namespace App\Services;
 
-use App\Models\Brand; // esto es para indicar que esta clase pertenece a la carpeta Models
+use App\Models\Brand;
+use Illuminate\Pagination\LengthAwarePaginator;
 
-class BrandService // esta clase se encarga de manejar la logica de negocio de las marcas
+class BrandService
 {
-    public function createBrand(array $validated)// aqui se va crear una marca, se recibe un array de datos validados
+    public function createBrand(array $validated)
     {
-        $brand = Brand::create($validated);
+        return Brand::create($validated);
+    }
 
-        return $brand;
+    public function listPaginated(array $filters): LengthAwarePaginator
+    {
+        $perPage = (int) ($filters['per_page'] ?? 10);
+        $perPage = max(1, min($perPage, 50));
+        $sort = $filters['sort'] ?? 'id';
+        $direction = $filters['direction'] ?? 'asc';
+        
+        $allowedSorts = ['brand_name', 'id', 'created_at'];
+        if (! in_array($sort, $allowedSorts, true)) {
+            $sort = 'id';
+        }
+
+        $query = Brand::query();
+
+        // Buscar por nombre de la marca
+        if (! empty($filters['q'])) {
+            $q = $filters['q'];
+            $query->where('brand_name', 'like', "%{$q}%");
+        }
+
+        return $query->orderBy($sort, $direction)
+                     ->paginate($perPage)
+                     ->withQueryString();
     }
 }

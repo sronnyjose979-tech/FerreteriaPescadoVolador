@@ -25,7 +25,7 @@ class SupplierController extends Controller
     {
         $supplier = $this->orderSupplier->crear($request->validated());
 
-        return response()->json($supplier, 201)->header('Location', url("/api/suppliers/{$supplier->id_Supplier}"));
+        return response()->json($supplier, 201);
     }
 
     public function show(Supplier $supplier)
@@ -36,7 +36,7 @@ class SupplierController extends Controller
 
     public function update(UpdateSupplierRequest $request, Supplier $supplier)
     {
-       $supplier = $this->orderSupplier->actualizar(
+        $supplier = $this->orderSupplier->actualizar(
             $supplier,
             $request->validated()
         );

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StorePurchaseRequest;
 use App\Http\Requests\UpdatePurchaseRequest;
+use App\Http\Resources\PurchaseResource;
 use App\Models\Purchase;
 use App\Services\PurchaseService;
 use Illuminate\Http\Request;
@@ -14,7 +15,8 @@ class PurchaseController extends Controller
 
     public function index(Request $request)
     {
-        return $this->purchaseService->listPaginated($request->all());
+        $purchase = $this->purchaseService->listPaginated($request->all());
+        return PurchaseResource::collection($purchase);
     }
 
     public function store(Request $request)
@@ -41,7 +43,8 @@ class PurchaseController extends Controller
 
     public function show(Purchase $purchase)
     {
-        return $purchase->load('purchaseItems');
+        // return $purchase->load('purchaseItems');
+        return new PurchaseResource($purchase);
     }
 
     public function update(UpdatePurchaseRequest $request, Purchase $purchase)

@@ -36,7 +36,12 @@ class SupplierController extends Controller
 
     public function update(UpdateSupplierRequest $request, Supplier $supplier)
     {
-        return $this->orderSupplier->actualizar($supplier, $request->validated());
+       $supplier = $this->orderSupplier->actualizar(
+            $supplier,
+            $request->validated()
+        );
+
+        return new SupplierResource($supplier);
     }
 
     public function destroy(Supplier $supplier)

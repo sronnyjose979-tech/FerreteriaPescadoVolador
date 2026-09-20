@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('sales', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained(); // El cajero
-            $table->foreignId('customer_id')->nullable()->constrained(); // Cliente (null si es venta de contado rápida)
+            $table->string('id_Customer')->nullable();
+            $table->foreign('id_Customer')->references('id_Customer')->on('customers')->nullOnDelete(); // Cliente (null si es venta de contado rápida)
             $table->foreignId('order_id')->nullable()->constrained(); // Si viene de la web
             $table->dateTime('sale_date');
             $table->decimal('total', 12, 2);

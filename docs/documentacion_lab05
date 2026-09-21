@@ -1,0 +1,38 @@
+# Laboratorio 5 - API REST y Documentación
+
+**Curso:** Desarrollo Back-end  
+**Tema:** Capa de Controladores y API REST  
+**Modalidad:** Trabajo en equipo
+
+---
+
+## 1. Decisiones de Diseño
+
+### Diseño de Rutas y API Resources
+Para esta entrega, acomodamos todas las rutas del sistema para que sigan el estándar REST. Ahora todas las rutas usan sustantivos en plural (como `/products` o `/categories`) y les quitamos los verbos que tenían antes.
+
+Además, implementamos los **API Resources** en los controladores. Esto lo hicimos para no devolver los modelos de la base de datos directamente al front-end. Así, si algún día cambiamos el nombre de una columna en la base de datos, el JSON que devuelve la API sigue siendo exactamente igual y no rompemos nada. También aprovechamos para estandarizar los nombres de las variables a minúsculas y guiones bajos (`snake_case`).
+
+### Códigos de Estado y Manejo de Errores
+En los controladores, nos aseguramos de usar los métodos HTTP y códigos de estado correctos para cada acción:
+* **GET:** Devuelve `200 OK`.
+* **POST:** Devuelve `201 Created` cuando se guarda un registro nuev.
+* **DELETE:** Devuelve `204 No Content` cuando se elimina algo (sin devolver nada en el body).
+
+Para los errores, centralizamos las excepciones para que la API no muestre las trazas de pila (esos errores de código gigantes). 
+* Si se busca un ID que no existe, la API da `404 Not Found`.
+* Si fallan las validaciones de los datos que envía el usuario, da `422 Unprocessable Entity` y te dice qué campo falló
+* Si intentan hacer algo sin tener permisos, da `403 Forbidden`.
+
+
+## 2. Propuesta de Microservicio
+
+**Microservicio elegido:** Servicio de Notificaciones y Envío de Facturas por Correo.
+
+**Justificación técnica:**
+Como grupo, elegimos sacar este proceso de la API principal porque generar un PDF y enviarlo por correo es una tarea pesada y lenta. Si lo dejamos en la API principal (el monolito), cada vez que un cliente compre algo, el sistema se va a quedar "pegado" esperando a que el correo salga para poder responderle a la caja. 
+
+Al separarlo en un microservicio, nuestra API de ventas solo registra la compra rápido, le avisa a la caja que todo está listo, y le manda un mensajito al microservicio para que él se encargue de armar el PDF y enviar el correo por detrás. Así el sistema principal no se traba.
+
+
+

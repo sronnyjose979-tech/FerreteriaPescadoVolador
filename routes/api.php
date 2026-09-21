@@ -65,5 +65,4 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('/shopping-carts', ShoppingCartController::class);
     Route::apiResource('/cart-items', Cart_ItemController::class);
     Route::apiResource('/customer-addresses', CustomerAddress::class);
-    Route::apiResource('/order-items', OrderItemController::class);
 });

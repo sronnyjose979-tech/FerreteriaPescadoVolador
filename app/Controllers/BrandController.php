@@ -10,47 +10,30 @@ use Illuminate\Http\Request;
 
 class BrandController extends Controller
 {
-    public function __construct(protected BrandService $brandsService) // aqui se esta inyectando la clase BrandService para poder usarla en los funciones de este controlador
+    public function __construct(protected BrandService $brandsService)
     {
         $this->brandsService = $brandsService;
     }
 
-    /**
-     * Display a listing of the resource.
-     */
     public function index(Request $request)
     {
          $brand = $this->brandsService->listPaginated($request->all());
-        return BrandResource::collection($brand);
-       
+         return BrandResource::collection($brand);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreBrandRequest $request) // menos de 10 lineas de codigo, se esta usando el request para validar los datos
+    public function store(StoreBrandRequest $request)
     {
-        $validated = $request->validated();
-
         $validated = $request->validated();
         $brand = $this->brandsService->createBrand($validated);
 
-        return $brand;
+        return response()->json(new BrandResource($brand), 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Brand $brand)
     {
-              return new BrandResource($brand);
-
-       
+        return new BrandResource($brand);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, string $id)
     {
         $brand = Brand::findOrFail($id);
@@ -61,19 +44,14 @@ class BrandController extends Controller
 
         $brand->update($validated);
 
-        return $brand;
+        return new BrandResource($brand);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(string $id)
     {
         $brand = Brand::findOrFail($id);
         $brand->delete();
 
-        $success = true;
-
-        return $success;
+        return response()->json(null, 204);
     }
 }

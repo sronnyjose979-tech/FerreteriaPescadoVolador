@@ -10,46 +10,32 @@ use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
-    public function __construct(protected CategoryService $categoryService) // aqui se esta inyectando la clase CategoryService para poder usarla en los funciones de este controlador
+    public function __construct(protected CategoryService $categoryService)
     {
-        
+        $this->categoryService = $categoryService;
     }
 
-    /**
-     * Display a listing of the resource.
-     */
     public function index(Request $request)
     {
         $category = $this->categoryService->listPaginated($request->all());
         return CategoryResource::collection($category);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreCategoryRequest $request) // menos de 10 lineas de codigo, se esta usando el request para validar los datos
+    public function store(StoreCategoryRequest $request)
     {
-        $validated = $request->validated();
-
         $validated = $request->validated();
         $category = $this->categoryService->createCategory($validated);
 
-        return $category;
+        return response()->json(new CategoryResource($category), 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(string $id)
     {
         $category = Category::findOrFail($id);
 
-        return $category;
+        return new CategoryResource($category);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, string $id)
     {
         $category = Category::findOrFail($id);
@@ -61,19 +47,14 @@ class CategoryController extends Controller
 
         $category->update($validated);
 
-        return $category;
+        return new CategoryResource($category);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(string $id)
     {
         $category = Category::findOrFail($id);
         $category->delete();
 
-        $success = true;
-
-        return $success;
+        return response()->json(null, 204);
     }
 }

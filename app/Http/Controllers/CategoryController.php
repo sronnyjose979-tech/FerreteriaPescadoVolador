@@ -3,15 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreCategoryRequest;
+use App\Http\Resources\CategoryResource;
 use App\Models\Category;
 use App\Services\CategoryService;
 use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
-    public function __construct(protected CategoryService $categoryService)// aqui se esta inyectando la clase CategoryService para poder usarla en los funciones de este controlador
+    public function __construct(protected CategoryService $categoryService) // aqui se esta inyectando la clase CategoryService para poder usarla en los funciones de este controlador
     {
-        $this->categoryService = $categoryService;
+        
     }
 
     /**
@@ -19,9 +20,8 @@ class CategoryController extends Controller
      */
     public function index(Request $request)
     {
-        $categories = Category::paginate(10);
-
-        return $categories;
+        $category = $this->categoryService->listPaginated($request->all());
+        return CategoryResource::collection($category);
     }
 
     /**

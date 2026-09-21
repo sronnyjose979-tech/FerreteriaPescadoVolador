@@ -49,12 +49,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('/sale-items', SaleController::class);
  
 
-
-    //CRUD DE PURCHASE
-    Route::apiResource('purchase', PurchaseController::class);
-    //CRUD DE SUPPLIER
-    Route::apiResource('supplier', SupplierController::class);
-    //CRUD DE PURCHASEITEM 
+    //CRUD DE PURCHASE (Russell)
+    Route::apiResource('purchases', PurchaseController::class);
+    //CRUD DE SUPPLIER (Russell)
+    Route::apiResource('suppliers', SupplierController::class);
+    //CRUD DE PURCHASEITEM (Russell)
     Route::apiResource('purchase-items', PurchaseItemController::class);
     //CRUD DE CUSTOMER
     Route::apiResource('/customers', CustomerController::class);

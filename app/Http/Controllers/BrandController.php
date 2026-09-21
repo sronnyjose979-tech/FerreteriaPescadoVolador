@@ -3,13 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreBrandRequest;
+use App\Http\Resources\BrandResource;
 use App\Models\Brand;
 use App\Services\BrandService;
 use Illuminate\Http\Request;
 
 class BrandController extends Controller
 {
-    public function __construct(protected BrandService $brandsService)// aqui se esta inyectando la clase BrandService para poder usarla en los funciones de este controlador
+    public function __construct(protected BrandService $brandsService) // aqui se esta inyectando la clase BrandService para poder usarla en los funciones de este controlador
     {
         $this->brandsService = $brandsService;
     }
@@ -19,9 +20,9 @@ class BrandController extends Controller
      */
     public function index(Request $request)
     {
-        $brands = Brand::paginate(10);
-
-        return $brands;
+         $brand = $this->brandsService->listPaginated($request->all());
+        return BrandResource::collection($brand);
+       
     }
 
     /**
@@ -40,11 +41,11 @@ class BrandController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Brand $brand)
     {
-        $brand = Brand::findOrFail($id);
+              return new BrandResource($brand);
 
-        return $brand;
+       
     }
 
     /**

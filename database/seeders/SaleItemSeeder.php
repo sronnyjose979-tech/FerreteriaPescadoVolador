@@ -13,7 +13,7 @@ class SaleItemSeeder extends Seeder
      */
     public function run(): void
     {
-         SaleItem::Truncate();
+        SaleItem::Truncate();
         SaleItem::factory()->count(20)->create();
     }
 }

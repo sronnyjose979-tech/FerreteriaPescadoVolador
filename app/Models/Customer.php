@@ -11,24 +11,39 @@ class Customer extends Model
 {
     /** @use HasFactory<CustomersFactory> */
     use HasFactory;
+    
+    protected $primaryKey = 'id_Customer';
 
+    public $incrementing = false;
+
+    protected $keyType = 'string';
+
+    protected $fillable = [
+        'id_Customer',
+        'first_name',
+        'second_name',
+        'last_name1',
+        'last_name2',
+        'email',
+        'telephone_number',
+    ];
     /**
      * Direcciones del cliente.
      * DER: Customer (1) — (N) Customer_Address via Customer_Address.id_customer
      */
-    public function addresses(): HasMany
+   /* public function addresses(): HasMany
     {
         return $this->hasMany(CustomerAddress::class);
-    }
+    }*/
 
     /**
      * Pedidos del cliente.
      * DER: Customer (1) — (N) Order via Order.id_customer
      */
-    public function orders(): HasMany
+   /* public function orders(): HasMany
     {
         return $this->hasMany(Order::class);
-    }
+    }*/
 
     /**
      * Ventas al cliente.
@@ -43,8 +58,8 @@ class Customer extends Model
      * Carritos del cliente.
      * DER: Customer (1) — (N) Shopping_carts via Shopping_carts.Customer_id
      */
-    public function shoppingCarts(): HasMany
+    /*public function shoppingCarts(): HasMany
     {
         return $this->hasMany(ShoppingCart::class);
-    }
+    }*/
 }

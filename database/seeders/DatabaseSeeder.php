@@ -8,6 +8,9 @@ use App\Models\Product;
 use App\Models\Purchase;
 use App\Models\PurchaseItem;
 use App\Models\Unit;
+use App\Models\Customer;
+use App\Models\Sale;
+use App\Models\SaleItem;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -27,6 +30,9 @@ class DatabaseSeeder extends Seeder
         Category::truncate();
         Brand::truncate();
         Unit::truncate();
+        Customer::truncate();
+        Sale::truncate();
+        SaleItem::truncate();
 
         User::truncate();
 
@@ -43,6 +49,9 @@ class DatabaseSeeder extends Seeder
             SupplierSeeder::class,
             PurchasesSeeder::class,
             PurchaseItemSeeder::class,
+            CustomerSeeder::class,
+            SaleSeeder::class,
+            SaleItemSeeder::class,
         ]);
     }
 }

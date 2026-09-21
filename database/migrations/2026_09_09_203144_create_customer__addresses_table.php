@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('customer_addresses', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('customer_id')->constrained()->cascadeOnDelete();
+            $table->string('id_Customer');
+            $table->foreign('id_Customer')->references('id_Customer')->on('customers')->cascadeOnDelete();
             $table->string('province', 50);
             $table->string('canton', 50);
             $table->string('district', 50);
@@ -27,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('customer__addresses');
+        Schema::dropIfExists('customer_addresses');
     }
 };

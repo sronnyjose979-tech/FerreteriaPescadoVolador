@@ -12,6 +12,16 @@ class SaleItem extends Model
     /** @use HasFactory<SaleItemsFactory> */
     use HasFactory;
 
+    protected $table = 'saleItem';//le doy el nombre a la tabla
+
+    protected $fillable = [
+        'sale_id',
+        'product_id',
+        'quantity',
+        'unit_price',
+        'subtotal',
+    ];
+
     /**
      * Venta del item.
      * DER: Sale_Items (N) — (1) Sale via id_sale

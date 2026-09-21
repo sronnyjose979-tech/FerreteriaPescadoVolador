@@ -3,6 +3,7 @@
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\Cart_ItemController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderItemController;
@@ -11,7 +12,7 @@ use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\PurchaseItemController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\ShoppingCartController;
-use App\Http\Controllers\SuppliersController;
+use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\UnitController;
 use App\Models\CustomerAddress;
 use Illuminate\Http\Request;
@@ -46,15 +47,16 @@ Route::middleware('auth:sanctum')->group(function () {
     //Cliente
     Route::apiResource('/sales', SaleController::class);
     Route::apiResource('/sale-items', SaleController::class);
-    Route::apiResource('/customers', SaleController::class);
-
+ 
 
     //CRUD DE PURCHASE (Russell)
     Route::apiResource('purchases', PurchaseController::class);
     //CRUD DE SUPPLIER (Russell)
-    Route::apiResource('suppliers', SuppliersController::class);
+    Route::apiResource('suppliers', SupplierController::class);
     //CRUD DE PURCHASEITEM (Russell)
     Route::apiResource('purchase-items', PurchaseItemController::class);
+    //CRUD DE CUSTOMER
+    Route::apiResource('/customers', CustomerController::class);
 
     //ECOMMERCE
 

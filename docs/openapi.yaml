@@ -1,0 +1,1232 @@
+openapi: 3.0.3
+info:
+  title: Ferreteria Pescado Volador - API
+  description: API REST principal en Laravel para ferreteria. Contrato basado en entidad Product con 16 atributos y relaciones Category, Brand, Unit. Incluye recursos anidados para relaciones.
+  version: 1.0.0
+  contact:
+    name: Equipo IF0009
+    email: proyecto@ucr.ac.cr
+servers:
+  - url: http://localhost:8000
+    description: Local
+  - url: https://api.ferreteria-ucr.com
+    description: Produccion
+security:
+  - bearerAuth: []
+tags:
+  - name: Auth
+    description: Autenticacion
+  - name: Products
+    description: Entidad principal del contrato comparativo
+  - name: Categories
+  - name: Brands
+  - name: Units
+  - name: Purchases
+  - name: PurchaseItems
+  - name: Suppliers
+paths:
+  /api/login:
+    post:
+      tags: [Auth]
+      summary: Inicio de sesion
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            examples:
+              correcto:
+                value:
+                  email: admin@ferreteria.com
+                  password: secret123
+              invalido:
+                value:
+                  email: no-email
+                  password: ""
+      responses:
+        '200':
+          description: Token emitido
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: 1|abc123
+              example:
+                token: 1|abc123
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/products:
+    get:
+      tags: [Products]
+      summary: Listado paginado de productos
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+        - $ref: '#/components/parameters/Q'
+        - $ref: '#/components/parameters/Sort'
+        - $ref: '#/components/parameters/Direction'
+        - name: category_id
+          in: query
+          schema:
+            type: integer
+        - name: brand_id
+          in: query
+          schema:
+            type: integer
+        - name: is_active
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Lista paginada
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginationMeta'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Product'
+              example:
+                data:
+                  - id: 1
+                    name: Martillo de Una Profesional 16oz
+                    sku: SKU-MART-016-001
+                    price: 12500.00
+                    stock_quantity: 45
+                current_page: 1
+                last_page: 5
+                per_page: 10
+                total: 45
+                links:
+                  first: /api/products?page=1
+                  last: /api/products?page=5
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags: [Products]
+      summary: Crear producto
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductInput'
+            examples:
+              correcto:
+                value:
+                  category_id: 1
+                  brand_id: 2
+                  unit_id: 1
+                  name: Martillo de Una Profesional 16oz
+                  description: Martillo de acero forjado
+                  sku: SKU-MART-016-001
+                  barcode: "7501234567890"
+                  price: 12500.00
+                  tax_rate: 13.00
+                  stock_quantity: 45
+                  minimum_stock: 10
+                  maximum_stock: 100
+                  weight: 0.45
+                  image_url: https://ferreteria-ucr.com/images/martillo-16oz.jpg
+                  is_active: true
+              invalido:
+                value:
+                  name: ""
+                  price: -5
+                  sku: ""
+      responses:
+        '201':
+          description: Creado
+          headers:
+            Location:
+              schema:
+                type: string
+              example: /api/products/6
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/products/{id}:
+    get:
+      tags: [Products]
+      summary: Detalle de producto
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    put:
+      tags: [Products]
+      summary: Actualizar producto
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductInput'
+      responses:
+        '200':
+          description: Actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      tags: [Products]
+      summary: Eliminar producto
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Eliminado
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Tiene dependencias
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                message: No se puede eliminar el producto porque tiene dependencias activas.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/products/inventory-summary:
+    get:
+      tags: [Products]
+      summary: Reporte agregado por categoria
+      responses:
+        '200':
+          description: Reporte
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    category_name:
+                      type: string
+                    total_products:
+                      type: integer
+                    total_stock:
+                      type: integer
+                    average_price:
+                      type: number
+  /api/categories:
+    get:
+      tags: [Categories]
+      summary: Listado paginado categorias
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+        - $ref: '#/components/parameters/Q'
+      responses:
+        '200':
+          description: Lista paginada
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginationMeta'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Category'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags: [Categories]
+      summary: Crear categoria
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryInput'
+      responses:
+        '201':
+          description: Creado
+          headers:
+            Location:
+              schema:
+                type: string
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/categories/{id}:
+    get:
+      tags: [Categories]
+      summary: Detalle categoria
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Categories]
+      summary: Actualizar categoria
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryInput'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      tags: [Categories]
+      summary: Eliminar categoria
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Eliminado
+        '409':
+          description: Tiene dependencias
+  /api/brands:
+    get:
+      tags: [Brands]
+      summary: Listado marcas
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginationMeta'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Brand'
+    post:
+      tags: [Brands]
+      summary: Crear marca
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BrandInput'
+      responses:
+        '201':
+          description: Creado
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/brands/{id}:
+    get:
+      tags: [Brands]
+      summary: Detalle marca
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Brand'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Brands]
+      summary: Actualizar marca
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BrandInput'
+      responses:
+        '200':
+          description: OK
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      tags: [Brands]
+      summary: Eliminar marca
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Eliminado
+        '409':
+          description: Tiene dependencias
+  /api/units:
+    get:
+      tags: [Units]
+      summary: Listado unidades
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginationMeta'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Unit'
+    post:
+      tags: [Units]
+      summary: Crear unidad
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UnitInput'
+      responses:
+        '201':
+          description: Creado
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/units/{id}:
+    get:
+      tags: [Units]
+      summary: Detalle unidad
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unit'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Units]
+      summary: Actualizar unidad
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UnitInput'
+      responses:
+        '200':
+          description: OK
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      tags: [Units]
+      summary: Eliminar unidad
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Eliminado
+        '409':
+          description: Tiene dependencias
+  /api/suppliers:
+    get:
+      tags: [Suppliers]
+      summary: Listado proveedores
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+        - $ref: '#/components/parameters/Q'
+        - $ref: '#/components/parameters/Sort'
+        - $ref: '#/components/parameters/Direction'
+      responses:
+        '200':
+          description: Lista paginada
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginationMeta'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Supplier'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags: [Suppliers]
+      summary: Crear proveedor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupplierInput'
+      responses:
+        '201':
+          description: Creado
+          headers:
+            Location:
+              schema:
+                type: string
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/suppliers/{id}:
+    get:
+      tags: [Suppliers]
+      summary: Detalle proveedor
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Supplier'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Suppliers]
+      summary: Actualizar proveedor
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupplierInput'
+      responses:
+        '200':
+          description: OK
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      tags: [Suppliers]
+      summary: Eliminar proveedor
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Eliminado
+        '409':
+          description: Tiene dependencias
+  /api/purchases:
+    get:
+      tags: [Purchases]
+      summary: Listado compras
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+        - $ref: '#/components/parameters/Sort'
+        - $ref: '#/components/parameters/Direction'
+      responses:
+        '200':
+          description: Lista paginada
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginationMeta'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Purchase'
+    post:
+      tags: [Purchases]
+      summary: Crear compra con detalle transaccional
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseInput'
+            examples:
+              conDescuento:
+                value:
+                  id_Purchase: PUR-100
+                  id_user: 1
+                  id_Supplier: SUP100
+                  Purchase_status: pendiente
+                  Purchase_Total: 11400
+                  items:
+                    - id_product: 1
+                      quantity: 2
+                      unit_cost: 6000
+                      subtotal: 12000
+              sinDetalle:
+                value:
+                  id_Purchase: PUR-101
+                  id_user: 1
+                  id_Supplier: SUP100
+                  Purchase_status: pendiente
+                  Purchase_Total: 0
+                  items: []
+      responses:
+        '201':
+          description: Creado
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Purchase'
+        '422':
+          description: Regla de negocio violada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                sinDetalle:
+                  value:
+                    message: No se puede confirmar una compra sin detalle.
+                subtotalIncoherente:
+                  value:
+                    message: El subtotal no coincide con cantidad por costo unitario.
+  /api/purchases/{id}:
+    get:
+      tags: [Purchases]
+      summary: Detalle compra
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Purchase'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Purchases]
+      summary: Actualizar compra
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseInput'
+      responses:
+        '200':
+          description: OK
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      tags: [Purchases]
+      summary: Eliminar compra
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Eliminado
+        '409':
+          description: Tiene detalles
+  /api/purchase-items:
+    get:
+      tags: [PurchaseItems]
+      summary: Listado detalles de compra
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          description: Lista paginada
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginationMeta'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/PurchaseItem'
+    post:
+      tags: [PurchaseItems]
+      summary: Crear detalle
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseItemInput'
+      responses:
+        '201':
+          description: Creado
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/purchase-items/{id}:
+    get:
+      tags: [PurchaseItems]
+      summary: Detalle item
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseItem'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [PurchaseItems]
+      summary: Actualizar detalle
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseItemInput'
+      responses:
+        '200':
+          description: OK
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      tags: [PurchaseItems]
+      summary: Eliminar detalle
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Eliminado
+  /api/purchases/{purchaseId}/items:
+    get:
+      tags: [PurchaseItems]
+      summary: Listado anidado items de una compra
+      parameters:
+        - name: purchaseId
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          description: Lista paginada anidada
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginationMeta'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/PurchaseItem'
+        '404':
+          $ref: '#/components/responses/NotFound'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    Page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        default: 1
+    PerPage:
+      name: per_page
+      in: query
+      schema:
+        type: integer
+        default: 10
+        maximum: 50
+      description: Maximo 50
+    Q:
+      name: q
+      in: query
+      schema:
+        type: string
+    Sort:
+      name: sort
+      in: query
+      schema:
+        type: string
+        enum: [name, price, stock_quantity, id, created_at, Supplier_First_name, Purchase_Total]
+    Direction:
+      name: direction
+      in: query
+      schema:
+        type: string
+        enum: [asc, desc]
+  schemas:
+    PaginationMeta:
+      type: object
+      properties:
+        current_page:
+          type: integer
+        last_page:
+          type: integer
+        per_page:
+          type: integer
+        total:
+          type: integer
+        links:
+          type: object
+          properties:
+            first:
+              type: string
+            last:
+              type: string
+            prev:
+              type: string
+              nullable: true
+            next:
+              type: string
+              nullable: true
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+        category_id:
+          type: integer
+        brand_id:
+          type: integer
+        unit_id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        sku:
+          type: string
+        barcode:
+          type: string
+          nullable: true
+        price:
+          type: number
+          format: float
+        tax_rate:
+          type: number
+        stock_quantity:
+          type: integer
+        minimum_stock:
+          type: integer
+        maximum_stock:
+          type: integer
+          nullable: true
+        weight:
+          type: number
+          nullable: true
+        image_url:
+          type: string
+          nullable: true
+        is_active:
+          type: boolean
+        category:
+          $ref: '#/components/schemas/Category'
+        brand:
+          $ref: '#/components/schemas/Brand'
+        unit:
+          $ref: '#/components/schemas/Unit'
+    ProductInput:
+      type: object
+      required: [category_id, brand_id, unit_id, name, price, sku]
+      properties:
+        category_id:
+          type: integer
+        brand_id:
+          type: integer
+        unit_id:
+          type: integer
+        name:
+          type: string
+          maxLength: 200
+        description:
+          type: string
+        sku:
+          type: string
+          maxLength: 50
+        barcode:
+          type: string
+        price:
+          type: number
+          minimum: 0
+        tax_rate:
+          type: number
+        stock_quantity:
+          type: integer
+          minimum: 0
+        minimum_stock:
+          type: integer
+        maximum_stock:
+          type: integer
+        weight:
+          type: number
+        image_url:
+          type: string
+          format: uri
+        is_active:
+          type: boolean
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+        category_name:
+          type: string
+        description:
+          type: string
+    CategoryInput:
+      type: object
+      required: [category_name]
+      properties:
+        category_name:
+          type: string
+        description:
+          type: string
+    Brand:
+      type: object
+      properties:
+        id:
+          type: integer
+        brand_name:
+          type: string
+    BrandInput:
+      type: object
+      required: [brand_name]
+      properties:
+        brand_name:
+          type: string
+    Unit:
+      type: object
+      properties:
+        id:
+          type: integer
+        unit_name:
+          type: string
+    UnitInput:
+      type: object
+      required: [unit_name]
+      properties:
+        unit_name:
+          type: string
+    Supplier:
+      type: object
+      properties:
+        id_Supplier:
+          type: string
+        Supplier_First_name:
+          type: string
+        Supplier_Last_name:
+          type: string
+        Supplier_Phone:
+          type: string
+        Supplier_Address:
+          type: string
+        Supplier_Email:
+          type: string
+          format: email
+        Supplier_Type:
+          type: string
+    SupplierInput:
+      type: object
+      required: [id_Supplier, Supplier_First_name, Supplier_Last_name, Supplier_Phone, Supplier_Address, Supplier_Email]
+      properties:
+        id_Supplier:
+          type: string
+        Supplier_First_name:
+          type: string
+        Supplier_Last_name:
+          type: string
+        Supplier_Phone:
+          type: string
+        Supplier_Address:
+          type: string
+        Supplier_Email:
+          type: string
+          format: email
+        Supplier_Type:
+          type: string
+    Purchase:
+      type: object
+      properties:
+        id_Purchase:
+          type: string
+        id_user:
+          type: integer
+        id_Supplier:
+          type: string
+        Purchase_Total:
+          type: number
+        Purchase_status:
+          type: string
+          enum: [pendiente, confirmada, recibida, cancelada]
+        supplier:
+          $ref: '#/components/schemas/Supplier'
+        purchase_items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PurchaseItem'
+    PurchaseInput:
+      type: object
+      required: [id_Purchase, id_user, id_Supplier, Purchase_status]
+      properties:
+        id_Purchase:
+          type: string
+        id_user:
+          type: integer
+        id_Supplier:
+          type: string
+        Purchase_Total:
+          type: number
+        Purchase_status:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PurchaseItemInput'
+    PurchaseItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        id_Purchase:
+          type: string
+        id_product:
+          type: integer
+        quantity:
+          type: integer
+        unit_cost:
+          type: number
+        subtotal:
+          type: number
+    PurchaseItemInput:
+      type: object
+      required: [id_Purchase, id_product, quantity, unit_cost, subtotal]
+      properties:
+        id_Purchase:
+          type: string
+        id_product:
+          type: integer
+        quantity:
+          type: integer
+          minimum: 1
+        unit_cost:
+          type: number
+          minimum: 0
+        subtotal:
+          type: number
+          minimum: 0
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+  responses:
+    Unauthorized:
+      description: No autenticado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: Unauthenticated.
+    Forbidden:
+      description: Prohibido
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: Forbidden
+    NotFound:
+      description: No encontrado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: Recurso no encontrado.
+    ValidationError:
+      description: Datos invalidos
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: Datos invalidos
+            errors:
+              name:
+                - El campo nombre es obligatorio.
+              price:
+                - El campo precio debe ser un numero.

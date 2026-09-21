@@ -14,6 +14,16 @@ class SaleResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return parent::toArray($request);
+        return [
+            'id' => $this->id,
+            'user_id' => $this->user_id,
+            'id_Customer' => $this->id_Customer,
+            //'order_id' => $this->order_id, NO SE DEBE USAR PORQUE ORDER ES DEL ECOMMERCE
+            'sale_date' => $this->sale_date,
+            'total' => $this->total,
+            'tax_amount' => $this->tax_amount,
+            'discount' => $this->discount,
+            'status' => $this->status,
+        ];
     }
 }

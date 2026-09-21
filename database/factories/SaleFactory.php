@@ -20,30 +20,16 @@ class SaleFactory extends Factory
      */
     public function definition(): array
     {
+        //El ? es el if()
         return [
-            'user_id' => User::inRandomOrder()->value('id'),
-
-            'id_Customer' => fake()->boolean()
-                ? Customer::inRandomOrder()->value('id_Customer')
-                : null,
-
-            'order_id' => fake()->boolean()
-                ? Order::inRandomOrder()->value('id')
-                : null,
-
-            'sale_date' => fake()->dateTimeBetween('-1 year', 'now'),
-
+            'user_id' => User::inRandomOrder()->value('id'), //id de usuarios
+            'id_Customer' => fake()->boolean() ? Customer::inRandomOrder()->value('id_Customer') : null,
+            'order_id' => fake()->boolean() ? Order::inRandomOrder()->value('id') : null,
+            'sale_date' => fake()->dateTimeBetween('-1 año', 'ahora'),
             'total' => fake()->randomFloat(2, 1000, 150000),
-
             'tax_amount' => fake()->randomFloat(2, 100, 20000),
-
             'discount' => fake()->randomFloat(2, 0, 5000),
-
-            'status' => fake()->randomElement([
-                'completed',
-                'pending',
-                'cancelled'
-            ]),
+            'status' => fake()->randomElement(['completado', 'pendiente', 'cancelado']),
         ];
     }
 }

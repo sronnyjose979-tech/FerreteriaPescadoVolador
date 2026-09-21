@@ -10,7 +10,10 @@ use Illuminate\Http\Request;
 
 class SupplierController extends Controller
 {
-    public function __construct(public SupplierServices $orderSupplier) {}
+    public function __construct(public SupplierServices $orderSupplier)
+    {
+        $this->orderSupplier = $orderSupplier;
+    }
 
     public function index(Request $request)
     {

@@ -44,13 +44,6 @@ class User extends Authenticatable
         ];
     }
 
-    /**
-     * DER: User (N) — (1) Role via User.id_role
-     */
-    public function role(): BelongsTo
-    {
-        return $this->belongsTo(Role::class, 'id_role', 'id_role');
-    }
 
     /**
      * Ventas registradas por el usuario.

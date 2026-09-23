@@ -29,7 +29,7 @@ use Laravel\Sanctum\HasApiTokens;
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable,HasApiTokens;
+    use HasFactory, Notifiable, HasApiTokens;
 
     /**
      * Get the attributes that should be cast.
@@ -61,7 +61,7 @@ class User extends Authenticatable
     public function purchases(): HasMany
     {
         //return $this->hasMany(Purchase::class, 'id_user', 'id_User');
-        return $this->hasMany(Purchase::class, 'id_user', 'id');//trabaja con el unico user
+        return $this->hasMany(Purchase::class, 'id_user', 'id'); //trabaja con el unico user
     }
 
     /**

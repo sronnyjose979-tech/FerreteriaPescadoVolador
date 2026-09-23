@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('id_Customer');
             $table->foreign('id_Customer')->references('id_Customer')->on('customers')->cascadeOnDelete();
             $table->foreignId('customer_address_id')->nullable()->constrained('customer_addresses');
-
+            
             $table->string('status', 20)->default('pending');
             $table->timestamps();
         });

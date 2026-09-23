@@ -8,6 +8,7 @@ use App\Http\Resources\PurchaseResource;
 use App\Models\Purchase;
 use App\Services\PurchaseService;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Attributes\Controllers\Authorize;
 
 class PurchaseController extends Controller
 {
@@ -41,6 +42,7 @@ class PurchaseController extends Controller
         return response()->json($purchase, 201)->header('Location', url("/api/purchases/{$purchase->id_Purchase}"));
     }
 
+    #[Authorize('view','purchase')]
     public function show(Purchase $purchase)
     {
         // return $purchase->load('purchaseItems');

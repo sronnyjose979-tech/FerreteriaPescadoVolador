@@ -14,6 +14,8 @@ use App\Models\SaleItem;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class DatabaseSeeder extends Seeder
 {
@@ -24,6 +26,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+
         PurchaseItem::truncate();
         Purchase::truncate();
         Product::truncate();
@@ -53,5 +57,28 @@ class DatabaseSeeder extends Seeder
             SaleSeeder::class,
             SaleItemSeeder::class,
         ]);
+
+        //CREAMOS LOS USUARIOS
+        $admin =  User::factory()->create([
+            'name' => 'admin',
+            'email' => 'admin@example.com'
+        ]);
+        $cajero = User::factory()->create([
+            'name' => 'cajero',
+            'email' => 'cajero@example.com'
+        ]);
+
+        //CREAMOS LOS ROLES PARA ASIGNARLOS A LOS USUARIOS
+        $roleAdmin = Role::create(['name' => 'admin']);
+        $roleCajero = Role::create(['name' => 'cajero']);
+
+        //CREAMOS LOS PERMISOS PARA  ASIGNARLOS A LOS ROLES
+        $permission = Permission::create(['name' => 'view products']);
+        //SOLO LE DAMOS EL PERMISO A EL ADMIN
+        $roleAdmin->givePermissionTo($permission);
+
+        //ASIGNAMOS EL ROLE A CADA UNO DE LOS USUARIOS
+        $admin->assignRole($roleAdmin);
+        $cajero->assignRole($roleCajero);
     }
 }

@@ -11,6 +11,6 @@ class CartItemSeeder extends Seeder
      */
     public function run(): void
     {
-        //
+        //ES PARTE DEL ECOMMERCE, SEGUN LO COMENTADO CON EL PROFESOR, NO SE USARÁ
     }
 }

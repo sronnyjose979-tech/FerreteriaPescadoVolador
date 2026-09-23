@@ -18,7 +18,7 @@ class InventoryMovementFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            //ES PARTE DEL ECOMMERCE, SEGUN LO COMENTADO CON EL PROFESOR, NO SE USARÁ
         ];
     }
 }

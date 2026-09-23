@@ -8,6 +8,7 @@ use App\Http\Resources\ProductResource;
 use App\Models\Product;
 use App\Services\ProductService;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Attributes\Controllers\Authorize;
 use Illuminate\Support\Facades\DB;
 
 class ProductController extends Controller
@@ -16,7 +17,7 @@ class ProductController extends Controller
 
     public function index(Request $request)
     {
-     $product = $this->productService->listPaginated($request->all());
+        $product = $this->productService->listPaginated($request->all());
         return ProductResource::collection($product);
     }
 
@@ -38,10 +39,10 @@ class ProductController extends Controller
 
         return response()->json($product, 201)->header('Location', url("/api/products/{$product->id}"));
     }
-
-    public function show(string $id)
+    #[Authorize('view', 'product')]
+    public function show(Product $product)
     {
-        return Product::with(['Category', 'Brand', 'Unit'])->findOrFail($id);
+        return Product::with(['Category', 'Brand', 'Unit']);//->findOrFail($product);
     }
 
     public function update(UpdateProductRequest $request, string $id)

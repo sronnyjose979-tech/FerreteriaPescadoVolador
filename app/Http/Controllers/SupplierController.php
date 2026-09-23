@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateSupplierRequest;
 use App\Models\Supplier;
 use App\Services\SupplierServices;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Attributes\Controllers\Authorize;
 
 class SupplierController extends Controller
 {
@@ -27,6 +28,7 @@ class SupplierController extends Controller
         return response()->json($supplier, 201)->header('Location', url("/api/suppliers/{$supplier->id_Supplier}"));
     }
 
+    #[Authorize('view', 'purchase')]
     public function show(Supplier $supplier)
     {
         return $supplier->load('purchases');

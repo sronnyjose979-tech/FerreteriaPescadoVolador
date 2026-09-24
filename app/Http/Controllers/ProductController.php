@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\DB;
 class ProductController extends Controller
 {
     public function __construct(protected ProductService $productService) {}
-    
+
     #[Authorize('viewAny', Product::class)]
     public function index(Request $request)
     {
@@ -33,26 +33,26 @@ class ProductController extends Controller
 
         return $report;
     }
-
+    #[Authorize('create products', 'product')] //PERMISO PARA CREAR
     public function store(StoreProductRequest $request)
     {
         $product = $this->productService->createProduct($request->validated());
 
         return response()->json($product, 201)->header('Location', url("/api/products/{$product->id}"));
     }
-    #[Authorize('view', 'product')]
+    #[Authorize('view product', 'product')] //PERMISO PARA VER
     public function show(Product $product)
     {
         return $product->load(['Category', 'Brand', 'Unit']); //->findOrFail($product);
     }
-
+    #[Authorize('update product', 'product')] //PERMISO PARA ACTUALIZAR
     public function update(UpdateProductRequest $request, string $id)
     {
         $product = Product::findOrFail($id);
 
         return $this->productService->updateProduct($product, $request->validated());
     }
-
+    #[Authorize('delete product', 'product')] //PERMISO PARA BORRAR
     public function destroy(string $id)
     {
         $product = Product::findOrFail($id);

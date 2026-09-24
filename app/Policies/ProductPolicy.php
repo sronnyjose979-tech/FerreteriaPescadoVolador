@@ -26,7 +26,7 @@ class ProductPolicy
      */
     public function create(User $user, Product $product): bool
     {
-        return $user->id === $product->user_id || $user->role === 'admin';
+        return $user->can('create products');
     }
 
     /**
@@ -34,7 +34,7 @@ class ProductPolicy
      */
     public function update(User $user, Product $product): bool
     {
-        return false;
+        return $user->can('update products');
     }
 
     /**
@@ -42,7 +42,7 @@ class ProductPolicy
      */
     public function delete(User $user, Product $product): bool
     {
-        return false;
+         return $user->can('delete products');
     }
 
     /**
@@ -58,6 +58,7 @@ class ProductPolicy
      */
     public function forceDelete(User $user, Product $product): bool
     {
+        //POR EL MOMENTO NADIE PUEDE BORAR NINGUN MODELO
         return false;
     }
 }

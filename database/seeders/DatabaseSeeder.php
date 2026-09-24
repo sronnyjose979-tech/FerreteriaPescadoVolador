@@ -67,18 +67,39 @@ class DatabaseSeeder extends Seeder
             'name' => 'cajero',
             'email' => 'cajero@example.com'
         ]);
+        $bodeguero = User::factory()->create([
+            'name' => 'bodeguero',
+            'email' => 'bodeguero@example.com'
+        ]);
 
         //CREAMOS LOS ROLES PARA ASIGNARLOS A LOS USUARIOS
         $roleAdmin = Role::create(['name' => 'admin']);
         $roleCajero = Role::create(['name' => 'cajero']);
+        $roleBodeguero = Role::create(['name' => 'bodeguero']);
 
-        //CREAMOS LOS PERMISOS PARA  ASIGNARLOS A LOS ROLES
-        $permission = Permission::create(['name' => 'view products']);
-        //SOLO LE DAMOS EL PERMISO A EL ADMIN
-        $roleAdmin->givePermissionTo($permission);
+        //CREAMOS LOS PERMISOS DEL CRUD DE PRODUCT PARA  ASIGNARLOS A LOS ROLES
+        $ViewPermissionProduct = Permission::create(['name' => 'view products']);
+        $CreatePermissionProduct = Permission::create(['name' => 'create products']);
+        $UpdatePermissionProduct = Permission::create(['name' => 'update products']);
+        $DeletePermissionProduct = Permission::create(['name' => 'delete products']);
+
+        //LE DAMOS PERMISOS COMPLETOS AL ADMIN
+        $roleAdmin->givePermissionTo($ViewPermissionProduct);
+        $roleAdmin->givePermissionTo($CreatePermissionProduct);
+        $roleAdmin->givePermissionTo($UpdatePermissionProduct);
+        $roleAdmin->givePermissionTo($DeletePermissionProduct);
+
+        //SOLO LE DAMOS PERMISOS LIMITADOS AL CAJERO
+        $roleCajero->givePermissionTo($ViewPermissionProduct);
+
+        //SOLO LE DAMOS PERMISOS LIMITADOS AL BODEGUERO
+        $roleBodeguero->givePermissionTo($ViewPermissionProduct);
+        $roleBodeguero->givePermissionTo($CreatePermissionProduct);
+        $roleBodeguero->givePermissionTo($UpdatePermissionProduct);
 
         //ASIGNAMOS EL ROLE A CADA UNO DE LOS USUARIOS
         $admin->assignRole($roleAdmin);
         $cajero->assignRole($roleCajero);
+        $bodeguero->assignRole($roleBodeguero);
     }
 }

@@ -24,7 +24,7 @@ class SaleFactory extends Factory
         return [
             'user_id' => User::inRandomOrder()->value('id'), //id de usuarios
             'id_Customer' => fake()->boolean() ? Customer::inRandomOrder()->value('id_Customer') : null,
-            'order_id' => fake()->boolean() ? Order::inRandomOrder()->value('id') : null,
+            //'order_id' => fake()->boolean() ? Order::inRandomOrder()->value('id') : null,
             'sale_date' => fake()->dateTimeBetween('-1 año', 'ahora'),
             'total' => fake()->randomFloat(2, 1000, 150000),
             'tax_amount' => fake()->randomFloat(2, 100, 20000),

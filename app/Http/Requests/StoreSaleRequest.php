@@ -25,7 +25,7 @@ class StoreSaleRequest extends FormRequest
         return [
             'user_id' => 'required|exists:users,id',
             'id_Customer' => 'nullable|exists:customers,id_Customer',
-            'order_id' => 'nullable|exists:orders,id',
+            //'order_id' => 'nullable|exists:orders,id',
             'sale_date' => 'required|date',
             'total' => 'required|numeric|min:0',
             'tax_amount' => 'nullable|numeric|min:0',
@@ -41,7 +41,7 @@ class StoreSaleRequest extends FormRequest
 
             'id_Customer.exists' => 'El cliente seleccionado no existe.',
 
-            'order_id.exists' => 'La orden seleccionada no existe.',
+           // 'order_id.exists' => 'La orden seleccionada no existe.',
 
             'sale_date.required' => 'La fecha de venta es obligatoria.',
             'sale_date.date' => 'La fecha de venta debe tener un formato válido.',

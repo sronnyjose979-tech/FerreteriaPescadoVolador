@@ -41,7 +41,7 @@ class UpdateSaleRequest extends FormRequest
 
             'id_Customer.exists' => 'El cliente seleccionado no existe.',
 
-            'order_id.exists' => 'La orden seleccionada no existe.',
+            //'order_id.exists' => 'La orden seleccionada no existe.',
 
             'sale_date.required' => 'La fecha de venta es obligatoria.',
             'sale_date.date' => 'La fecha de venta debe tener un formato válido.',

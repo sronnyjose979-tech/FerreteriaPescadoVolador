@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StorePurchaseRequest;
-use App\Http\Requests\UpdatePurchaseRequest;
+use App\Http\Requests\Purchase\StorePurchaseRequest;
+use App\Http\Requests\Purchase\UpdatePurchaseRequest;
 use App\Http\Resources\PurchaseResource;
 use App\Models\Purchase;
 use App\Services\PurchaseService;
@@ -23,7 +23,7 @@ class PurchaseController extends Controller
     public function store(Request $request)
     {
         if ($request->has('items')) {
-            $request->validate((new StorePurchaseRequest)->rules(), (new StorePurchaseRequest)->messages());
+            $request->validate((new StorePurchaseRequest())->rules(), (new StorePurchaseRequest)->messages());
             $purchase = $this->purchaseService->crearConDetalle($request->only(['id_Purchase', 'id_user', 'id_Supplier', 'Purchase_status', 'Purchase_Total']), $request->input('items'));
 
             return response()->json($purchase, 201)->header('Location', url("/api/purchases/{$purchase->id_Purchase}"));

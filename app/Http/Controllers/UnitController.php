@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreUnitRequest;
+use App\Http\Requests\Unit\StoreUnitRequest;
 use App\Http\Resources\UnitResource;
 use App\Models\Unit;
 use App\Services\UnitService;

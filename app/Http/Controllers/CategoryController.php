@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreCategoryRequest;
+use App\Http\Requests\Brand\StoreBrandRequest;
 use App\Http\Resources\CategoryResource;
 use App\Models\Category;
 use App\Services\CategoryService;
@@ -21,7 +21,7 @@ class CategoryController extends Controller
         return CategoryResource::collection($category);
     }
 
-    public function store(StoreCategoryRequest $request)
+    public function store(StoreBrandRequest $request)
     {
         $validated = $request->validated();
         $category = $this->categoryService->createCategory($validated);

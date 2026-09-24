@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StorePurchaseItemRequest;
-use App\Http\Requests\UpdatePurchaseItemRequest;
+use App\Http\Requests\PurchaseItem\StorePurchaseItemRequest;
+use App\Http\Requests\PurchaseItem\UpdatePurchaseItemRequest;
 use App\Http\Resources\PurchaseItemResource;
 use App\Models\PurchaseItem;
 use App\Services\PurchaseItemService;

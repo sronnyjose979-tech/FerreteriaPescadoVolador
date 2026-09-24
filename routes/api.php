@@ -11,6 +11,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\PurchaseItemController;
 use App\Http\Controllers\SaleController;
+use App\Http\Controllers\SaleItemController;
 use App\Http\Controllers\ShoppingCartController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\UnitController;
@@ -35,7 +36,7 @@ Route::middleware('auth:sanctum')->group(function () {
     //producto 
     // crud de productos
     Route::apiResource('/products', ProductController::class);
-    Route::get('/products/inventory-summary', [ProductController::class, 'inventorySummary']);
+    //Route::get('/products/inventory-summary', [ProductController::class, 'inventorySummary']);
     //crud de categorias
     Route::apiResource('/categories', CategoryController::class);
     //crud de marcas
@@ -46,7 +47,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     //Cliente
     Route::apiResource('/sales', SaleController::class);
-    Route::apiResource('/sale-items', SaleController::class);
+    Route::apiResource('/sale-items', SaleItemController::class);
  
 
     //CRUD DE PURCHASE (Russell)

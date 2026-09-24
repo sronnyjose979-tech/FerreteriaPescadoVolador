@@ -18,7 +18,7 @@ class UnitResource extends JsonResource
         return
             [
                 'ID Unidad de Medida' => $this->id,
-                'Nombre' => $this->Unit_name
+                'Nombre' => $this->unit_name
 
             ];
     }

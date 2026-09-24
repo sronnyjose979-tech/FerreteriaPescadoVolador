@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained(); // El cajero
             $table->string('id_Customer')->nullable();
             $table->foreign('id_Customer')->references('id_Customer')->on('customers')->nullOnDelete(); 
-            $table->foreignId('order_id')->nullable()->constrained(); // Si viene de la web
+            //$table->foreignId('order_id')->nullable()->constrained(); // Si viene de la web
             $table->dateTime('sale_date');
             $table->decimal('total', 12, 2);
             $table->decimal('tax_amount', 12, 2)->default(0); 

@@ -14,7 +14,8 @@ use Illuminate\Support\Facades\DB;
 class ProductController extends Controller
 {
     public function __construct(protected ProductService $productService) {}
-
+    
+    #[Authorize('viewAny', Product::class)]
     public function index(Request $request)
     {
         $product = $this->productService->listPaginated($request->all());
@@ -42,7 +43,7 @@ class ProductController extends Controller
     #[Authorize('view', 'product')]
     public function show(Product $product)
     {
-        return Product::with(['Category', 'Brand', 'Unit']);//->findOrFail($product);
+        return $product->load(['Category', 'Brand', 'Unit']); //->findOrFail($product);
     }
 
     public function update(UpdateProductRequest $request, string $id)

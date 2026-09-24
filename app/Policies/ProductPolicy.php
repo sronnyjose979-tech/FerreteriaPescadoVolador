@@ -16,9 +16,6 @@ class ProductPolicy
         return $user->can('view products');
     }
 
-    /**
-     * Determine whether the user can view the model.
-     */
     public function view(User $user, Product $product): bool
     {
         return $user->can('view products');

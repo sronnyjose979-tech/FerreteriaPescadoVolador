@@ -41,7 +41,6 @@ class SaleService
             'id',
             'user_id',
             'id_Customer',
-            'order_id',
             'sale_date',
             'total',
             'tax_amount',
@@ -67,7 +66,7 @@ class SaleService
                 $w->where('id', 'like', "%{$q}%")
                     ->orWhere('user_id', 'like', "%{$q}%")
                     ->orWhere('id_Customer', 'like', "%{$q}%")
-                    ->orWhere('order_id', 'like', "%{$q}%")
+                   // ->orWhere('order_id', 'like', "%{$q}%")
                     ->orWhere('status', 'like', "%{$q}%");
             });
         }

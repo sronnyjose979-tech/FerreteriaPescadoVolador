@@ -13,8 +13,10 @@ class Product extends Model
     /** @use HasFactory<ProductsFactory> */
     use HasFactory;
 
-    protected $fillable = [  
-        
+    protected $fillable = [
+        'category_id',
+        'brand_id',
+        'unit_id',
         'name',
         'description',
         'sku',
@@ -25,10 +27,11 @@ class Product extends Model
         'minimum_stock',
         'maximum_stock',
         'weight',
-        'is_active'
+        'image_url',
+        'is_active',
     ];
 
-    protected $hidden = [//los que no se van a mostrar 
+    protected $hidden = [ //los que no se van a mostrar 
         'created_at',
         'updated_at',
         'deleted_at',
@@ -85,14 +88,14 @@ class Product extends Model
      */
     public function saleItems(): HasMany
     {
-        return $this->hasMany(SaleItem::class, );
+        return $this->hasMany(SaleItem::class,);
     }
 
     /**
      * Items de pedido de este producto.
      * DER: Product (1) — (N) Orders_items via id_product
      */
- 
+
 
     /**
      * Items de compra de este producto.

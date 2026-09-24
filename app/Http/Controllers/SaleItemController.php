@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreSaleItemRequest;
-use App\Http\Requests\UpdateSaleItemRequest;
+use App\Http\Requests\SaleItem\StoreSaleItemRequest;
+use App\Http\Requests\SaleItem\UpdateSaleItemRequest;
 use App\Http\Resources\SaleItemResource;
 use App\Models\SaleItem;
 use App\Services\SaleItemService;

@@ -1,11 +1,10 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\SaleItem;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class UpdateSaleItemRequest extends FormRequest
+class StoreSaleItemRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -17,21 +16,21 @@ class UpdateSaleItemRequest extends FormRequest
 
     /**
      * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         return [
-            //aqui uso el sometimes para que no sea 100% necesario poner todos los datos
-            'sale_id' => 'sometimes|required|exists:sales,id',
-            'product_id' => 'sometimes|required|exists:products,id',
-            'quantity' => 'sometimes|required|integer|min:1',
-            'unit_price' => 'sometimes|required|numeric|min:0',
-            'subtotal' => 'sometimes|required|numeric|min:0',
+            'sale_id' => 'required|exists:sales,id',
+            'product_id' => 'required|exists:products,id',
+            'quantity' => 'required|integer|min:1',
+            'unit_price' => 'required|numeric|min:0',
+            'subtotal' => 'required|numeric|min:0',
         ];
     }
 
+    /**
+     * Get the custom validation messages.
+     */
     public function messages(): array
     {
         return [

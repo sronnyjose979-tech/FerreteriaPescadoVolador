@@ -58,11 +58,5 @@ Route::middleware('auth:sanctum')->group(function () {
     //CRUD DE CUSTOMER
     Route::apiResource('/customers', CustomerController::class);
 
-    //ECOMMERCE
-
-    Route::apiResource('/orders', OrderController::class);
-    Route::apiResource('/order-items', OrderItemController::class);
-    Route::apiResource('/shopping-carts', ShoppingCartController::class);
-    Route::apiResource('/cart-items', Cart_ItemController::class);
-    Route::apiResource('/customer-addresses', CustomerAddress::class);
+  
 });

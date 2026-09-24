@@ -31,14 +31,7 @@ class Sale extends Model
         return $this->belongsTo(Customer::class, 'id_customer', 'id_Customer');
     }
 
-    /**
-     * Pedido origen de la venta.
-     * DER: Sale (N) — (1) Order via id_order
-     */
-    /*public function order(): BelongsTo
-    {
-        return $this->belongsTo(Order::class, 'id_order', 'id_order');
-    }*/
+
 
     /**
      * Detalle de la venta.

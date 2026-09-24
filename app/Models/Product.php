@@ -92,19 +92,7 @@ class Product extends Model
      * Items de pedido de este producto.
      * DER: Product (1) — (N) Orders_items via id_product
      */
-    public function orderItems(): HasMany
-    {
-        return $this->hasMany(OrderItem::class);
-    }
-
-    /**
-     * Items de carrito de este producto.
-     * DER: Product (1) — (N) Cart_items via Product_id
-     */
-    public function cartItems(): HasMany
-    {
-        return $this->hasMany(CartItem::class);
-    }
+ 
 
     /**
      * Items de compra de este producto.

@@ -16,8 +16,8 @@ class Payment extends Model
      * Pedido pagado.
      * DER: Payments (N) — (1) Order via id_order
      */
-    public function order(): BelongsTo
+    public function Sale(): BelongsTo
     {
-        return $this->belongsTo(Order::class, 'id_order', 'id_order');
+        return $this->belongsTo(Sale::class, 'id_order', 'id_order');
     }
 }

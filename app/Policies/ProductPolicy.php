@@ -24,7 +24,7 @@ class ProductPolicy
     /**
      * Determine whether the user can create models.
      */
-    public function create(User $user, Product $product): bool
+    public function create(User $user): bool
     {
         return $user->can('create products');
     }

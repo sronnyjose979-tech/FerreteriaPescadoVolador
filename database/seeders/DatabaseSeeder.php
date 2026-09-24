@@ -67,6 +67,10 @@ class DatabaseSeeder extends Seeder
             'name' => 'cajero',
             'email' => 'cajero@example.com'
         ]);
+        $bodeguero = User::factory()->create([
+            'name' => 'bodeguero',
+            'email' => 'bodeguero@example.com'
+        ]);
 
         //CREAMOS LOS ROLES PARA ASIGNARLOS A LOS USUARIOS
         $roleAdmin = Role::create(['name' => 'admin']);
@@ -75,9 +79,9 @@ class DatabaseSeeder extends Seeder
 
         //CREAMOS LOS PERMISOS DEL CRUD DE PRODUCT PARA  ASIGNARLOS A LOS ROLES
         $ViewPermissionProduct = Permission::create(['name' => 'view products']);
-        $CreatePermissionProduct = Permission::create(['name' => 'create product']);
-        $UpdatePermissionProduct = Permission::create(['name' => 'update product']);
-        $DeletePermissionProduct = Permission::create(['name' => 'delete product']);
+        $CreatePermissionProduct = Permission::create(['name' => 'create products']);
+        $UpdatePermissionProduct = Permission::create(['name' => 'update products']);
+        $DeletePermissionProduct = Permission::create(['name' => 'delete products']);
 
         //LE DAMOS PERMISOS COMPLETOS AL ADMIN
         $roleAdmin->givePermissionTo($ViewPermissionProduct);
@@ -96,5 +100,6 @@ class DatabaseSeeder extends Seeder
         //ASIGNAMOS EL ROLE A CADA UNO DE LOS USUARIOS
         $admin->assignRole($roleAdmin);
         $cajero->assignRole($roleCajero);
+        $bodeguero->assignRole($roleBodeguero);
     }
 }

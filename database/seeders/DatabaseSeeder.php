@@ -9,6 +9,7 @@ use App\Models\Purchase;
 use App\Models\PurchaseItem;
 use App\Models\Unit;
 use App\Models\Customer;
+use App\Models\Payment;
 use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\User;
@@ -37,6 +38,7 @@ class DatabaseSeeder extends Seeder
         Customer::truncate();
         Sale::truncate();
         SaleItem::truncate();
+        Payment::truncate();
 
         User::truncate();
 
@@ -46,6 +48,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->call([
+
             CategorySeeder::class,
             BrandSeeder::class,
             UnitSeeder::class,
@@ -56,6 +59,8 @@ class DatabaseSeeder extends Seeder
             CustomerSeeder::class,
             SaleSeeder::class,
             SaleItemSeeder::class,
+            PaymentSeeder::class,
+            InventoryMovementSeeder::class,
         ]);
 
         //CREAMOS LOS USUARIOS

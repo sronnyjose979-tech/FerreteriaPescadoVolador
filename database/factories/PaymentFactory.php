@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Payment;
+use App\Models\Sale;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -17,8 +18,13 @@ class PaymentFactory extends Factory
      */
     public function definition(): array
     {
+        $paymentMethod = fake()->randomElement(['cash', 'card', 'sinpe']);
+
         return [
-            //ES PARTE DEL ECOMMERCE, SEGUN LO COMENTADO CON EL PROFESOR, NO SE USARÁ
+            'sale_id' => Sale::inRandomOrder()->value('id'),
+            'payment_method' => $paymentMethod,
+            'transaction_reference' => $paymentMethod !== 'cash' ? fake()->unique()->bothify('TXN-########') : null,
+            'status' => fake()->randomElement(['completed', 'pending', 'failed']),
         ];
     }
 }

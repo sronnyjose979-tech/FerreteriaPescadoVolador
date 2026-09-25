@@ -3,7 +3,9 @@
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\InventoryMovementController;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\PurchaseItemController;
@@ -53,4 +55,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('purchase-items', PurchaseItemController::class);
     //CRUD DE CUSTOMER
     Route::apiResource('/customers', CustomerController::class);
+    
+    Route::apiResource('/inventory-movements', InventoryMovementController::class);
+    Route::apiResource('/payments', PaymentController::class);
 });

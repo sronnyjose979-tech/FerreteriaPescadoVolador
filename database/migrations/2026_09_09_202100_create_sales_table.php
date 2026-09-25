@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('sales', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained(); // El cajero
+            $table->foreignId('user_id')->constrained()->onDelete('cascade'); // El cajero
             $table->string('id_Customer')->nullable();
             $table->foreign('id_Customer')->references('id_Customer')->on('customers')->nullOnDelete(); 
             //$table->foreignId('order_id')->nullable()->constrained(); // Si viene de la web

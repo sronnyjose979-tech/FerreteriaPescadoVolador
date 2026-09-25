@@ -26,7 +26,7 @@ class PurchaseItemFactory extends Factory
             'id_Purchase' => Purchase::inRandomOrder()->value('id_Purchase'),
 
             //'id_product' => Product::inRandomOrder()->value('id_Product'), estos es para productos de id no autoincremental
-            'id_product' => Product::inRandomOrder()->value('id'),
+            'product_id' => Product::inRandomOrder()->value('id'),
 
             'quantity' => $quantity,
 

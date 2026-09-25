@@ -13,6 +13,41 @@ class Sale extends Model
     /** @use HasFactory<SalesFactory> */
     use HasFactory;
 
+/**
+     * Atributos asignables de forma masiva.
+     */
+    protected $fillable = [
+        'user_id',
+        'id_Customer',
+        'sale_date',
+        'total',
+        'tax_amount',
+        'discount',
+        'status',
+    ];
+
+    /**
+     * Atributos ocultos en la serialización JSON.
+     */
+    protected $hidden = [
+        'created_at',
+        'updated_at',
+    ];
+
+    /**
+     * Casts de atributos para conversión automática de tipos.
+     */
+    protected function casts(): array
+    {
+        return [
+            'sale_date' => 'datetime',
+            'total' => 'decimal:2',
+            'tax_amount' => 'decimal:2',
+            'discount' => 'decimal:2',
+        ];
+    }
+
+
     /**
      * Usuario que registró la venta.
      * DER: Sale (N) — (1) User via id_user
@@ -28,7 +63,7 @@ class Sale extends Model
      */
     public function customer(): BelongsTo
     {
-        return $this->belongsTo(Customer::class, 'id_customer', 'id_Customer');
+        return $this->belongsTo(Customer::class, 'id_Customer', 'id_Customer');
     }
 
 
@@ -39,7 +74,7 @@ class Sale extends Model
      */
     public function saleItems(): HasMany
     {
-        return $this->hasMany(SaleItem::class, 'sale_id', 'sale_id');
+        return $this->hasMany(SaleItem::class);
     }
 
     public function payments(): HasMany

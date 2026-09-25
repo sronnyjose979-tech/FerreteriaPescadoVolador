@@ -34,6 +34,6 @@ class PurchaseItem extends Model
      */
     public function product(): BelongsTo
     {
-        return $this->belongsTo(Product::class, 'id_product', 'id');
+        return $this->belongsTo(Product::class);
     }
 }

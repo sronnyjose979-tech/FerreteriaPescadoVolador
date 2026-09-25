@@ -77,25 +77,50 @@ class DatabaseSeeder extends Seeder
         $roleCajero = Role::create(['name' => 'cajero']);
         $roleBodeguero = Role::create(['name' => 'bodeguero']);
 
-        //CREAMOS LOS PERMISOS DEL CRUD DE PRODUCT PARA  ASIGNARLOS A LOS ROLES
-        $ViewPermissionProduct = Permission::create(['name' => 'view products']);
-        $CreatePermissionProduct = Permission::create(['name' => 'create products']);
-        $UpdatePermissionProduct = Permission::create(['name' => 'update products']);
-        $DeletePermissionProduct = Permission::create(['name' => 'delete products']);
+        /*AL HACER LOS PERMISOS DE LA MANERA TRADICIONAL VISTA EN CLASE, SE HACE DEMASIADO EXTENSA LA CREACION DE PERMISOS
+        ES POR ESO QUE AGREGUE ESTA MANERA DE CREAR PERMISOS PARA TODAS LOS MODELOS*/
 
+        $permissions = [
+            'products' => ['view', 'create', 'update', 'delete'],
+            'suppliers' => ['view', 'create', 'update', 'delete'],
+            'customers' => ['view', 'create', 'update', 'delete'],
+            'purchases' => ['view', 'create', 'update', 'delete'],
+            'purchase-items' => ['view', 'create', 'update', 'delete'],
+            'sales' => ['view', 'create', 'update', 'delete'],
+            'sale-items' => ['view', 'create', 'update', 'delete'],
+            'categories' => ['view', 'create', 'update', 'delete'],
+            'brands' => ['view', 'create', 'update', 'delete'],
+            'units' => ['view', 'create', 'update', 'delete'],
+        ];
+        //EN ESTA PARTE CREAMOS TODOS LOS PERMISOS CREADOS EN LA SECCION DE ARRIBA
+        foreach ($permissions as $resource => $actions) {
+            foreach ($actions as $action) {
+                Permission::create([
+                    //AQUI SE COLOCA $ACTION COMO 'VIEW' Y EL RESOURCE COMO 'PRODUCTS'
+                    'name' => "$action $resource"
+                ]);
+            }
+        }
         //LE DAMOS PERMISOS COMPLETOS AL ADMIN
-        $roleAdmin->givePermissionTo($ViewPermissionProduct);
-        $roleAdmin->givePermissionTo($CreatePermissionProduct);
-        $roleAdmin->givePermissionTo($UpdatePermissionProduct);
-        $roleAdmin->givePermissionTo($DeletePermissionProduct);
+        $roleAdmin->givePermissionTo(Permission::all());
 
         //SOLO LE DAMOS PERMISOS LIMITADOS AL CAJERO
-        $roleCajero->givePermissionTo($ViewPermissionProduct);
+        $roleCajero->givePermissionTo([
+            'view products',
+            'view sales',
+            'create sales',
+        ]);
 
         //SOLO LE DAMOS PERMISOS LIMITADOS AL BODEGUERO
-        $roleBodeguero->givePermissionTo($ViewPermissionProduct);
-        $roleBodeguero->givePermissionTo($CreatePermissionProduct);
-        $roleBodeguero->givePermissionTo($UpdatePermissionProduct);
+        $roleBodeguero->givePermissionTo([
+            'view products',
+            'create products',
+            'update products',
+            'view suppliers',
+            'create suppliers',
+            'update suppliers',
+        ]);
+
 
         //ASIGNAMOS EL ROLE A CADA UNO DE LOS USUARIOS
         $admin->assignRole($roleAdmin);

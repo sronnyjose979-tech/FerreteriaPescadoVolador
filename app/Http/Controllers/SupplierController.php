@@ -17,17 +17,20 @@ class SupplierController extends Controller
         $this->orderSupplier = $orderSupplier;
     }
 
+    #[Authorize('viewAny', Supplier::class)]
     public function index(Request $request)
     {
         $suppliers = $this->orderSupplier->listPaginated($request->all());
+
         return SupplierResource::collection($suppliers);
     }
 
+    #[Authorize('create', Supplier::class)]
     public function store(StoreSupplierRequest $request)
     {
-        $supplier = $this->orderSupplier->crear($request->validated());//FALTA EL RESOURCE
+        $supplier = $this->orderSupplier->crear($request->validated());
 
-        return response()->json($supplier, 201);
+        return new SupplierResource($supplier);
     }
 
     #[Authorize('view', Supplier::class)]
@@ -36,14 +39,16 @@ class SupplierController extends Controller
         return new SupplierResource($supplier->load('purchases'));
     }
 
+    #[Authorize('update', Supplier::class)]
     public function update(UpdateSupplierRequest $request, Supplier $supplier)
     {
         return new SupplierResource($this->orderSupplier->actualizar($supplier, $request->validated()));
     }
 
+    #[Authorize('delete', Supplier::class)]
     public function destroy(Supplier $supplier)
     {
-        $this->orderSupplier->eliminar($supplier);//FALTA EL RESOURCE
+        $this->orderSupplier->eliminar($supplier); //FALTA EL RESOURCE
 
         return response()->json(null, 204);
     }

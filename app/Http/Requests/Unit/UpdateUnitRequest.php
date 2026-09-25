@@ -5,7 +5,7 @@ namespace App\Http\Requests\Unit;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreUnitRequest extends FormRequest // esta clase se encarga de validar los datos que se reciben del formulario de unidades
+class UpdateUnitRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -20,17 +20,16 @@ class StoreUnitRequest extends FormRequest // esta clase se encarga de validar l
      *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
-    public function rules(): array// aqui se van a crear las reglas de validación para cada campo del formulario
+    public function rules(): array
     {
         return [
-            'unit_name' => 'required|string|max:255',
+            'unit_name' => 'sometimes|string|max:200',
         ];
     }
 
-    public function messages(): array// aqui se van a crear los mensajes personalizados para cada regla de validación
+    public function messages(): array
     {
         return [
-            'unit_name.required' => 'El campo nombre de la unidad es obligatorio.',
             'unit_name.string' => 'El campo nombre de la unidad debe ser una cadena de texto.',
             'unit_name.max' => 'El campo nombre de la unidad no debe exceder los 200 caracteres.',
         ];

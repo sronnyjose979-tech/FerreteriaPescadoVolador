@@ -13,7 +13,7 @@ class BrandPolicy
      */
     public function viewAny(User $user): bool
     {
-        return true;
+        return $user->can('view brands');
     }
 
     /**
@@ -21,7 +21,7 @@ class BrandPolicy
      */
     public function view(User $user, Brand $brand): bool
     {
-        return true;
+        return $user->can('view brands');
     }
 
     /**
@@ -29,7 +29,7 @@ class BrandPolicy
      */
     public function create(User $user): bool
     {
-        return true;
+        return $user->can('create brands');
     }
 
     /**
@@ -37,7 +37,7 @@ class BrandPolicy
      */
     public function update(User $user, Brand $brand): bool
     {
-        return true;
+        return $user->can('update brands');
     }
 
     /**
@@ -45,7 +45,7 @@ class BrandPolicy
      */
     public function delete(User $user, Brand $brand): bool
     {
-        return true;
+        return $user->can('delete brands');
     }
 
     /**

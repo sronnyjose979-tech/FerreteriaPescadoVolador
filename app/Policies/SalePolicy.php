@@ -13,7 +13,7 @@ class SalePolicy
      */
     public function viewAny(User $user): bool
     {
-        return true;
+        return $user->can('view sales');
     }
 
     /**
@@ -21,7 +21,7 @@ class SalePolicy
      */
     public function view(User $user, Customer $customer): bool
     {
-        return true;
+        return $user->can('view sales');
     }
 
     /**
@@ -29,7 +29,7 @@ class SalePolicy
      */
     public function create(User $user): bool
     {
-        return true;
+        return $user->can('create sales');
     }
 
     /**
@@ -37,7 +37,7 @@ class SalePolicy
      */
     public function update(User $user, Customer $customer): bool
     {
-        return true;
+        return $user->can('update sales');
     }
 
     /**
@@ -45,7 +45,7 @@ class SalePolicy
      */
     public function delete(User $user, Customer $customer): bool
     {
-        return true;
+        return $user->can('delete sales');
     }
 
     /**

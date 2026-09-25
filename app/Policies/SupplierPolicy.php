@@ -2,26 +2,26 @@
 
 namespace App\Policies;
 
-use App\Models\Unit;
+use App\Models\Supplier;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
 
-class UnitPolicy
+class SupplierPolicy
 {
     /**
      * Determine whether the user can view any models.
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('view units');
+        return true;
     }
 
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, Unit $unit): bool
+    public function view(User $user, Supplier $supplier): bool
     {
-        return $user->can('view units');
+        return false;
     }
 
     /**
@@ -29,38 +29,38 @@ class UnitPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('create units');
+        return false;
     }
 
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, Unit $unit): bool
+    public function update(User $user, Supplier $supplier): bool
     {
-        return $user->can('update units');
+        return false;
     }
 
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, Unit $unit): bool
+    public function delete(User $user, Supplier $supplier): bool
     {
-        return $user->can('delete units');
+        return false;
     }
 
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, Unit $unit): bool
+    public function restore(User $user, Supplier $supplier): bool
     {
-        return true;
+        return false;
     }
 
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, Unit $unit): bool
+    public function forceDelete(User $user, Supplier $supplier): bool
     {
-        return true;
+        return false;
     }
 }

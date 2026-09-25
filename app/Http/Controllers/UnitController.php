@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Unit\StoreUnitRequest;
+use App\Http\Requests\Unit\UpdateUnitRequest;
+use App\Http\Requests\Unit\DeleteUnitRequest;
 use App\Http\Resources\UnitResource;
 use App\Models\Unit;
 use App\Services\UnitService;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Attributes\Controllers\Authorize;
 
 class UnitController extends Controller
 {
@@ -15,43 +18,44 @@ class UnitController extends Controller
         $this->unitService = $unitService;
     }
 
+    #[Authorize('viewAny', Unit::class)]
     public function index(Request $request)
     {
-        $units = Unit::paginate(10);
+        $units = $this->unitService->listPaginated(
+            $request->all()
+        );
+
         return UnitResource::collection($units);
     }
 
+    #[Authorize('create', Unit::class)]
     public function store(StoreUnitRequest $request)
     {
-        $validated = $request->validated();
-        $unit = $this->unitService->createUnit($validated);
+        $unit = $this->unitService->createUnit($request->validated());
 
         return response()->json(new UnitResource($unit), 201);
     }
 
-    public function show(string $id)
+    #[Authorize('view', 'unit')]
+    public function show(Unit $unit)
     {
-        $unit = Unit::findOrFail($id);
 
         return new UnitResource($unit);
     }
 
-    public function update(Request $request, string $id)
+    #[Authorize('update', 'unit')]
+    public function update(UpdateUnitRequest $request, Unit $unit)
     {
-        $unit = Unit::findOrFail($id);
-
-        $validated = $request->validate([
-            'unit_name' => 'string|max:200',
-        ]);
-
-        $unit->update($validated);
+        $unit->update($request->validated());
 
         return new UnitResource($unit);
     }
 
-    public function destroy(string $id)
+    #[Authorize('update', 'unit')]
+    public function destroy(DeleteUnitRequest $request)
     {
-        $unit = Unit::findOrFail($id);
+        $unit = Unit::findOrFail($request->validated()['id']);
+
         $unit->delete();
 
         return response()->json(null, 204);

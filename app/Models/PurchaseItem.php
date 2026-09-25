@@ -11,7 +11,7 @@ class PurchaseItem extends Model
 {
     /** @use HasFactory<PurchaseItemsFactory> */
     use HasFactory;
-    protected $table = 'purchase__item';
+    protected $table = 'purchase_items';
     protected $fillable = [
         'id_Purchase',
         'id_product',

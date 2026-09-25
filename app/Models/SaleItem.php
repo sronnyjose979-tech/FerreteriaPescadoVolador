@@ -12,7 +12,7 @@ class SaleItem extends Model
     /** @use HasFactory<SaleItemsFactory> */
     use HasFactory;
 
-    protected $table = 'saleItem';//le doy el nombre a la tabla
+    protected $table = 'sale_items';//le doy el nombre a la tabla
 
     protected $fillable = [
         'sale_id',
@@ -28,7 +28,7 @@ class SaleItem extends Model
      */
     public function sale(): BelongsTo
     {
-        return $this->belongsTo(Sale::class, 'id_sale', 'id_Sale');
+        return $this->belongsTo(Sale::class, 'sale_id', 'sale_id');
     }
 
     /**

@@ -18,6 +18,6 @@ class Payment extends Model
      */
     public function Sale(): BelongsTo
     {
-        return $this->belongsTo(Sale::class, 'id_order', 'id_order');
+        return $this->belongsTo(Sale::class);
     }
 }

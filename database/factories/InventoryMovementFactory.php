@@ -3,6 +3,9 @@
 namespace Database\Factories;
 
 use App\Models\InventoryMovement;
+use App\Models\Product;
+use App\Models\PurchaseItem;
+use App\Models\SaleItem;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -17,8 +20,18 @@ class InventoryMovementFactory extends Factory
      */
     public function definition(): array
     {
+        $movementable = fake()->randomElement([
+            SaleItem::class,
+            PurchaseItem::class,
+        ]);
+
         return [
-            //ES PARTE DEL ECOMMERCE, SEGUN LO COMENTADO CON EL PROFESOR, NO SE USARÁ
+            'product_id' => Product::inRandomOrder()->value('id'),
+            'movementable_type' => $movementable,
+            'movementable_id' => $movementable::factory(),
+            'type' => fake()->randomElement(['entrada', 'salida', 'ajuste']),
+            'quantity' => fake()->numberBetween(1, 100),
+            'stock_after' => fake()->numberBetween(0, 500),
         ];
     }
 }

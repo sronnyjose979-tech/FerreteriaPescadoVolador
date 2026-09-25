@@ -39,6 +39,11 @@ class Sale extends Model
      */
     public function saleItems(): HasMany
     {
-        return $this->hasMany(SaleItem::class, 'id_sale', 'id_Sale');
+        return $this->hasMany(SaleItem::class, 'sale_id', 'sale_id');
+    }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
     }
 }

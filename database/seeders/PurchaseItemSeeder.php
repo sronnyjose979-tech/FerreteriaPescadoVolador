@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Purchase;
 use App\Models\PurchaseItem;
 use Illuminate\Database\Seeder;
 
@@ -12,7 +13,18 @@ class PurchaseItemSeeder extends Seeder
      */
     public function run(): void
     {
-        PurchaseItem::Truncate();
-        PurchaseItem::factory()->count(20)->create();
+        PurchaseItem::truncate();
+
+        // Obtenemos todas las ventas que ya fueron creadas
+        $purchases = Purchase::all();
+
+        // Por cada venta, creamos entre 1 y 4 ítems de compra reales
+        foreach ($purchases as $purchase) {
+            $itemCount = fake()->numberBetween(1, 4);
+
+            PurchaseItem::factory()->count($itemCount)->create([
+                'id_purchase' => $purchase->id, // Amarra los ítems directamente a esta venta específica
+            ]);
+        }
     }
 }

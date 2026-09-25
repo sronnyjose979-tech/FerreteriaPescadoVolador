@@ -36,14 +36,14 @@ class UnitController extends Controller
         return response()->json(new UnitResource($unit), 201);
     }
 
-    #[Authorize('view', 'unit')]
+    #[Authorize('view', Unit::class)]
     public function show(Unit $unit)
     {
 
         return new UnitResource($unit);
     }
 
-    #[Authorize('update', 'unit')]
+    #[Authorize('update', Unit::class)]
     public function update(UpdateUnitRequest $request, Unit $unit)
     {
         $unit->update($request->validated());
@@ -51,11 +51,9 @@ class UnitController extends Controller
         return new UnitResource($unit);
     }
 
-    #[Authorize('update', 'unit')]
-    public function destroy(DeleteUnitRequest $request)
+    #[Authorize('delete', Unit::class)]
+    public function destroy(Unit $unit)
     {
-        $unit = Unit::findOrFail($request->validated()['id']);
-
         $unit->delete();
 
         return response()->json(null, 204);

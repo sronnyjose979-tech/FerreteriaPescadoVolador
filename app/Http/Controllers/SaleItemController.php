@@ -8,6 +8,7 @@ use App\Http\Resources\SaleItemResource;
 use App\Models\SaleItem;
 use App\Services\SaleItemService;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Attributes\Controllers\Authorize;
 use Illuminate\Support\Facades\Gate;
 
 
@@ -21,7 +22,7 @@ class SaleItemController extends Controller
     {
         $this->saleItem = $saleItem;
     }
-
+    #[Authorize('viewAny', SaleItem::class)]
     public function index(Request $request)
     {
         Gate::authorize('viewAny', SaleItem::class);
@@ -32,9 +33,9 @@ class SaleItemController extends Controller
     /**
      * Store a newly created resource in storage.
      */
+    #[Authorize('store', SaleItem::class)]
     public function store(StoreSaleItemRequest $request)
     {
-        Gate::authorize('create', SaleItem::class);
         $sale = $this->saleItem->crear($request->validated());
         return response()->json($sale, 201);
     }
@@ -42,6 +43,8 @@ class SaleItemController extends Controller
     /**
      * Display the specified resource.
      */
+    #[Authorize('show', SaleItem::class)]
+
     public function show(SaleItem $saleItem)
     {
         return new SaleItemResource($saleItem);
@@ -50,6 +53,7 @@ class SaleItemController extends Controller
     /**
      * Update the specified resource in storage.
      */
+    #[Authorize('update', SaleItem::class)]
     public function update(UpdateSaleItemRequest $request, SaleItem $saleItem)
     {
         Gate::authorize('update', $saleItem);
@@ -60,9 +64,9 @@ class SaleItemController extends Controller
     /**
      * Remove the specified resource from storage.
      */
+    #[Authorize('delete', SaleItem::class)]
     public function destroy(SaleItem $saleItem)
     {
-        Gate::authorize('delete', $saleItem);
         $this->saleItem->eliminar($saleItem);
         return response()->json(null, 204);
     }

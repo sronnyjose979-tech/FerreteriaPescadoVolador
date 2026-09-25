@@ -21,7 +21,7 @@ class PurchaseFactory extends Factory
         return [
             'id_Purchase' => 'PUR' . fake()->unique()->numberBetween(100, 999),
             // 'id_user' => 'USR' . fake()->numberBetween(100, 999),
-            'id_user' => 1,//con esto se tarbaja con el unico usuario
+            'user_id' => 1,//con esto se tarbaja con el unico usuario
             'id_Supplier' => Supplier::inRandomOrder()->value('id_Supplier'),
             'Purchase_Total' => fake()->randomFloat(2, 10, 1000),
             'Purchase_status' => fake()->randomElement([

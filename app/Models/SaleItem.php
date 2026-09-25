@@ -28,7 +28,7 @@ class SaleItem extends Model
      */
     public function sale(): BelongsTo
     {
-        return $this->belongsTo(Sale::class, 'sale_id', 'sale_id');
+        return $this->belongsTo(Sale::class);
     }
 
     /**
@@ -37,6 +37,6 @@ class SaleItem extends Model
      */
     public function product(): BelongsTo
     {
-        return $this->belongsTo(Product::class, 'id_product', 'id_Product');
+        return $this->belongsTo(Product::class);
     }
 }

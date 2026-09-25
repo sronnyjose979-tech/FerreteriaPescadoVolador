@@ -13,13 +13,31 @@ class InventoryMovement extends Model
     /** @use HasFactory<InventoryMovementsFactory> */
     use HasFactory;
 
+    protected $fillable = [
+        'product_id',
+        'movementable_type',
+        'movementable_id',
+        'type',
+        'quantity',
+        'stock_after',
+    ];
+
+    /**
+     * Atributos ocultos en la serialización JSON.
+     */
+    protected $hidden = [
+        'created_at',
+        'updated_at',
+    ];
+    
+
     /**
      * Producto afectado por el movimiento.
      * DER: Inventory_movement (N) — (1) Product via id_product
      */
     public function product(): BelongsTo
     {
-        return $this->belongsTo(Product::class, 'id_product', 'id_Product');
+        return $this->belongsTo(Product::class);
     }
 
     /**

@@ -52,7 +52,7 @@ class User extends Authenticatable
      */
     public function sales(): HasMany
     {
-        return $this->hasMany(Sale::class, 'id_user', 'id_User');
+        return $this->hasMany(Sale::class);
     }
 
     /**
@@ -62,7 +62,7 @@ class User extends Authenticatable
     public function purchases(): HasMany
     {
         //return $this->hasMany(Purchase::class, 'id_user', 'id_User');
-        return $this->hasMany(Purchase::class, 'id_user', 'id'); //trabaja con el unico user
+        return $this->hasMany(Purchase::class, 'user_id', 'id'); //trabaja con el unico user
     }
 
     /**
@@ -71,6 +71,6 @@ class User extends Authenticatable
      */
     public function inventoryMovements(): HasMany
     {
-        return $this->hasMany(InventoryMovement::class, 'id_user', 'id_User');
+        return $this->hasMany(InventoryMovement::class);
     }
 }

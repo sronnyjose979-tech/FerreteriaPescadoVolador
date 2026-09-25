@@ -33,7 +33,7 @@ class Purchase extends Model
     public function user(): BelongsTo
     {
         //return $this->belongsTo(User::class, 'id_user', 'id_User');
-        return $this->belongsTo(User::class, 'id_user', 'id'); //para trabajar con el unico usuario
+        return $this->belongsTo(User::class); //para trabajar con el unico usuario
 
     }
 
@@ -52,7 +52,7 @@ class Purchase extends Model
      */
     public function purchaseItems(): HasMany
     {
-        return $this->hasMany(PurchaseItem::class, 'id_Purchase', 'id_Purchase');
+        return $this->hasMany(PurchaseItem::class);
     }
     //
 }

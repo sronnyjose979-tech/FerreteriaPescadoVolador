@@ -15,7 +15,7 @@ return new class extends Migration
             $table->string('id_Purchase')->primary();
 
             //$table->string('id_user');
-            $table->foreignId('id_user')->constrained('users', 'id');//Con esto trabajo solo con el unico usuario
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');//Con esto trabajo solo con el unico usuario
             $table->string('id_Supplier');
 
             $table->foreign('id_Supplier')->references('id_Supplier')->on('suppliers');

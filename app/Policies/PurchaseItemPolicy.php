@@ -4,7 +4,6 @@ namespace App\Policies;
 
 use App\Models\PurchaseItem;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class PurchaseItemPolicy
 {
@@ -13,7 +12,7 @@ class PurchaseItemPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('view orders');
+        return $user->can('view purchase-items');
     }
 
     /**
@@ -21,7 +20,7 @@ class PurchaseItemPolicy
      */
     public function view(User $user, PurchaseItem $purchaseItem): bool
     {
-        return $user->can('view orders');
+        return $user->can('view purchase-items');
     }
 
     /**
@@ -29,7 +28,7 @@ class PurchaseItemPolicy
      */
     public function create(User $user): bool
     {
-        return false;
+        return $user->can('create purchase-items');
     }
 
     /**
@@ -37,7 +36,7 @@ class PurchaseItemPolicy
      */
     public function update(User $user, PurchaseItem $purchaseItem): bool
     {
-        return false;
+        return $user->can('update purchase-items');
     }
 
     /**
@@ -45,7 +44,7 @@ class PurchaseItemPolicy
      */
     public function delete(User $user, PurchaseItem $purchaseItem): bool
     {
-        return false;
+        return $user->can('delete purchase-items');
     }
 
     /**

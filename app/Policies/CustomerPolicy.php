@@ -13,7 +13,7 @@ class CustomerPolicy
      */
     public function viewAny(User $user): bool
     {
-        return true;
+        return $user->can('view customers');
     }
 
     /**
@@ -21,7 +21,7 @@ class CustomerPolicy
      */
     public function view(User $user, Customer $customer): bool
     {
-        return true;
+        return $user->can('view customers');
     }
 
     /**
@@ -29,7 +29,7 @@ class CustomerPolicy
      */
     public function create(User $user): bool
     {
-        return true;
+        return $user->can('create customers');
     }
 
     /**
@@ -37,7 +37,7 @@ class CustomerPolicy
      */
     public function update(User $user, Customer $customer): bool
     {
-        return true;
+        return $user->can('update customers');
     }
 
     /**
@@ -45,7 +45,7 @@ class CustomerPolicy
      */
     public function delete(User $user, Customer $customer): bool
     {
-        return true;
+        return $user->can('delete customers');
     }
 
     /**

@@ -10,32 +10,23 @@ use Illuminate\Support\Facades\DB;
 
 class ProductService
 {
-    public function createProduct(array $validated): Product
+    public function crear(array $validated): Product
     {
         $this->validateStockCoherence($validated);
-
         return Product::create($validated);
     }
 
-    public function updateProduct(Product $product, array $validated): Product
+    public function actualizar(Product $product, array $validated): Product
     {
         $merged = array_merge($product->toArray(), $validated);
         $this->validateStockCoherence($merged);
         $product->update($validated);
-
         return $product;
     }
 
-    public function deleteProduct(Product $product): void
+    public function eliminar(Product $product): void
     {
-        $hasDependency = false;
-        try {
-            if (PurchaseItem::where('id_product', $product->id)->exists()) {
-                $hasDependency = true;
-            }
-        } catch (\Throwable $e) {
-        }
-        if ($hasDependency) {
+        if (PurchaseItem::where('id_product', $product->id)->exists()) {
             throw new BusinessException('No se puede eliminar el producto porque tiene dependencias activas.', 409);
         }
 
@@ -48,20 +39,32 @@ class ProductService
     {
         $perPage = (int) ($filters['per_page'] ?? 10);
         $perPage = max(1, min($perPage, 50));
+
         $sort = $filters['sort'] ?? 'id';
         $direction = $filters['direction'] ?? 'asc';
-        $allowedSorts = ['name', 'price', 'stock_quantity', 'id', 'created_at'];
+
+        $allowedSorts = [
+            'name',
+            'price',
+            'stock_quantity',
+            'id',
+            'created_at'
+        ];
+
         if (! in_array($sort, $allowedSorts, true)) {
             $sort = 'id';
         }
+
         if (! in_array($direction, ['asc', 'desc'], true)) {
             $direction = 'asc';
         }
 
-        $query = Product::query()->with(['category', 'brand', 'unit']);
+        $query = Product::query()
+            ->with(['category', 'brand', 'unit']);
 
         if (! empty($filters['q'])) {
             $q = $filters['q'];
+
             $query->where(function ($w) use ($q) {
                 $w->where('name', 'like', "%{$q}%")
                     ->orWhere('sku', 'like', "%{$q}%")
@@ -78,7 +81,14 @@ class ProductService
         }
 
         if (isset($filters['is_active'])) {
-            $query->where('is_active', filter_var($filters['is_active'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? $filters['is_active']);
+            $query->where(
+                'is_active',
+                filter_var(
+                    $filters['is_active'],
+                    FILTER_VALIDATE_BOOLEAN,
+                    FILTER_NULL_ON_FAILURE
+                ) ?? $filters['is_active']
+            );
         }
 
         if (! empty($filters['low_stock'])) {
@@ -93,7 +103,11 @@ class ProductService
             $query->where('price', '<=', $filters['max_price']);
         }
 
-        return $query->orderBy($sort, $direction)->orderBy('id', 'asc')->paginate($perPage)->withQueryString();
+        return $query
+            ->orderBy($sort, $direction)
+            ->orderBy('id', 'asc')
+            ->paginate($perPage)
+            ->withQueryString();
     }
 
     private function validateStockCoherence(array $data): void

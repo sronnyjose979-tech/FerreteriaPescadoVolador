@@ -13,12 +13,15 @@ use Illuminate\Support\Facades\DB;
 
 class ProductController extends Controller
 {
-    public function __construct(protected ProductService $productService) {}
+    public function __construct(protected ProductService $product)
+    {
+        $this->product = $product;
+    }
 
     #[Authorize('viewAny', Product::class)]
     public function index(Request $request)
     {
-        $product = $this->productService->listPaginated($request->all());
+        $product = $this->product->listPaginated($request->all());
         return ProductResource::collection($product);
     }
 
@@ -33,31 +36,30 @@ class ProductController extends Controller
 
         return $report;
     }
-    #[Authorize('create',Product::class)] //PERMISO PARA CREAR
+
+    #[Authorize('create', Product::class)] //PERMISO PARA CREAR
     public function store(StoreProductRequest $request)
     {
-        $product = $this->productService->createProduct($request->validated());
-
-        return response()->json($product, 201)->header('Location', url("/api/products/{$product->id}"));
+        $product = $this->product->crear($request->validated());
+        return response()->json($product, 201);
     }
-    #[Authorize('view', 'product')] //PERMISO PARA VER
+
+    #[Authorize('view', Product::class)] //PERMISO PARA VER
     public function show(Product $product)
     {
-        return $product->load(['Category', 'Brand', 'Unit']); //->findOrFail($product);
+        return new ProductResource($product);
     }
-    #[Authorize('update', 'product')] //PERMISO PARA ACTUALIZAR
-    public function update(UpdateProductRequest $request, string $id)
-    {
-        $product = Product::findOrFail($id);
 
-        return $this->productService->updateProduct($product, $request->validated());
+    #[Authorize('update', Product::class)] //PERMISO PARA ACTUALIZAR
+    public function update(UpdateProductRequest $request, Product $product)
+    {
+        $product = $this->product->actualizar($product, $request->validated());
+        return new ProductResource($product);
     }
-    #[Authorize('delete', 'product')] //PERMISO PARA BORRAR, VIENE DEL POLICY
-    public function destroy(string $id)
+    #[Authorize('delete', Product::class)] //PERMISO PARA BORRAR, VIENE DEL POLICY
+    public function destroy(Product $product)
     {
-        $product = Product::findOrFail($id);
-        $this->productService->deleteProduct($product);
-
+        $this->product->eliminar($product);
         return response()->json(null, 204);
     }
 }

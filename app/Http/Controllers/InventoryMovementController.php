@@ -30,7 +30,7 @@ class InventoryMovementController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    #[Authorize('store', InventoryMovement::class)]
+    #[Authorize('create', InventoryMovement::class)]
     public function store(StoreInventaryMovementRequest $request)
     {
         $inventaryMovement = $this->inventaryMovement->crear($request->validated());
@@ -40,7 +40,7 @@ class InventoryMovementController extends Controller
     /**
      * Display the specified resource.
      */
-    #[Authorize('show', 'inventarymovement')]
+    #[Authorize('view', 'inventarymovement')]
     public function show(InventoryMovement $inventaryMovement)
     {
         return new InventoryMovementResource($inventaryMovement);

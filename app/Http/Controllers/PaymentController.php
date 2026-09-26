@@ -25,7 +25,7 @@ class PaymentController extends Controller
     #[Authorize('viewAny', Payment::class)]
     public function index(Request $request)
     {
-        $payment = $this->payment->listPaginated($request->all);
+        $payment = $this->payment->listPaginated($request->all());
         return PaymentResource::collection($payment);
     }
 
@@ -42,7 +42,7 @@ class PaymentController extends Controller
     /**
      * Display the specified resource.
      */
-    #[Authorize('show', 'payment')]
+    #[Authorize('view', 'payment')]
     public function show(Payment $payment)
     {
         return new PaymentResource($payment);
@@ -55,7 +55,7 @@ class PaymentController extends Controller
     public function update(UpdatePaymenteRequest $request, Payment $payment)
     {
         $payment = $this->payment->actualizar($payment, $request->validated());
-        return new SaleResource($payment);
+        return new PaymentResource($payment);
     }
 
     /**

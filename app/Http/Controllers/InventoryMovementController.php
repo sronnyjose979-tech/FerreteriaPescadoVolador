@@ -40,7 +40,7 @@ class InventoryMovementController extends Controller
     /**
      * Display the specified resource.
      */
-    #[Authorize('show', InventoryMovement::class)]
+    #[Authorize('show', 'inventarymovement')]
     public function show(InventoryMovement $inventaryMovement)
     {
         return new InventoryMovementResource($inventaryMovement);

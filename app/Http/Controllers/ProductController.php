@@ -52,7 +52,7 @@ class ProductController extends Controller
         return new ProductResource($product);
     }
 
-    #[Authorize('update', Product::class)] // PERMISO PARA ACTUALIZAR
+    #[Authorize('update', 'product')] // PERMISO PARA ACTUALIZAR
     public function update(UpdateProductRequest $request, Product $product)
     {
         $product = $this->product->actualizar($product, $request->validated());
@@ -60,7 +60,7 @@ class ProductController extends Controller
         return new ProductResource($product);
     }
 
-    #[Authorize('delete', Product::class)] // PERMISO PARA BORRAR, VIENE DEL POLICY
+    #[Authorize('delete', 'product')] // PERMISO PARA BORRAR, VIENE DEL POLICY
     public function destroy(Product $product)
     {
         $this->product->eliminar($product);

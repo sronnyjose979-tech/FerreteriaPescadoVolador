@@ -23,8 +23,9 @@ class InventoryMovementController extends Controller
     #[Authorize('viewAny', InventoryMovement::class)]
     public function index(Request $request)
     {
-        $inventaryMovement = $this->inventaryMovement->listPaginated($request->all());
-        return InventoryMovementResource::collection($inventaryMovement);
+        $inventoryMovement = $this->inventaryMovement->listPaginated($request->all());
+
+        return InventoryMovementResource::collection($inventoryMovement);
     }
 
     /**
@@ -33,37 +34,40 @@ class InventoryMovementController extends Controller
     #[Authorize('create', InventoryMovement::class)]
     public function store(StoreInventaryMovementRequest $request)
     {
-        $inventaryMovement = $this->inventaryMovement->crear($request->validated());
-        return response()->json($inventaryMovement, 201);
+        $inventoryMovement = $this->inventaryMovement->crear($request->validated());
+
+        return response()->json($inventoryMovement, 201);
     }
 
     /**
      * Display the specified resource.
      */
-    #[Authorize('view', 'inventarymovement')]
-    public function show(InventoryMovement $inventaryMovement)
+    #[Authorize('view', 'inventory_movement')]
+    public function show(InventoryMovement $inventoryMovement)
     {
-        return new InventoryMovementResource($inventaryMovement);
+        return new InventoryMovementResource($inventoryMovement);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    #[Authorize('update', InventoryMovement::class)]
-    public function update(UpdateInventaryMovementRequest $request, InventoryMovement $inventaryMovement)
+    #[Authorize('update', 'inventory_movement')]
+    public function update(UpdateInventaryMovementRequest $request, InventoryMovement $inventoryMovement)
     {
-        //NO CREEMOS IMPLEMENTARLO YA QUE INVENTARYMOVEMENT ES UN REGISTRO HISTORICO DE TRANSACCIONES, NO SE DEBE ACTUALIZAR
-        $inventaryMovement = $this->inventaryMovement->actualizar($inventaryMovement, $request->validated());
-        return new InventoryMovementResource($inventaryMovement);
+        // NO CREEMOS IMPLEMENTARLO YA QUE INVENTARYMOVEMENT ES UN REGISTRO HISTORICO DE TRANSACCIONES, NO SE DEBE ACTUALIZAR
+        $inventoryMovement = $this->inventaryMovement->actualizar($inventoryMovement, $request->validated());
+
+        return new InventoryMovementResource($inventoryMovement);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    #[Authorize('delete', InventoryMovement::class)]
-    public function destroy(InventoryMovement $inventaryMovement)
+    #[Authorize('delete', 'inventory_movement')]
+    public function destroy(InventoryMovement $inventoryMovement)
     {
-        $this->inventaryMovement->eliminar($inventaryMovement);
+        $this->inventaryMovement->eliminar($inventoryMovement);
+
         return response()->json(null, 204);
     }
 }

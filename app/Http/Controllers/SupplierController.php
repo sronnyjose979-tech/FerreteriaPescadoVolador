@@ -39,16 +39,16 @@ class SupplierController extends Controller
         return new SupplierResource($supplier->load('purchases'));
     }
 
-    #[Authorize('update', Supplier::class)]
+    #[Authorize('update', 'supplier')]
     public function update(UpdateSupplierRequest $request, Supplier $supplier)
     {
         return new SupplierResource($this->orderSupplier->actualizar($supplier, $request->validated()));
     }
 
-    #[Authorize('delete', Supplier::class)]
+    #[Authorize('delete', 'supplier')]
     public function destroy(Supplier $supplier)
     {
-        $this->orderSupplier->eliminar($supplier); //FALTA EL RESOURCE
+        $this->orderSupplier->eliminar($supplier); // FALTA EL RESOURCE
 
         return response()->json(null, 204);
     }

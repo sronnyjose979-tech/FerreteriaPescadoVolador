@@ -3,55 +3,52 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Brand\StoreBrandRequest;
+use App\Http\Requests\Brand\UpdateBrandRequest;
 use App\Http\Resources\BrandResource;
 use App\Models\Brand;
 use App\Services\BrandService;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Attributes\Controllers\Authorize;
 
 class BrandController extends Controller
 {
-    public function __construct(protected BrandService $brandsService)
+    public function __construct(protected BrandService $brand)
     {
-        $this->brandsService = $brandsService;
+        $this->brand = $brand;
     }
 
+    #[Authorize('viewAny', brand::class)]
     public function index(Request $request)
     {
-         $brand = $this->brandsService->listPaginated($request->all());
-         return BrandResource::collection($brand);
+        $brand = $this->brand->listPaginated($request->all());
+        return BrandResource::collection($brand);
     }
 
-    public function store(StoreBrandRequest $request)
+    #[Authorize('store', brand::class)]
+    public function store(StoreBrandRequest $request, Brand $brand)
     {
-        $validated = $request->validated();
-        $brand = $this->brandsService->createBrand($validated);
+        $brand = $this->brand->actualizar($brand, $request->validated());
 
-        return response()->json(new BrandResource($brand), 201);
+        return response()->json($brand, 201);
     }
 
+    #[Authorize('show', brand::class)]
     public function show(Brand $brand)
     {
         return new BrandResource($brand);
     }
 
-    public function update(Request $request, string $id)
+    #[Authorize('update', brand::class)]
+    public function update(UpdateBrandRequest $request, Brand $brand)
     {
-        $brand = Brand::findOrFail($id);
-
-        $validated = $request->validate([
-            'brand_name' => 'string|max:200',
-        ]);
-
-        $brand->update($validated);
-
+        $brand = $this->brand->actualizar($brand, $request->validated());
         return new BrandResource($brand);
     }
 
-    public function destroy(string $id)
+    #[Authorize('delete', brand::class)]
+    public function destroy(Brand $brand)
     {
-        $brand = Brand::findOrFail($id);
-        $brand->delete();
-
+        $this->brand->eliminar($brand);
         return response()->json(null, 204);
     }
 }

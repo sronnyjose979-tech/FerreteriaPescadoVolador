@@ -1,19 +1,33 @@
 <?php
 
-namespace App\Services; // esto es para indicar que esta clase pertenece a la carpeta Services
+namespace App\Services;
 
-use App\Models\Category; // esto es para indicar que esta clase pertenece a la carpeta Models
-use Illuminate\Pagination\LengthAwarePaginator;
+use App\Models\Category;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 
-class CategoryService // esta clase se encarga de manejar la logica de negocio de las categorias
+class CategoryService
 {
-    public function createCategory(array $validated)// aqui se va crear una categoria, se recibe un array de datos validados
+    public function crear(array $validated): Category
     {
-        $category = Category::create($validated);
+        return Category::create($validated);
+    }
+
+    public function actualizar(Category $category, array $validated): Category
+    {
+        $category->update($validated);
 
         return $category;
     }
-   public function listPaginated(array $filters): LengthAwarePaginator
+
+    public function eliminar(Category $category): void
+    {
+        DB::transaction(function () use ($category) {
+            $category->delete();
+        });
+    }
+
+    public function listPaginated(array $filters): LengthAwarePaginator
     {
         $perPage = (int) ($filters['per_page'] ?? 10);
         $perPage = max(1, min($perPage, 50));
@@ -21,8 +35,12 @@ class CategoryService // esta clase se encarga de manejar la logica de negocio d
         $sort = $filters['sort'] ?? 'id';
         $direction = $filters['direction'] ?? 'asc';
 
-        // Columnas permitidas para ordenar
-        $allowedSorts = ['category_name', 'id', 'created_at'];
+        $allowedSorts = [
+            'id',
+            'category_name',
+            'created_at'
+        ];
+
         if (! in_array($sort, $allowedSorts, true)) {
             $sort = 'id';
         }
@@ -33,18 +51,19 @@ class CategoryService // esta clase se encarga de manejar la logica de negocio d
 
         $query = Category::query();
 
-        // Buscador por nombre de categoría o descripción
         if (! empty($filters['q'])) {
             $q = $filters['q'];
+
             $query->where(function ($w) use ($q) {
                 $w->where('category_name', 'like', "%{$q}%")
-                  ->orWhere('description', 'like', "%{$q}%");
+                    ->orWhere('description', 'like', "%{$q}%");
             });
         }
 
-        return $query->orderBy($sort, $direction)
-                     ->orderBy('id', 'asc')
-                     ->paginate($perPage)
-                     ->withQueryString();
+        return $query
+            ->orderBy($sort, $direction)
+            ->orderBy('id', 'asc')
+            ->paginate($perPage)
+            ->withQueryString();
     }
 }

@@ -74,5 +74,5 @@ Comunicación asíncrona vía cola `queue:database` y evento `PurchaseConfirmed`
 
 ## 8. Decisiones tomadas
 - Mantener `ProductService::listPaginated` existente sin reescribir para no romper Lab04.
-- Usar `Supplier_First_name` tal cual en BD pero exponer igual en Resource para estabilidad, documentado en OpenAPI.
+- Usar `supplier_first_name` tal cual en BD pero exponer igual en Resource para estabilidad, documentado en OpenAPI.
 - No usar `apiResource` con verbos y mantener `/products/inventory-summary` como reporte agregado separado de CRUD.

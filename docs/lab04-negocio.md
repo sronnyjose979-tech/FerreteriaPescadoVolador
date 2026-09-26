@@ -5,7 +5,7 @@ Producto, Proveedor, Compra y Detalle de Compra. Se mantienen migraciones y mode
 
 ## 2. Validaciones declarativas
 - Clases FormRequest para creación y actualización: `StoreProductRequest` / `UpdateProductRequest`, `StoreSupplierRequest` / `UpdateSupplierRequest`, `StorePurchaseRequest` / `UpdatePurchaseRequest`, `StorePurchaseItemRequest` / `UpdatePurchaseItemRequest`.
-- Reglas cubren: requeridos, longitud máxima, formato email/url, unicidad (sku, barcode, Supplier_Email, id_Supplier, id_Purchase), rangos numéricos (price min 0, quantity min 1, tax_rate 0-100, stock min 0), existencia de claves foráneas (category_id, brand_id, unit_id, id_product, id_Supplier, id_user).
+- Reglas cubren: requeridos, longitud máxima, formato email/url, unicidad (sku, barcode, supplier_email, id_supplier, id_purchase), rangos numéricos (price min 0, quantity min 1, tax_rate 0-100, stock min 0), existencia de claves foráneas (category_id, brand_id, unit_id, product_id, id_supplier, user_id).
 - Mensajes en español asociados a cada campo, no texto único, retornados como 422 con `errors` por campo.
 
 ## 3. Separación de capas
@@ -16,7 +16,7 @@ Producto, Proveedor, Compra y Detalle de Compra. Se mantienen migraciones y mode
 
 ### R1 - No eliminar producto con dependencias activas
 Ubicación: `ProductService::deleteProduct`
-Comportamiento: si existe al menos un `PurchaseItem` con `id_product` igual, lanza `BusinessException` 409. Esperado: DELETE /api/products/{id} con compras asociadas responde 409 con mensaje.
+Comportamiento: si existe al menos un `PurchaseItem` con `product_id` igual, lanza `BusinessException` 409. Esperado: DELETE /api/products/{id} con compras asociadas responde 409 con mensaje.
 
 ### R2 - Coherencia de stock
 Ubicación: `ProductService::validateStockCoherence` invocada en `createProduct` y `updateProduct`
@@ -24,7 +24,7 @@ Comportamiento: si `minimum_stock > maximum_stock` lanza 422; si `stock_quantity
 
 ### R3 - No confirmar compra sin detalle, total con descuento y cálculo coherente
 Ubicación: `PurchaseService::crearConDetalle`
-Comportamiento: si `items` vacío lanza 422; si algún `subtotal != quantity * unit_cost` lanza 422; calcula total sumando subtotales, aplica descuento 10% si total >= 50000, 5% si >= 10000, compara con `Purchase_Total` enviado y lanza 422 si difiere; crea Purchase y PurchaseItems y actualiza stock en transacción. Esperado: POST con total incorrecto o sin items responde 422, con total correcto crea y descuenta.
+Comportamiento: si `items` vacío lanza 422; si algún `subtotal != quantity * unit_cost` lanza 422; calcula total sumando subtotales, aplica descuento 10% si total >= 50000, 5% si >= 10000, compara con `purchase_total` enviado y lanza 422 si difiere; crea Purchase y PurchaseItems y actualiza stock en transacción. Esperado: POST con total incorrecto o sin items responde 422, con total correcto crea y descuenta.
 
 ### R4 - Subtotal coherente en detalle y actualización de stock
 Ubicación: `PurchaseItemService::crear` y `actualizar`
@@ -40,7 +40,7 @@ Comportamiento: si `Supplier->purchases()->exists()` lanza 409. Esperado: DELETE
 
 ## 6. CRUD, paginación, ordenamiento y filtros
 - Listados: `ProductService::listPaginated`, `SupplierServices::listPaginated`, `PurchaseService::listPaginated`, `PurchaseItemService::listPaginated`.
-- Parámetros: `per_page` máximo 50, `sort` y `direction` con whitelist (ej. Product: name, price, stock_quantity, id, created_at; Supplier: Supplier_First_name, Supplier_Last_name, Supplier_Email, id_Supplier), doble orden `orderBy(sort)->orderBy(id)`, filtros combinables (Product: q, category_id, brand_id, is_active, low_stock, min_price, max_price; Supplier: q, Supplier_Type; Purchase: q, id_Supplier, Purchase_status; PurchaseItem: id_Purchase, id_product).
+- Parámetros: `per_page` máximo 50, `sort` y `direction` con whitelist (ej. Product: name, price, stock_quantity, id, created_at; Supplier: supplier_first_name, supplier_last_name, supplier_email, id_supplier), doble orden `orderBy(sort)->orderBy(id)`, filtros combinables (Product: q, category_id, brand_id, is_active, low_stock, min_price, max_price; Supplier: q, supplier_type; Purchase: q, id_supplier, purchase_status; PurchaseItem: id_purchase, product_id).
 - Respuesta paginada con `withQueryString()`.
 
 ## 7. Excepción de negocio

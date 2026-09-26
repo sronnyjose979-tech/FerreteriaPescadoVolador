@@ -4,7 +4,6 @@ namespace Database\Factories;
 
 use App\Models\Product;
 use App\Models\Purchase;
-use App\Models\PurchaseItem;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -23,9 +22,7 @@ class PurchaseItemFactory extends Factory
         $quantity = fake()->numberBetween(1, 10);
 
         return [
-            'id_Purchase' => Purchase::inRandomOrder()->value('id_Purchase'),
-
-            //'id_product' => Product::inRandomOrder()->value('id_Product'), estos es para productos de id no autoincremental
+            'id_purchase' => Purchase::inRandomOrder()->value('id_purchase'),
             'product_id' => Product::inRandomOrder()->value('id'),
 
             'quantity' => $quantity,

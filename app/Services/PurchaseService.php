@@ -61,8 +61,8 @@ class PurchaseService
             $finalTotal = round($calculatedTotal - $discount, 2);
 
             if (
-                isset($purchaseData['Purchase_Total'])
-                && abs((float) $purchaseData['Purchase_Total'] - $finalTotal) > 0.01
+                isset($purchaseData['purchase_total'])
+                && abs((float) $purchaseData['purchase_total'] - $finalTotal) > 0.01
             ) {
                 throw new BusinessException(
                     'El total de la compra no coincide con la suma de detalles menos descuento.',
@@ -70,7 +70,7 @@ class PurchaseService
                 );
             }
 
-            $purchaseData['Purchase_Total'] = $finalTotal;
+            $purchaseData['purchase_total'] = $finalTotal;
 
             $purchase = Purchase::create($purchaseData);
 
@@ -78,14 +78,14 @@ class PurchaseService
                 $subtotal = round($item['quantity'] * $item['unit_cost'], 2);
 
                 PurchaseItem::create([
-                    'id_Purchase' => $purchase->id_Purchase,
-                    'id_product' => $item['id_product'],
+                    'id_purchase' => $purchase->id_purchase,
+                    'product_id' => $item['product_id'],
                     'quantity' => $item['quantity'],
                     'unit_cost' => $item['unit_cost'],
                     'subtotal' => $subtotal,
                 ]);
 
-                $product = Product::lockForUpdate()->find($item['id_product']);
+                $product = Product::lockForUpdate()->find($item['product_id']);
 
                 if ($product) {
                     $product->increment('stock_quantity', $item['quantity']);
@@ -142,18 +142,18 @@ class PurchaseService
         $perPage = (int) ($filters['per_page'] ?? 10);
         $perPage = max(1, min($perPage, 50));
 
-        $sort = $filters['sort'] ?? 'id_Purchase';
+        $sort = $filters['sort'] ?? 'id_purchase';
         $direction = $filters['direction'] ?? 'asc';
 
         $allowedSorts = [
-            'id_Purchase',
-            'Purchase_Total',
-            'Purchase_status',
-            'created_at'
+            'id_purchase',
+            'purchase_total',
+            'purchase_status',
+            'created_at',
         ];
 
         if (! in_array($sort, $allowedSorts, true)) {
-            $sort = 'id_Purchase';
+            $sort = 'id_purchase';
         }
 
         if (! in_array($direction, ['asc', 'desc'], true)) {
@@ -166,29 +166,29 @@ class PurchaseService
             $q = $filters['q'];
 
             $query->where(
-                'id_Purchase',
+                'id_purchase',
                 'like',
                 "%{$q}%"
             );
         }
 
-        if (! empty($filters['id_Supplier'])) {
+        if (! empty($filters['id_supplier'])) {
             $query->where(
-                'id_Supplier',
-                $filters['id_Supplier']
+                'id_supplier',
+                $filters['id_supplier']
             );
         }
 
-        if (! empty($filters['Purchase_status'])) {
+        if (! empty($filters['purchase_status'])) {
             $query->where(
-                'Purchase_status',
-                $filters['Purchase_status']
+                'purchase_status',
+                $filters['purchase_status']
             );
         }
 
         return $query
             ->orderBy($sort, $direction)
-            ->orderBy('id_Purchase', 'asc')
+            ->orderBy('id_purchase', 'asc')
             ->paginate($perPage)
             ->withQueryString();
     }

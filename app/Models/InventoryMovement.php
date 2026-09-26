@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Database\Factories\InventoryMovementFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -15,6 +14,7 @@ class InventoryMovement extends Model
 
     protected $fillable = [
         'product_id',
+        'user_id',
         'movementable_type',
         'movementable_id',
         'type',
@@ -29,15 +29,23 @@ class InventoryMovement extends Model
         'created_at',
         'updated_at',
     ];
-    
 
     /**
      * Producto afectado por el movimiento.
-     * DER: Inventory_movement (N) — (1) Product via id_product
+     * DER: InventoryMovement (N) — (1) Product via product_id
      */
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    /**
+     * Usuario que registró el movimiento.
+     * DER: InventoryMovement.user_id — User.id
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 
     /**

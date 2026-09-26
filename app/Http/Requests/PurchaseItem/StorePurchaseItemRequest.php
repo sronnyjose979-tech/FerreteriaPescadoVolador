@@ -23,8 +23,8 @@ class StorePurchaseItemRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id_Purchase' => 'required|exists:purchases,id_Purchase',
-            'id_product' => 'required|exists:products,id_Product',
+            'id_purchase' => 'required|exists:purchases,id_purchase',
+            'product_id' => 'required|exists:products,id',
             'quantity' => 'required|integer|min:1',
             'unit_cost' => 'required|numeric|min:0',
             'subtotal' => 'required|numeric|min:0',
@@ -34,11 +34,11 @@ class StorePurchaseItemRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'id_Purchase.required' => 'La compra es obligatoria.',
-            'id_Purchase.exists' => 'La compra indicada no existe.',
+            'id_purchase.required' => 'La compra es obligatoria.',
+            'id_purchase.exists' => 'La compra indicada no existe.',
 
-            'id_product.required' => 'El producto es obligatorio.',
-            'id_product.exists' => 'El producto indicado no existe.',
+            'product_id.required' => 'El producto es obligatorio.',
+            'product_id.exists' => 'El producto indicado no existe.',
 
             'quantity.required' => 'La cantidad es obligatoria.',
             'quantity.integer' => 'La cantidad debe ser un numero entero.',

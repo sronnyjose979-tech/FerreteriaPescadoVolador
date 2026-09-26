@@ -10,21 +10,21 @@ La entidad `Product` cuenta con 16 atributos y 3 relaciones (Category, Brand, Un
 
 |Atributo|Tipo|Descripción / Restricción|
 |-|-|-|
-|`id\_Product`|Integer, PK, Autoincremental|Identificador único del producto. Clave primaria.|
-|`id\_category`|Integer, FK|Llave foránea hacia la entidad `Category`.|
-|`id\_brand`|Integer, FK|Llave foránea hacia la entidad `Brand`.|
-|`id\_unit`|Integer, FK|Llave foránea hacia la entidad `Unit` (unidad de medida).|
-|`Product\_name`|String (Varchar 150)|Nombre comercial del producto. Requerido.|
-|`Description`|String (Text)|Descripción detallada del producto.|
-|`Price`|Decimal (10,2)|Precio de venta unitario. Requerido. Mayor o igual a 0.|
-|`Stock\_Quantity`|Integer|Cantidad actual en inventario.|
+|`id`|Integer, PK, Autoincremental|Identificador único del producto. Clave primaria.|
+|`category_id`|Integer, FK|Llave foránea hacia la entidad `Category`.|
+|`brand_id`|Integer, FK|Llave foránea hacia la entidad `Brand`.|
+|`unit_id`|Integer, FK|Llave foránea hacia la entidad `Unit` (unidad de medida).|
+|`name`|String (Varchar 150)|Nombre comercial del producto. Requerido.|
+|`description`|String (Text)|Descripción detallada del producto.|
+|`price`|Decimal (10,2)|Precio de venta unitario. Requerido. Mayor o igual a 0.|
+|`stock_quantity`|Integer|Cantidad actual en inventario.|
 |`minimum\_stock`|Integer|Stock mínimo permitido antes de generar alerta de reposición.|
 |`maximum\_stock`|Integer|Stock máximo permitido en bodega.|
-|`Image\_URL`|String (Varchar 255)|URL de la imagen del producto. Puede ser nulo.|
+|`image_url`|String (Varchar 255)|URL de la imagen del producto. Puede ser nulo.|
 |`sku`|String (Varchar 50), Único|Código SKU interno. Único.|
-|`bar\_code`|String (Varchar 50), Único|Código de barras (EAN/UPC).|
+|`barcode`|String (Varchar 50), Único|Código de barras (EAN/UPC).|
 |`tax\_rate`|Decimal (5,2)|Porcentaje de impuesto aplicable (ej: 13.00).|
-|`Weigth`|Decimal (8,2)|Peso del producto (kg). Según diagrama aparece como `Weigth`.|
+|`weight`|Decimal (8,2)|Peso del producto (kg).|
 |`is\_active`|Boolean (TinyInt 0/1)|Indica si el producto está activo (1) o inactivo (0).|
 
 
@@ -48,96 +48,96 @@ A continuación se presentan 5 registros de prueba por escrito, utilizando la es
 
 ### Producto 1: Martillo Profesional 16oz
 
-* `id\_Product`: 1
-* `id\_category`: 1 (Herramientas Manuales)
-* `id\_brand`: 2 (Truper)
-* `id\_unit`: 1 (Unidad)
-* `Product\_name`: Martillo de Uña Profesional 16oz
-* `Description`: Martillo de acero forjado con mango de fibra de vidrio, ideal para trabajos de carpintería y construcción.
-* `Price`: 12500.00
-* `Stock\_Quantity`: 45
+* `id`: 1
+* `category_id`: 1 (Herramientas Manuales)
+* `brand_id`: 2 (Truper)
+* `unit_id`: 1 (Unidad)
+* `name`: Martillo de Uña Profesional 16oz
+* `description`: Martillo de acero forjado con mango de fibra de vidrio, ideal para trabajos de carpintería y construcción.
+* `price`: 12500.00
+* `stock_quantity`: 45
 * `minimum\_stock`: 10
 * `maximum\_stock`: 100
-* `Image\_URL`: https://ferreteria-ucr.com/images/martillo-16oz.jpg
+* `image_url`: https://ferreteria-ucr.com/images/martillo-16oz.jpg
 * `sku`: SKU-MART-016-001
-* `bar\_code`: 7501234567890
+* `barcode`: 7501234567890
 * `tax\_rate`: 0.13
-* `Weigth`: 0.45
+* `weight`: 0.45
 * `is\_active`: 1
 
 ### Producto 2: Taladro Percutor Eléctrico 750W
 
-* `id\_Product`: 2
-* `id\_category`: 2 (Herramientas Eléctricas)
-* `id\_brand`: 5 (DeWalt)
-* `id\_unit`: 1 (Unidad)
-* `Product\_name`: Taladro Percutor 750W 1/2"
-* `Description`: Taladro percutor de 750W con velocidad variable y reversa, incluye maletín y juego de brocas.
-* `Price`: 89500.00
-* `Stock\_Quantity`: 18
+* `id`: 2
+* `category_id`: 2 (Herramientas Eléctricas)
+* `brand_id`: 5 (DeWalt)
+* `unit_id`: 1 (Unidad)
+* `name`: Taladro Percutor 750W 1/2"
+* `description`: Taladro percutor de 750W con velocidad variable y reversa, incluye maletín y juego de brocas.
+* `price`: 89500.00
+* `stock_quantity`: 18
 * `minimum\_stock`: 5
 * `maximum\_stock`: 30
-* `Image\_URL`: https://ferreteria-ucr.com/images/taladro-750w.jpg
+* `image_url`: https://ferreteria-ucr.com/images/taladro-750w.jpg
 * `sku`: SKU-TAL-750-002
-* `bar\_code`: 7509876543210
+* `barcode`: 7509876543210
 * `tax\_rate`: 0.13
-* `Weigth`: 2.30
+* `weight`: 2.30
 * `is\_active`: 1
 
 ### Producto 3: Pintura Acrílica Blanca 1 Galón
 
-* `id\_Product`: 3
-* `id\_category`: 3 (Pinturas y Acabados)
-* `id\_brand`: 3 (Sur)
-* `id\_unit`: 4 (Galón)
-* `Product\_name`: Pintura Acrílica Blanca Mate 1 Galón
-* `Description`: Pintura acrílica de alta cobertura, acabado mate, lavable y resistente a la intemperie para interior y exterior.
-* `Price`: 24900.00
-* `Stock\_Quantity`: 62
+* `id`: 3
+* `category_id`: 3 (Pinturas y Acabados)
+* `brand_id`: 3 (Sur)
+* `unit_id`: 4 (Galón)
+* `name`: Pintura Acrílica Blanca Mate 1 Galón
+* `description`: Pintura acrílica de alta cobertura, acabado mate, lavable y resistente a la intemperie para interior y exterior.
+* `price`: 24900.00
+* `stock_quantity`: 62
 * `minimum\_stock`: 15
 * `maximum\_stock`: 120
-* `Image\_URL`: https://ferreteria-ucr.com/images/pintura-blanca-1gal.jpg
+* `image_url`: https://ferreteria-ucr.com/images/pintura-blanca-1gal.jpg
 * `sku`: SKU-PIN-BLA-003
-* `bar\_code`: 7501122334455
+* `barcode`: 7501122334455
 * `tax\_rate`: 0.13
-* `Weigth`: 4.10
+* `weight`: 4.10
 * `is\_active`: 1
 
 ### Producto 4: Cemento Holcim 50kg
 
-* `id\_Product`: 4
-* `id\_category`: 4 (Materiales de Construcción)
-* `id\_brand`: 1 (Holcim)
-* `id\_unit`: 5 (Saco 50kg)
-* `Product\_name`: Cemento Uso General 50kg Holcim
-* `Description`: Cemento Portland de uso general para concretos, morteros y blocks, alta resistencia inicial.
-* `Price`: 8200.00
-* `Stock\_Quantity`: 250
+* `id`: 4
+* `category_id`: 4 (Materiales de Construcción)
+* `brand_id`: 1 (Holcim)
+* `unit_id`: 5 (Saco 50kg)
+* `name`: Cemento Uso General 50kg Holcim
+* `description`: Cemento Portland de uso general para concretos, morteros y blocks, alta resistencia inicial.
+* `price`: 8200.00
+* `stock_quantity`: 250
 * `minimum\_stock`: 50
 * `maximum\_stock`: 500
-* `Image\_URL`: https://ferreteria-ucr.com/images/cemento-holcim-50kg.jpg
+* `image_url`: https://ferreteria-ucr.com/images/cemento-holcim-50kg.jpg
 * `sku`: SKU-CEM-HOL-004
-* `bar\_code`: 7505566778899
+* `barcode`: 7505566778899
 * `tax\_rate`: 0.13
-* `Weigth`: 50.00
+* `weight`: 50.00
 * `is\_active`: 1
 
 ### Producto 5: Juego de Destornilladores 6 Piezas
 
-* `id\_Product`: 5
-* `id\_category`: 1 (Herramientas Manuales)
-* `id\_brand`: 4 (Stanley)
-* `id\_unit`: 1 (Unidad)
-* `Product\_name`: Juego de Destornilladores 6 Piezas
-* `Description`: Set de 6 destornilladores planos y Phillips con mango ergonómico antideslizante y punta magnética.
-* `Price`: 18750.00
-* `Stock\_Quantity`: 8
+* `id`: 5
+* `category_id`: 1 (Herramientas Manuales)
+* `brand_id`: 4 (Stanley)
+* `unit_id`: 1 (Unidad)
+* `name`: Juego de Destornilladores 6 Piezas
+* `description`: Set de 6 destornilladores planos y Phillips con mango ergonómico antideslizante y punta magnética.
+* `price`: 18750.00
+* `stock_quantity`: 8
 * `minimum\_stock`: 10
 * `maximum\_stock`: 60
-* `Image\_URL`: https://ferreteria-ucr.com/images/juego-destornilladores-6pz.jpg
+* `image_url`: https://ferreteria-ucr.com/images/juego-destornilladores-6pz.jpg
 * `sku`: SKU-DES-6PZ-005
-* `bar\_code`: 7503344556677
+* `barcode`: 7503344556677
 * `tax\_rate`: 0.13
-* `Weigth`: 0.95
+* `weight`: 0.95
 * `is\_active`: 1
 

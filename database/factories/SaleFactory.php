@@ -3,8 +3,6 @@
 namespace Database\Factories;
 
 use App\Models\Customer;
-use App\Models\Order;
-use App\Models\Sale;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -20,11 +18,10 @@ class SaleFactory extends Factory
      */
     public function definition(): array
     {
-        //El ? es el if()
+        // El ? es el if()
         return [
-            'user_id' => User::inRandomOrder()->value('id'), //id de usuarios
-            'id_Customer' => fake()->boolean() ? Customer::inRandomOrder()->value('id_Customer') : null,//esto es por si un cliente no da sus datos se queda en null esa venta 
-            //'order_id' => fake()->boolean() ? Order::inRandomOrder()->value('id') : null,
+            'user_id' => User::inRandomOrder()->value('id'), // id de usuarios
+            'id_customer' => fake()->boolean() ? Customer::inRandomOrder()->value('id_customer') : null, // esto es por si un cliente no da sus datos se queda en null esa venta
             'sale_date' => fake()->dateTimeBetween('-1 año', 'ahora'),
             'total' => fake()->randomFloat(2, 1000, 150000),
             'tax_amount' => fake()->randomFloat(2, 100, 20000),

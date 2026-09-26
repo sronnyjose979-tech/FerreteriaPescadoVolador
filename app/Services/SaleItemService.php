@@ -45,24 +45,23 @@ class SaleItemService
         return $saleItem;
     }
 
-
-    //Funcion de la lista paginada (recibe filtros), por ejemplo el parametro array de filtros
-    public function listPaginated(array $filters): LengthAwarePaginator //el LengthAwarePaginator es el paginador
+    // Funcion de la lista paginada (recibe filtros), por ejemplo el parametro array de filtros
+    public function listPaginated(array $filters): LengthAwarePaginator // el LengthAwarePaginator es el paginador
     {
         // Verifica que el usuario tenga permiso para ver la lista de detalles de venta
         Gate::authorize('viewAny', SaleItem::class);
 
-        //El ?? means que si existe es valor usalo pero sino usar el 10
+        // El ?? means que si existe es valor usalo pero sino usar el 10
         $perPage = (int) ($filters['per_page'] ?? 10);
-        //Cuantos registros mostrar por pagina, minimo 2, max 50    
+        // Cuantos registros mostrar por pagina, minimo 2, max 50
         $perPage = max(1, min($perPage, 50));
 
-        //En sort le decimos que columna usar para ordenar, en este caso id
+        // En sort le decimos que columna usar para ordenar, en este caso id
         $sort = $filters['sort'] ?? 'id';
-        //Pero por defecto esta en asc, que es ascendente
+        // Pero por defecto esta en asc, que es ascendente
         $direction = $filters['direction'] ?? 'asc';
 
-        //Estas son las columnas que permitimos ordenar, son las que utilizamos 
+        // Estas son las columnas que permitimos ordenar, son las que utilizamos
         $allowedSorts = [
             'id',
             'sale_id',
@@ -70,31 +69,31 @@ class SaleItemService
             'quantity',
             'unit_price',
             'subtotal',
-            'created_at'
+            'created_at',
         ];
 
-        //aqui pregunta en in_array que si X valor esta en el arreglo, por ejemplo el id
+        // aqui pregunta en in_array que si X valor esta en el arreglo, por ejemplo el id
         if (! in_array($sort, $allowedSorts, true)) {
             $sort = 'id';
         }
-        //aqui solo validamos si se ponen en ascendente o descendente 
+        // aqui solo validamos si se ponen en ascendente o descendente
         if (! in_array($direction, ['asc', 'desc'], true)) {
             $direction = 'asc';
         }
 
-        //Aqui se crea la consulta para la tabla SaleItem
+        // Aqui se crea la consulta para la tabla SaleItem
         $query = SaleItem::query();
 
-        //el q significa la busqueda que vamos a hacer, ejemplo (sale-items?q= 5 )
+        // el q significa la busqueda que vamos a hacer, ejemplo (sale-items?q= 5 )
         if (! empty($filters['q'])) {
-            //Aqui guardamos lo que buscamos, es el q=5
+            // Aqui guardamos lo que buscamos, es el q=5
             $q = $filters['q'];
 
-            //Estas son las condiciones de la consulta
+            // Estas son las condiciones de la consulta
             $query->where(function ($w) use ($q) {
-                //Esta primera es busca el valor de $q dentro de id o en SQL= id LIKE '%5%'
+                // Esta primera es busca el valor de $q dentro de id o en SQL= id LIKE '%5%'
                 $w->where('id', 'like', "%{$q}%")
-                    //O tambien busca en sale_id
+                    // O tambien busca en sale_id
                     ->orWhere('sale_id', 'like', "%{$q}%")
                     ->orWhere('product_id', 'like', "%{$q}%")
                     ->orWhere('quantity', 'like', "%{$q}%")
@@ -105,9 +104,9 @@ class SaleItemService
             });
         }
 
-        //aqui se devuelven los resultados de la busqueda 
+        // aqui se devuelven los resultados de la busqueda
         return $query
-            //Esto es como en SQL ORDER BY quantity DESC
+            // Esto es como en SQL ORDER BY quantity DESC
             ->orderBy($sort, $direction)
             ->orderBy('id', 'asc')
             ->paginate($perPage)

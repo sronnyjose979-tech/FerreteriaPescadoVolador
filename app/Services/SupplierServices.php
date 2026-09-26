@@ -65,44 +65,44 @@ class SupplierServices
         $perPage = (int) ($filters['per_page'] ?? 10);
         $perPage = max(1, min($perPage, 50));
 
-        $sort = $filters['sort'] ?? 'id_Supplier';
+        $sort = $filters['sort'] ?? 'id_supplier';
         $direction = $filters['direction'] ?? 'asc';
 
         $allowedSorts = [
-            'Supplier_First_name',
-            'Supplier_Last_name',
-            'Supplier_Email',
-            'id_Supplier',
-            'created_at'
+            'supplier_first_name',
+            'supplier_last_name',
+            'supplier_email',
+            'id_supplier',
+            'created_at',
         ];
 
-        if (!in_array($sort, $allowedSorts, true)) {
-            $sort = 'id_Supplier';
+        if (! in_array($sort, $allowedSorts, true)) {
+            $sort = 'id_supplier';
         }
 
-        if (!in_array($direction, ['asc', 'desc'], true)) {
+        if (! in_array($direction, ['asc', 'desc'], true)) {
             $direction = 'asc';
         }
 
         $query = Supplier::query();
 
-        if (!empty($filters['q'])) {
+        if (! empty($filters['q'])) {
             $q = $filters['q'];
 
             $query->where(function ($w) use ($q) {
-                $w->where('Supplier_First_name', 'like', "%{$q}%")
-                    ->orWhere('Supplier_Last_name', 'like', "%{$q}%")
-                    ->orWhere('Supplier_Email', 'like', "%{$q}%");
+                $w->where('supplier_first_name', 'like', "%{$q}%")
+                    ->orWhere('supplier_last_name', 'like', "%{$q}%")
+                    ->orWhere('supplier_email', 'like', "%{$q}%");
             });
         }
 
-        if (!empty($filters['Supplier_Type'])) {
-            $query->where('Supplier_Type', $filters['Supplier_Type']);
+        if (! empty($filters['supplier_type'])) {
+            $query->where('supplier_type', $filters['supplier_type']);
         }
 
         return $query
             ->orderBy($sort, $direction)
-            ->orderBy('id_Supplier', 'asc')
+            ->orderBy('id_supplier', 'asc')
             ->paginate($perPage)
             ->withQueryString();
     }

@@ -4,7 +4,6 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Http\Resources\PurchaseResource;
 
 class SupplierResource extends JsonResource
 {
@@ -16,14 +15,14 @@ class SupplierResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id_Supplier,
-            'Supplier_First_name' => $this->Supplier_First_name,
-            'Supplier_Last_name' => $this->Supplier_Last_name,
-            'Supplier_Phone' => $this->Supplier_Phone,
-            'Supplier_Address' => $this->Supplier_Address,
-            'Supplier_Email' => $this->Supplier_Email,
-            'Supplier_Type' => $this->Supplier_Type,
-            'purchases' => PurchaseResource::collection($this->purchases)
+            'id' => $this->id_supplier,
+            'supplier_first_name' => $this->supplier_first_name,
+            'supplier_last_name' => $this->supplier_last_name,
+            'supplier_phone' => $this->supplier_phone,
+            'supplier_address' => $this->supplier_address,
+            'supplier_email' => $this->supplier_email,
+            'supplier_type' => $this->supplier_type,
+            'purchases' => PurchaseResource::collection($this->purchases),
         ];
     }
 }

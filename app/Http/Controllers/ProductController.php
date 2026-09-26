@@ -22,44 +22,49 @@ class ProductController extends Controller
     public function index(Request $request)
     {
         $product = $this->product->listPaginated($request->all());
+
         return ProductResource::collection($product);
     }
 
     public function inventorySummary()
     {
         $report = Product::select(
-            'categories.Category_name as category_name',
+            'categories.category_name as category_name',
             DB::raw('COUNT(products.id) as total_products'),
             DB::raw('SUM(products.stock_quantity) as total_stock'),
             DB::raw('AVG(products.price) as average_price')
-        )->join('categories', 'products.category_id', '=', 'categories.id')->groupBy('categories.id', 'categories.Category_name')->get();
+        )->join('categories', 'products.category_id', '=', 'categories.id')->groupBy('categories.id', 'categories.category_name')->get();
 
         return $report;
     }
 
-    #[Authorize('create', Product::class)] //PERMISO PARA CREAR
+    #[Authorize('create', Product::class)] // PERMISO PARA CREAR
     public function store(StoreProductRequest $request)
     {
         $product = $this->product->crear($request->validated());
+
         return response()->json($product, 201);
     }
 
-    #[Authorize('view','product')] //PERMISO PARA VER
+    #[Authorize('view', 'product')] // PERMISO PARA VER
     public function show(Product $product)
     {
         return new ProductResource($product);
     }
 
-    #[Authorize('update', Product::class)] //PERMISO PARA ACTUALIZAR
+    #[Authorize('update', Product::class)] // PERMISO PARA ACTUALIZAR
     public function update(UpdateProductRequest $request, Product $product)
     {
         $product = $this->product->actualizar($product, $request->validated());
+
         return new ProductResource($product);
     }
-    #[Authorize('delete', Product::class)] //PERMISO PARA BORRAR, VIENE DEL POLICY
+
+    #[Authorize('delete', Product::class)] // PERMISO PARA BORRAR, VIENE DEL POLICY
     public function destroy(Product $product)
     {
         $this->product->eliminar($product);
+
         return response()->json(null, 204);
     }
 }

@@ -24,7 +24,7 @@ class UpdateSaleRequest extends FormRequest
     {
         return [
             'user_id' => 'sometimes|required|exists:users,id',
-            'id_Customer' => 'sometimes|nullable|exists:customers,id_Customer',
+            'id_customer' => 'sometimes|nullable|exists:customers,id_customer',
             'order_id' => 'sometimes|nullable|exists:orders,id',
             'sale_date' => 'sometimes|required|date',
             'total' => 'sometimes|required|numeric|min:0',
@@ -33,15 +33,16 @@ class UpdateSaleRequest extends FormRequest
             'status' => 'sometimes|required|string|max:20',
         ];
     }
+
     public function messages(): array
     {
         return [
             'user_id.required' => 'El usuario es obligatorio.',
             'user_id.exists' => 'El usuario seleccionado no existe.',
 
-            'id_Customer.exists' => 'El cliente seleccionado no existe.',
+            'id_customer.exists' => 'El cliente seleccionado no existe.',
 
-            //'order_id.exists' => 'La orden seleccionada no existe.',
+            // 'order_id.exists' => 'La orden seleccionada no existe.',
 
             'sale_date.required' => 'La fecha de venta es obligatoria.',
             'sale_date.date' => 'La fecha de venta debe tener un formato válido.',

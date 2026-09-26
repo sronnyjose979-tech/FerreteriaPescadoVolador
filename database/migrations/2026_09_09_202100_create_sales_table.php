@@ -14,13 +14,13 @@ return new class extends Migration
         Schema::create('sales', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade'); // El cajero
-            $table->string('id_Customer')->nullable();
-            $table->foreign('id_Customer')->references('id_Customer')->on('customers')->nullOnDelete(); 
-            //$table->foreignId('order_id')->nullable()->constrained(); // Si viene de la web
+            $table->string('id_customer')->nullable();
+            $table->foreign('id_customer')->references('id_customer')->on('customers')->nullOnDelete();
+            // $table->foreignId('order_id')->nullable()->constrained(); // Si viene de la web
             $table->dateTime('sale_date');
             $table->decimal('total', 12, 2);
-            $table->decimal('tax_amount', 12, 2)->default(0); 
-            $table->decimal('discount', 12, 2)->default(0);   
+            $table->decimal('tax_amount', 12, 2)->default(0);
+            $table->decimal('discount', 12, 2)->default(0);
             $table->string('status', 20)->default('completed');
             $table->timestamps();
         });
@@ -34,4 +34,3 @@ return new class extends Migration
         Schema::dropIfExists('sales');
     }
 };
- //$table->string('id_Customer')->primary();

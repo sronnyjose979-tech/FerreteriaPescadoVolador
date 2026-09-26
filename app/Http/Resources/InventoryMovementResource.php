@@ -20,7 +20,13 @@ class InventoryMovementResource extends JsonResource
             'Tipo' => $this->type,
             'Cantidad' => $this->quantity,
             'Stock Despues' => $this->stock_after,
-            'Tipo de Origen' => $this->movementable_type,
+            'Tipo de Origen' => match (class_basename($this->movementable_type)) {
+                'PurchaseItem' => 'Compra',
+                'SaleItem' => 'Venta',
+                default => class_basename($this->movementable_type),
+            },
+            //'Tipo de Origen' => class_basename($this->movementable_type),
+            //'Tipo de Origen' => $this->movementable_type,
             'ID de Origen' => $this->movementable_id,
         ];
     }

@@ -15,22 +15,23 @@ use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\UnitController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\RegisterController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
+// SECCION DEL LOGIN, REGISTRO
+Route::post('/register', RegisterController::class);
 Route::post('/login', LoginController::class);
 
 
 
-
-
-
 Route::middleware('auth:sanctum')->group(function () {
-    //PUNTO DE VENTA
+    //EL LOGOUT ESTA PROTEGIDO(Asi podemos ver que token se va a cerrar)
+    Route::post('/logout', [LoginController::class, 'logout']);
 
-    //producto 
+    //PUNTO DE VENTA
     // crud de productos
     Route::apiResource('/products', ProductController::class);
     //Route::get('/products/inventory-summary', [ProductController::class, 'inventorySummary']);
@@ -47,15 +48,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('/sale-items', SaleItemController::class);
 
 
-    //CRUD DE PURCHASE (Russell)
+    //CRUD DE PURCHASE 
     Route::apiResource('purchases', PurchaseController::class);
-    //CRUD DE SUPPLIER (Russell)
+    //CRUD DE SUPPLIER 
     Route::apiResource('suppliers', SupplierController::class);
-    //CRUD DE PURCHASEITEM (Russell)
+    //CRUD DE PURCHASEITEM 
     Route::apiResource('purchase-items', PurchaseItemController::class);
     //CRUD DE CUSTOMER
     Route::apiResource('/customers', CustomerController::class);
-    
+
     Route::apiResource('/inventory-movements', InventoryMovementController::class);
     Route::apiResource('/payments', PaymentController::class);
 });

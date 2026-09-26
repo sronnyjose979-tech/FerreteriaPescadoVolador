@@ -33,7 +33,7 @@ class SaleItemController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    #[Authorize('store', SaleItem::class)]
+    #[Authorize('create', SaleItem::class)]
     public function store(StoreSaleItemRequest $request)
     {
         $sale = $this->saleItem->crear($request->validated());
@@ -43,7 +43,7 @@ class SaleItemController extends Controller
     /**
      * Display the specified resource.
      */
-    #[Authorize('show', 'saleItem')]
+    #[Authorize('view', 'saleItem')]
 
     public function show(SaleItem $saleItem)
     {

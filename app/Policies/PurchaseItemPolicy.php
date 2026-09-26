@@ -21,6 +21,7 @@ class PurchaseItemPolicy
     public function view(User $user, PurchaseItem $purchaseItem): bool
     {
         return $user->can('view purchase-items');
+        
     }
 
     /**

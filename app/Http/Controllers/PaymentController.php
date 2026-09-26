@@ -32,7 +32,7 @@ class PaymentController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    #[Authorize('store', Payment::class)]
+    #[Authorize('create', Payment::class)]
     public function store(StorePaymentRequest $request)
     {
         $payment = $this->payment->crear($request->validated());

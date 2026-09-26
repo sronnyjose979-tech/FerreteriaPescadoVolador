@@ -33,7 +33,7 @@ class SaleController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    #[Authorize('store', Sale::class)]
+    #[Authorize('create', Sale::class)]
     public function store(StoreSaleRequest $request)
     {
         $sale = $this->sale->crear($request->validated());
@@ -43,7 +43,7 @@ class SaleController extends Controller
     /**
      * Display the specified resource.
      */
-    #[Authorize('show', 'sale')]
+    #[Authorize('view', 'sale')]
     public function show(Sale $sale)
     {
         return new SaleResource($sale);

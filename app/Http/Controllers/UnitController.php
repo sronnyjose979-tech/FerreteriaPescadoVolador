@@ -31,7 +31,9 @@ class UnitController extends Controller
     #[Authorize('create', Unit::class)]
     public function store(StoreUnitRequest $request)
     {
-        $unit = $this->unitService->createUnit($request->validated());
+        $unit = $this->unitService->crear(
+            $request->validated()
+        );
 
         return response()->json(new UnitResource($unit), 201);
     }
@@ -39,21 +41,26 @@ class UnitController extends Controller
     #[Authorize('view', 'unit')]
     public function show(Unit $unit)
     {
+        $unit = $this->unitService->getById($unit->id);
+
         return new UnitResource($unit);
     }
 
-    #[Authorize('update', Unit::class)]
+    #[Authorize('update', 'unit')]
     public function update(UpdateUnitRequest $request, Unit $unit)
     {
-        $unit->update($request->validated());
+        $unit = $this->unitService->actualizar(
+            $unit,
+            $request->validated()
+        );
 
         return new UnitResource($unit);
     }
 
-    #[Authorize('delete', Unit::class)]
+    #[Authorize('delete', 'unit')]
     public function destroy(Unit $unit)
     {
-        $unit->delete();
+        $this->unitService->eliminar($unit);
 
         return response()->json(null, 204);
     }

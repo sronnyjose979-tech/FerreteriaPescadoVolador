@@ -52,7 +52,7 @@ class Purchase extends Model
      */
     public function purchaseItems(): HasMany
     {
-        return $this->hasMany(PurchaseItem::class);
+        return $this->hasMany(PurchaseItem::class,'id_Purchase','id_Purchase');
     }
     //
 }

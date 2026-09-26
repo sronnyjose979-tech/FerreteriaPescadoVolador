@@ -54,23 +54,23 @@ class CustomerServices
 
         $perPage = max(1, min($perPage, 50));
 
-        $sort = $filters['sort'] ?? 'id_Customer';
+        $sort = $filters['sort'] ?? 'id_customer';
 
         $direction = $filters['direction'] ?? 'asc';
 
         $allowedSorts = [
-            'id_Customer',
+            'id_customer',
             'first_name',
             'second_name',
             'last_name1',
             'last_name2',
             'email',
             'telephone_number',
-            'created_at'
+            'created_at',
         ];
 
         if (! in_array($sort, $allowedSorts, true)) {
-            $sort = 'id_Customer';
+            $sort = 'id_customer';
         }
 
         if (! in_array($direction, ['asc', 'desc'], true)) {
@@ -83,7 +83,7 @@ class CustomerServices
             $q = $filters['q'];
 
             $query->where(function ($w) use ($q) {
-                $w->where('id_Customer', 'like', "%{$q}%")
+                $w->where('id_customer', 'like', "%{$q}%")
                     ->orWhere('first_name', 'like', "%{$q}%")
                     ->orWhere('second_name', 'like', "%{$q}%")
                     ->orWhere('last_name1', 'like', "%{$q}%")
@@ -95,7 +95,7 @@ class CustomerServices
 
         return $query
             ->orderBy($sort, $direction)
-            ->orderBy('id_Customer', 'asc')
+            ->orderBy('id_customer', 'asc')
             ->paginate($perPage)
             ->withQueryString();
     }

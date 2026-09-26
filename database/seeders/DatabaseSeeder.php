@@ -4,19 +4,22 @@ namespace Database\Seeders;
 
 use App\Models\Brand;
 use App\Models\Category;
+use App\Models\Customer;
+use App\Models\InventoryMovement;
+use App\Models\Payment;
 use App\Models\Product;
 use App\Models\Purchase;
 use App\Models\PurchaseItem;
-use App\Models\Unit;
-use App\Models\Customer;
-use App\Models\Payment;
 use App\Models\Sale;
 use App\Models\SaleItem;
+use App\Models\Supplier;
+use App\Models\Unit;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 class DatabaseSeeder extends Seeder
 {
@@ -27,8 +30,12 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
+        InventoryMovement::truncate();
+        Payment::truncate();
+        SaleItem::truncate();
+        Sale::truncate();
         PurchaseItem::truncate();
         Purchase::truncate();
         Product::truncate();
@@ -36,25 +43,21 @@ class DatabaseSeeder extends Seeder
         Brand::truncate();
         Unit::truncate();
         Customer::truncate();
-        Sale::truncate();
-        SaleItem::truncate();
-        Payment::truncate();
+        Supplier::truncate();
 
-            //CREAMOS LOS USUARIOS
-        $admin =  User::factory()->create([
+        // CREAMOS LOS USUARIOS
+        $admin = User::factory()->create([
             'name' => 'admin',
-            'email' => 'admin@example.com'
+            'email' => 'admin@example.com',
         ]);
         $cajero = User::factory()->create([
             'name' => 'cajero',
-            'email' => 'cajero@example.com'
+            'email' => 'cajero@example.com',
         ]);
         $bodeguero = User::factory()->create([
             'name' => 'bodeguero',
-            'email' => 'bodeguero@example.com'
+            'email' => 'bodeguero@example.com',
         ]);
-
-    
 
         $this->call([
 
@@ -72,9 +75,7 @@ class DatabaseSeeder extends Seeder
             InventoryMovementSeeder::class,
         ]);
 
-    
-
-        //CREAMOS LOS ROLES PARA ASIGNARLOS A LOS USUARIOS
+        // CREAMOS LOS ROLES PARA ASIGNARLOS A LOS USUARIOS
         $roleAdmin = Role::create(['name' => 'admin']);
         $roleCajero = Role::create(['name' => 'cajero']);
         $roleBodeguero = Role::create(['name' => 'bodeguero']);
@@ -96,19 +97,19 @@ class DatabaseSeeder extends Seeder
             'inventory-movements' => ['view', 'create', 'update', 'delete'],
             'payments' => ['view', 'create', 'update', 'delete'],
         ];
-        //EN ESTA PARTE CREAMOS TODOS LOS PERMISOS CREADOS EN LA SECCION DE ARRIBA
+        // EN ESTA PARTE CREAMOS TODOS LOS PERMISOS CREADOS EN LA SECCION DE ARRIBA
         foreach ($permissions as $resource => $actions) {
             foreach ($actions as $action) {
                 Permission::create([
-                    //AQUI SE COLOCA $ACTION COMO 'VIEW' Y EL RESOURCE COMO 'PRODUCTS'
-                    'name' => "$action $resource"
+                    // AQUI SE COLOCA $ACTION COMO 'VIEW' Y EL RESOURCE COMO 'PRODUCTS'
+                    'name' => "$action $resource",
                 ]);
             }
         }
-        //LE DAMOS PERMISOS COMPLETOS AL ADMIN
+        // LE DAMOS PERMISOS COMPLETOS AL ADMIN
         $roleAdmin->givePermissionTo(Permission::all());
 
-        //SOLO LE DAMOS PERMISOS LIMITADOS AL CAJERO
+        // SOLO LE DAMOS PERMISOS LIMITADOS AL CAJERO
         $roleCajero->givePermissionTo([
             'view products',
             'view sales',
@@ -116,7 +117,7 @@ class DatabaseSeeder extends Seeder
             'view customers',
         ]);
 
-        //SOLO LE DAMOS PERMISOS LIMITADOS AL BODEGUERO
+        // SOLO LE DAMOS PERMISOS LIMITADOS AL BODEGUERO
         $roleBodeguero->givePermissionTo([
             'view products',
             'create products',
@@ -127,8 +128,7 @@ class DatabaseSeeder extends Seeder
             'update suppliers',
         ]);
 
-
-        //ASIGNAMOS EL ROLE A CADA UNO DE LOS USUARIOS
+        // ASIGNAMOS EL ROLE A CADA UNO DE LOS USUARIOS
         $admin->assignRole($roleAdmin);
         $cajero->assignRole($roleCajero);
         $bodeguero->assignRole($roleBodeguero);

@@ -26,7 +26,7 @@ class PurchaseItemService
         return DB::transaction(function () use ($validated) {
             $item = PurchaseItem::create($validated);
 
-            $product = Product::lockForUpdate()->find($validated['id_product']);
+            $product = Product::lockForUpdate()->find($validated['product_id']);
 
             if ($product) {
                 $product->increment('stock_quantity', $validated['quantity']);
@@ -52,18 +52,18 @@ class PurchaseItemService
 
         return DB::transaction(function () use ($item, $validated) {
             $oldQuantity = $item->quantity;
-            $oldProductId = $item->id_product;
+            $oldProductId = $item->product_id;
 
             $item->update($validated);
 
-            if ($oldProductId !== $item->id_product || $oldQuantity !== $item->quantity) {
+            if ($oldProductId !== $item->product_id || $oldQuantity !== $item->quantity) {
                 $oldProduct = Product::lockForUpdate()->find($oldProductId);
 
                 if ($oldProduct) {
                     $oldProduct->decrement('stock_quantity', $oldQuantity);
                 }
 
-                $newProduct = Product::lockForUpdate()->find($item->id_product);
+                $newProduct = Product::lockForUpdate()->find($item->product_id);
 
                 if ($newProduct) {
                     $newProduct->increment('stock_quantity', $item->quantity);
@@ -80,7 +80,7 @@ class PurchaseItemService
         Gate::authorize('delete', $item);
 
         DB::transaction(function () use ($item) {
-            $product = Product::lockForUpdate()->find($item->id_product);
+            $product = Product::lockForUpdate()->find($item->product_id);
 
             if ($product) {
                 $product->decrement('stock_quantity', $item->quantity);
@@ -117,25 +117,25 @@ class PurchaseItemService
             'unit_cost',
             'subtotal',
             'id',
-            'created_at'
+            'created_at',
         ];
 
-        if (!in_array($sort, $allowedSorts, true)) {
+        if (! in_array($sort, $allowedSorts, true)) {
             $sort = 'id';
         }
 
-        if (!in_array($direction, ['asc', 'desc'], true)) {
+        if (! in_array($direction, ['asc', 'desc'], true)) {
             $direction = 'asc';
         }
 
         $query = PurchaseItem::query()->with(['purchase', 'product']);
 
-        if (!empty($filters['id_Purchase'])) {
-            $query->where('id_Purchase', $filters['id_Purchase']);
+        if (! empty($filters['id_purchase'])) {
+            $query->where('id_purchase', $filters['id_purchase']);
         }
 
-        if (!empty($filters['id_product'])) {
-            $query->where('id_product', $filters['id_product']);
+        if (! empty($filters['product_id'])) {
+            $query->where('product_id', $filters['product_id']);
         }
 
         return $query

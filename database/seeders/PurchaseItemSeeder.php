@@ -23,7 +23,7 @@ class PurchaseItemSeeder extends Seeder
             $itemCount = fake()->numberBetween(1, 4);
 
             PurchaseItem::factory()->count($itemCount)->create([
-                'id_purchase' => $purchase->id, // Amarra los ítems directamente a esta venta específica
+                'id_purchase' => $purchase->id_purchase, // Amarra los ítems directamente a esta compra específica
             ]);
         }
     }

@@ -30,7 +30,7 @@ class UpdateCustomerRequest extends FormRequest
             'second_name' => 'sometimes|nullable|string|max:50',
             'last_name1' => 'sometimes|required|string|max:50',
             'last_name2' => 'sometimes|nullable|string|max:50',
-            'email' => ['sometimes', 'required', 'email', 'max:100', Rule::unique('customers', 'email')->ignore($customer->id_Customer, 'id_Customer'),],
+            'email' => ['sometimes', 'required', 'email', 'max:100', Rule::unique('customers', 'email')->ignore($customer->id_customer, 'id_customer')],
             'telephone_number' => 'sometimes|nullable|string|max:20',
         ];
     }

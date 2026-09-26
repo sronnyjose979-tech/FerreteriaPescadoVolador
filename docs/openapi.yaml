@@ -664,23 +664,23 @@ paths:
             examples:
               conDescuento:
                 value:
-                  id_Purchase: PUR-100
-                  id_user: 1
-                  id_Supplier: SUP100
-                  Purchase_status: pendiente
-                  Purchase_Total: 11400
+                  id_purchase: PUR-100
+                  user_id: 1
+                  id_supplier: SUP100
+                  purchase_status: pendiente
+                  purchase_total: 11400
                   items:
-                    - id_product: 1
+                    - product_id: 1
                       quantity: 2
                       unit_cost: 6000
                       subtotal: 12000
               sinDetalle:
                 value:
-                  id_Purchase: PUR-101
-                  id_user: 1
-                  id_Supplier: SUP100
-                  Purchase_status: pendiente
-                  Purchase_Total: 0
+                  id_purchase: PUR-101
+                  user_id: 1
+                  id_supplier: SUP100
+                  purchase_status: pendiente
+                  purchase_total: 0
                   items: []
       responses:
         '201':
@@ -904,7 +904,7 @@ components:
       in: query
       schema:
         type: string
-        enum: [name, price, stock_quantity, id, created_at, Supplier_First_name, Purchase_Total]
+        enum: [name, price, stock_quantity, id, created_at, supplier_first_name, purchase_total]
     Direction:
       name: direction
       in: query
@@ -1068,52 +1068,52 @@ components:
     Supplier:
       type: object
       properties:
-        id_Supplier:
+        id_supplier:
           type: string
-        Supplier_First_name:
+        supplier_first_name:
           type: string
-        Supplier_Last_name:
+        supplier_last_name:
           type: string
-        Supplier_Phone:
+        supplier_phone:
           type: string
-        Supplier_Address:
+        supplier_address:
           type: string
-        Supplier_Email:
+        supplier_email:
           type: string
           format: email
-        Supplier_Type:
+        supplier_type:
           type: string
     SupplierInput:
       type: object
-      required: [id_Supplier, Supplier_First_name, Supplier_Last_name, Supplier_Phone, Supplier_Address, Supplier_Email]
+      required: [id_supplier, supplier_first_name, supplier_last_name, supplier_phone, supplier_address, supplier_email]
       properties:
-        id_Supplier:
+        id_supplier:
           type: string
-        Supplier_First_name:
+        supplier_first_name:
           type: string
-        Supplier_Last_name:
+        supplier_last_name:
           type: string
-        Supplier_Phone:
+        supplier_phone:
           type: string
-        Supplier_Address:
+        supplier_address:
           type: string
-        Supplier_Email:
+        supplier_email:
           type: string
           format: email
-        Supplier_Type:
+        supplier_type:
           type: string
     Purchase:
       type: object
       properties:
-        id_Purchase:
+        id_purchase:
           type: string
-        id_user:
+        user_id:
           type: integer
-        id_Supplier:
+        id_supplier:
           type: string
-        Purchase_Total:
+        purchase_total:
           type: number
-        Purchase_status:
+        purchase_status:
           type: string
           enum: [pendiente, confirmada, recibida, cancelada]
         supplier:
@@ -1124,17 +1124,17 @@ components:
             $ref: '#/components/schemas/PurchaseItem'
     PurchaseInput:
       type: object
-      required: [id_Purchase, id_user, id_Supplier, Purchase_status]
+      required: [id_purchase, user_id, id_supplier, purchase_status]
       properties:
-        id_Purchase:
+        id_purchase:
           type: string
-        id_user:
+        user_id:
           type: integer
-        id_Supplier:
+        id_supplier:
           type: string
-        Purchase_Total:
+        purchase_total:
           type: number
-        Purchase_status:
+        purchase_status:
           type: string
         items:
           type: array
@@ -1145,9 +1145,9 @@ components:
       properties:
         id:
           type: integer
-        id_Purchase:
+        id_purchase:
           type: string
-        id_product:
+        product_id:
           type: integer
         quantity:
           type: integer
@@ -1157,11 +1157,11 @@ components:
           type: number
     PurchaseItemInput:
       type: object
-      required: [id_Purchase, id_product, quantity, unit_cost, subtotal]
+      required: [id_purchase, product_id, quantity, unit_cost, subtotal]
       properties:
-        id_Purchase:
+        id_purchase:
           type: string
-        id_product:
+        product_id:
           type: integer
         quantity:
           type: integer

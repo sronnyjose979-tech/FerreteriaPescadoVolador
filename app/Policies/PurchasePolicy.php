@@ -4,7 +4,6 @@ namespace App\Policies;
 
 use App\Models\Purchase;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class PurchasePolicy
 {
@@ -22,7 +21,7 @@ class PurchasePolicy
     public function view(User $user, Purchase $purchase): bool
     {
         return $user->can('view purchases')
-            && $purchase->id_user === $user->id; //Con esta parte los usuarios pueden ver sus purchases
+            && $purchase->user_id === $user->id; // Con esta parte los usuarios pueden ver sus purchases
     }
 
     /**
@@ -39,7 +38,7 @@ class PurchasePolicy
     public function update(User $user, Purchase $purchase): bool
     {
         return $user->can('update purchases')
-            && $purchase->id_user === $user->id; //Solo pueden actualizar los purchase sus creadores
+            && $purchase->user_id === $user->id; // Solo pueden actualizar los purchase sus creadores
     }
 
     /**
@@ -48,7 +47,7 @@ class PurchasePolicy
     public function delete(User $user, Purchase $purchase): bool
     {
         return $user->can('delete purchases')
-            && $purchase->id_user === $user->id;//Aca lo mismo, solo pueden borrar sus propios purchases
+            && $purchase->user_id === $user->id; // Aca lo mismo, solo pueden borrar sus propios purchases
     }
 
     /**

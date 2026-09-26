@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Sale extends Model
 {
-    /** @use HasFactory<SalesFactory> */
+    /** @use HasFactory<SaleFactory> */
     use HasFactory;
 
     /**
@@ -18,7 +18,7 @@ class Sale extends Model
      */
     protected $fillable = [
         'user_id',
-        'id_Customer',
+        'id_customer',
         'sale_date',
         'total',
         'tax_amount',
@@ -47,10 +47,9 @@ class Sale extends Model
         ];
     }
 
-
     /**
      * Usuario que registró la venta.
-     * DER: Sale.user_id - User.id
+     * DER: Sale.user_id — User.id
      */
     public function user(): BelongsTo
     {
@@ -63,20 +62,22 @@ class Sale extends Model
      */
     public function customer(): BelongsTo
     {
-        return $this->belongsTo(Customer::class, 'id_Customer', 'id_Customer');
+        return $this->belongsTo(Customer::class, 'id_customer', 'id_customer');
     }
-
-
 
     /**
      * Detalle de la venta.
-     * DER: Sale (1) — (N) Sale_Items via Sale_Items.id_sale
+     * DER: Sale (1) — (N) SaleItems via sale_id
      */
     public function saleItems(): HasMany
     {
         return $this->hasMany(SaleItem::class);
     }
 
+    /**
+     * Pagos recibidos por la venta.
+     * DER: Sale (1) — (N) Payment via sale_id
+     */
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);

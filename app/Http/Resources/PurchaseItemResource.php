@@ -14,13 +14,13 @@ class PurchaseItemResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        //return parent::toArray($request);
+        // return parent::toArray($request);
         return [
-            'ID Compra'=>$this->id_Purchase,
-            'ID Producto'=>$this->product_id,
-            'Cantidad'=>$this->quantity,
-            'Costo Unitario'=>$this->unit_cost,
-            'SubTotal'=>$this->subtotal,
+            'ID Compra' => $this->id_purchase,
+            'ID Producto' => $this->product_id,
+            'Cantidad' => $this->quantity,
+            'Costo Unitario' => $this->unit_cost,
+            'SubTotal' => $this->subtotal,
         ];
     }
 }

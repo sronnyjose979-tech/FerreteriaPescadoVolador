@@ -3,15 +3,17 @@
 namespace App\Models;
 
 use Database\Factories\ProductFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Product extends Model
 {
-    /** @use HasFactory<ProductsFactory> */
-    use HasFactory;
+    /** @use HasFactory<ProductFactory> */
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'category_id',
@@ -31,7 +33,7 @@ class Product extends Model
         'is_active',
     ];
 
-    protected $hidden = [ //los que no se van a mostrar 
+    protected $hidden = [ // los que no se van a mostrar
         'created_at',
         'updated_at',
         'deleted_at',
@@ -40,7 +42,6 @@ class Product extends Model
         'brand_id',
         'unit_id',
     ];
-
 
     protected function casts(): array
     {
@@ -84,22 +85,16 @@ class Product extends Model
 
     /**
      * Items de venta de este producto.
-     * DER: Product (1) — (N) Sale_Items via id_product
+     * DER: Product (1) — (N) SaleItems via product_id
      */
     public function saleItems(): HasMany
     {
-        return $this->hasMany(SaleItem::class,);
+        return $this->hasMany(SaleItem::class);
     }
 
     /**
-     * Items de pedido de este producto.
-     * DER: Product (1) — (N) Orders_items via id_product
-     */
-
-
-    /**
      * Items de compra de este producto.
-     * DER: Product (1) — (N) Purchase_Items via id_product
+     * DER: Product (1) — (N) PurchaseItems via product_id
      */
     public function purchaseItems(): HasMany
     {
@@ -108,19 +103,25 @@ class Product extends Model
 
     /**
      * Movimientos de inventario de este producto.
-     * DER: Product (1) — (N) Inventory_movement via id_product
+     * DER: Product (1) — (N) InventoryMovement via product_id
      */
     public function inventoryMovements(): HasMany
     {
         return $this->hasMany(InventoryMovement::class);
     }
 
-    public function scopeActive($query)
+    /**
+     * Solo productos activos.
+     */
+    public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);
     }
 
-    public function scopeLowStock($query)
+    /**
+     * Productos cuyo stock iguala o supera el mínimo.
+     */
+    public function scopeLowStock(Builder $query): Builder
     {
         return $query->whereColumn('stock_quantity', '<=', 'minimum_stock');
     }

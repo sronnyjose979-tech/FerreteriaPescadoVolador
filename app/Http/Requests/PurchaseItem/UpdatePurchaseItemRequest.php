@@ -14,8 +14,8 @@ class UpdatePurchaseItemRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id_Purchase' => ['sometimes', 'required', 'exists:purchases,id_Purchase'],
-            'id_product' => ['sometimes', 'required', 'exists:products,id'],
+            'id_purchase' => ['sometimes', 'required', 'exists:purchases,id_purchase'],
+            'product_id' => ['sometimes', 'required', 'exists:products,id'],
             'quantity' => ['sometimes', 'required', 'integer', 'min:1', 'max:100000'],
             'unit_cost' => ['sometimes', 'required', 'numeric', 'min:0'],
             'subtotal' => ['sometimes', 'required', 'numeric', 'min:0'],
@@ -25,10 +25,10 @@ class UpdatePurchaseItemRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'id_Purchase.required' => 'La compra es obligatoria.',
-            'id_Purchase.exists' => 'La compra indicada no existe.',
-            'id_product.required' => 'El producto es obligatorio.',
-            'id_product.exists' => 'El producto indicado no existe.',
+            'id_purchase.required' => 'La compra es obligatoria.',
+            'id_purchase.exists' => 'La compra indicada no existe.',
+            'product_id.required' => 'El producto es obligatorio.',
+            'product_id.exists' => 'El producto indicado no existe.',
             'quantity.required' => 'La cantidad es obligatoria.',
             'quantity.integer' => 'La cantidad debe ser un número entero.',
             'quantity.min' => 'La cantidad debe ser mayor que 0.',

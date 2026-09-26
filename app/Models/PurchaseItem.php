@@ -9,28 +9,50 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PurchaseItem extends Model
 {
-    /** @use HasFactory<PurchaseItemsFactory> */
+    /** @use HasFactory<PurchaseItemFactory> */
     use HasFactory;
+
     protected $table = 'purchase_items';
+
     protected $fillable = [
-        'id_Purchase',
-        'id_product',
+        'id_purchase',
+        'product_id',
         'quantity',
         'unit_cost',
         'subtotal',
     ];
+
+    /**
+     * Atributos ocultos en la serialización JSON.
+     */
+    protected $hidden = [
+        'created_at',
+        'updated_at',
+    ];
+
+    /**
+     * Casts de atributos para conversión automática de tipos.
+     */
+    protected function casts(): array
+    {
+        return [
+            'unit_cost' => 'decimal:2',
+            'subtotal' => 'decimal:2',
+        ];
+    }
+
     /**
      * Compra del item.
-     * DER: Purchase_Items (N) — (1) Purchase via id_Purchase
+     * DER: PurchaseItems (N) — (1) Purchase via id_purchase
      */
     public function purchase(): BelongsTo
     {
-        return $this->belongsTo(Purchase::class, 'id_Purchase', 'id_Purchase');
+        return $this->belongsTo(Purchase::class, 'id_purchase', 'id_purchase');
     }
 
     /**
      * Producto comprado.
-     * DER: Purchase_Items (N) — (1) Product via id_product
+     * DER: PurchaseItems (N) — (1) Product via product_id
      */
     public function product(): BelongsTo
     {

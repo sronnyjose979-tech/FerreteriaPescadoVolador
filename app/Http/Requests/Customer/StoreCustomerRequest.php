@@ -23,7 +23,7 @@ class StoreCustomerRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id_Customer' => 'required|unique:customers,id_Customer',
+            'id_customer' => 'required|unique:customers,id_customer',
             'first_name' => 'required|string|max:50',
             'second_name' => 'nullable|string|max:50',
             'last_name1' => 'required|string|max:50',
@@ -36,8 +36,8 @@ class StoreCustomerRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'id_Customer.required' => 'El campo id_Customer es obligatorio.',
-            'id_Customer.unique' => 'El id_Customer ya está en uso.',
+            'id_customer.required' => 'El campo id_customer es obligatorio.',
+            'id_customer.unique' => 'El id_customer ya está en uso.',
 
             'first_name.required' => 'El campo first_name es obligatorio.',
             'first_name.string' => 'El campo first_name debe ser una cadena de texto.',

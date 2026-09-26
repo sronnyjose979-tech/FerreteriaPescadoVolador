@@ -9,17 +9,17 @@ class PaymentResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
-     *
-     * @return array<string, mixed>
      */
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
-            'sale_id' => $this->sale_id,
-            'payment_method' => $this->payment_method,
-            'transaction_reference' => $this->transaction_reference,
-            'status' => $this->status,
+            'ID Pago' => $this->id,
+            'ID Venta' => $this->sale_id,
+            'Metodo de Pago' => $this->payment_method,
+            'Referencia de Transaccion' => $this->transaction_reference,
+            'Estado' => $this->status,
+            'Fecha de Creacion' => $this->created_at,
+            'Fecha de Actualizacion' => $this->updated_at,
         ];
     }
 }

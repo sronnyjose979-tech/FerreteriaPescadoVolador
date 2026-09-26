@@ -21,7 +21,6 @@ class SaleItemResource extends JsonResource
             'quantity' => $this->quantity,
             'unit_price' => $this->unit_price,
             'subtotal' => $this->subtotal,
-            'purchases' => PurchaseResource::collection($this->purchases)
         ];
     }
 }

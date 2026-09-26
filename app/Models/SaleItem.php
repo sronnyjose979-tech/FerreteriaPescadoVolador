@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Database\Factories\SaleItemFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,7 +11,7 @@ class SaleItem extends Model
     /** @use HasFactory<SaleItemsFactory> */
     use HasFactory;
 
-    protected $table = 'sale_items';//le doy el nombre a la tabla
+    protected $table = 'sale_items'; // le doy el nombre a la tabla
 
     protected $fillable = [
         'sale_id',
@@ -33,7 +32,7 @@ class SaleItem extends Model
 
     /**
      * Producto vendido.
-     * DER: Sale_Items (N) — (1) Product via id_product
+     * DER: SaleItems (N) — (1) Product via product_id
      */
     public function product(): BelongsTo
     {

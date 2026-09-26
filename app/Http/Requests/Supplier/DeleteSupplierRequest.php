@@ -21,10 +21,10 @@ class DeleteSupplierRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id_Supplier' => [
+            'id_supplier' => [
                 'required',
                 'string',
-                Rule::exists('suppliers', 'id_Supplier'),
+                Rule::exists('suppliers', 'id_supplier'),
             ],
         ];
     }
@@ -35,8 +35,8 @@ class DeleteSupplierRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'id_Supplier.required' => 'El proveedor es obligatorio.',
-            'id_Supplier.exists' => 'El proveedor no existe.',
+            'id_supplier.required' => 'El proveedor es obligatorio.',
+            'id_supplier.exists' => 'El proveedor no existe.',
         ];
     }
 }

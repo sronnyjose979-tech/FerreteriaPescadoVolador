@@ -12,7 +12,8 @@ class SaleService
     public function crear(array $sale): Sale
     {
         Gate::authorize('create', Sale::class);
-        $sale['user_id'] = Auth::id(); //Con esto evitamos que un cajero le asigne la venta a otro usuario
+        $sale['user_id'] = Auth::id(); // Con esto evitamos que un cajero le asigne la venta a otro usuario
+
         return Sale::create($sale);
     }
 
@@ -34,7 +35,7 @@ class SaleService
 
     public function getById(int $id): Sale
     {
-        $sale = Sale::findOrFail($id);
+        $sale = Sale::findOrFail($id)->load('saleItems');
 
         Gate::authorize('view', $sale);
 
@@ -52,13 +53,13 @@ class SaleService
         $allowedSorts = [
             'id',
             'user_id',
-            'id_Customer',
+            'id_customer',
             'sale_date',
             'total',
             'tax_amount',
             'discount',
             'status',
-            'created_at'
+            'created_at',
         ];
 
         if (! in_array($sort, $allowedSorts, true)) {
@@ -69,11 +70,11 @@ class SaleService
             $direction = 'asc';
         }
 
-        $query = Sale::query();
+        $query = Sale::query()->with(['saleItems']);
 
         $user = Auth::user();
 
-        if (!$user->roles->contains('name', 'admin')) {
+        if (! $user->roles->contains('name', 'admin')) {
             $query->where('user_id', $user->id);
         }
 
@@ -83,7 +84,7 @@ class SaleService
             $query->where(function ($w) use ($q) {
                 $w->where('id', 'like', "%{$q}%")
                     ->orWhere('user_id', 'like', "%{$q}%")
-                    ->orWhere('id_Customer', 'like', "%{$q}%")
+                    ->orWhere('id_customer', 'like', "%{$q}%")
                     ->orWhere('status', 'like', "%{$q}%");
             });
         }

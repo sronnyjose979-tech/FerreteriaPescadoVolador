@@ -7,7 +7,6 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -30,7 +29,7 @@ use Spatie\Permission\Traits\HasRoles;
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, HasApiTokens, HasRoles;
+    use HasApiTokens, HasFactory, HasRoles, Notifiable;
 
     /**
      * Get the attributes that should be cast.
@@ -45,7 +44,6 @@ class User extends Authenticatable
         ];
     }
 
-
     /**
      * Ventas registradas por el usuario.
      * DER: Sale.user_id → User.id
@@ -57,20 +55,19 @@ class User extends Authenticatable
 
     /**
      * Compras registradas por el usuario.
-     * DER: Purchase.id_user → User.id_User
+     * DER: Purchase.user_id → User.id
      */
     public function purchases(): HasMany
     {
-        //return $this->hasMany(Purchase::class, 'id_user', 'id_User');
-        return $this->hasMany(Purchase::class, 'user_id', 'id'); //trabaja con el unico user
+        return $this->hasMany(Purchase::class, 'user_id', 'id');
     }
 
     /**
-     * Movimientos de inventario registrados por el usuario (si aplica).
-     * DER: Inventory_movement ↔ User
+     * Movimientos de inventario registrados por el usuario.
+     * DER: InventoryMovement.user_id → User.id
      */
     public function inventoryMovements(): HasMany
     {
-        return $this->hasMany(InventoryMovement::class);
+        return $this->hasMany(InventoryMovement::class, 'user_id', 'id');
     }
 }

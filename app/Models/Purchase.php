@@ -10,31 +10,48 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Purchase extends Model
 {
-    /** @use HasFactory<PurchasesFactory> */
+    /** @use HasFactory<PurchaseFactory> */
     use HasFactory;
 
-    protected $primaryKey = 'id_Purchase';
+    protected $primaryKey = 'id_purchase';
 
     public $incrementing = false;
 
     protected $keyType = 'string';
-    
+
     protected $fillable = [
-        'id_Purchase',
-        'id_user',
-        'id_Supplier',
-        'Purchase_Total',
-        'Purchase_status',
+        'id_purchase',
+        'user_id',
+        'id_supplier',
+        'purchase_total',
+        'purchase_status',
     ];
+
+    /**
+     * Atributos ocultos en la serialización JSON.
+     */
+    protected $hidden = [
+        'created_at',
+        'updated_at',
+    ];
+
+    /**
+     * Casts de atributos para conversión automática de tipos.
+     */
+    protected function casts(): array
+    {
+        return [
+            'purchase_total' => 'decimal:2',
+        ];
+    }
+
     /**
      * Usuario que registró la compra.
-     * DER: Purchase (N) — (1) User via id_user
+     * DER: Purchase.user_id — User.id
      */
     public function user(): BelongsTo
     {
-        //return $this->belongsTo(User::class, 'id_user', 'id_User');
-        return $this->belongsTo(User::class); //para trabajar con el unico usuario
-
+        return $this->belongsTo(User::class, 'user_id', 'id');
     }
 
     /**
@@ -43,16 +60,15 @@ class Purchase extends Model
      */
     public function supplier(): BelongsTo
     {
-        return $this->belongsTo(Supplier::class, 'id_Supplier', 'id_Supplier');
+        return $this->belongsTo(Supplier::class, 'id_supplier', 'id_supplier');
     }
 
     /**
      * Detalle de la compra.
-     * DER: Purchase (1) — (N) Purchase_Items via id_Purchase
+     * DER: Purchase (1) — (N) PurchaseItems via id_purchase
      */
     public function purchaseItems(): HasMany
     {
-        return $this->hasMany(PurchaseItem::class,'id_Purchase','id_Purchase');
+        return $this->hasMany(PurchaseItem::class, 'id_purchase', 'id_purchase');
     }
-    //
 }

@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
 
             $table->foreignId('product_id')->constrained('products')->cascadeOnDelete();
-            $table->string('id_Purchase');
-            $table->foreign('id_Purchase')->references('id_Purchase')->on('purchases')->cascadeOnDelete();
+            $table->string('id_purchase');
+            $table->foreign('id_purchase')->references('id_purchase')->on('purchases')->cascadeOnDelete();
             $table->integer('quantity');
             $table->decimal('unit_cost', 12, 2);
             $table->decimal('subtotal', 12, 2);

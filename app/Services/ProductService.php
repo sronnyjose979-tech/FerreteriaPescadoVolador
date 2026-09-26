@@ -40,7 +40,7 @@ class ProductService
         // Verifica que el usuario tenga permiso para eliminar este producto
         Gate::authorize('delete', $product);
 
-        if (PurchaseItem::where('id_product', $product->id)->exists()) {
+        if (PurchaseItem::where('product_id', $product->id)->exists()) {
             throw new BusinessException(
                 'No se puede eliminar el producto porque tiene dependencias activas.',
                 409
@@ -79,21 +79,21 @@ class ProductService
             'price',
             'stock_quantity',
             'id',
-            'created_at'
+            'created_at',
         ];
 
-        if (!in_array($sort, $allowedSorts, true)) {
+        if (! in_array($sort, $allowedSorts, true)) {
             $sort = 'id';
         }
 
-        if (!in_array($direction, ['asc', 'desc'], true)) {
+        if (! in_array($direction, ['asc', 'desc'], true)) {
             $direction = 'asc';
         }
 
         $query = Product::query()
             ->with(['category', 'brand', 'unit']);
 
-        if (!empty($filters['q'])) {
+        if (! empty($filters['q'])) {
             $q = $filters['q'];
 
             $query->where(function ($w) use ($q) {
@@ -103,11 +103,11 @@ class ProductService
             });
         }
 
-        if (!empty($filters['category_id'])) {
+        if (! empty($filters['category_id'])) {
             $query->where('category_id', $filters['category_id']);
         }
 
-        if (!empty($filters['brand_id'])) {
+        if (! empty($filters['brand_id'])) {
             $query->where('brand_id', $filters['brand_id']);
         }
 
@@ -122,15 +122,15 @@ class ProductService
             );
         }
 
-        if (!empty($filters['low_stock'])) {
+        if (! empty($filters['low_stock'])) {
             $query->lowStock();
         }
 
-        if (!empty($filters['min_price'])) {
+        if (! empty($filters['min_price'])) {
             $query->where('price', '>=', $filters['min_price']);
         }
 
-        if (!empty($filters['max_price'])) {
+        if (! empty($filters['max_price'])) {
             $query->where('price', '<=', $filters['max_price']);
         }
 

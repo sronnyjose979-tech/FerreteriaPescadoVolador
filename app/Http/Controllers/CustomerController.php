@@ -41,7 +41,7 @@ class CustomerController extends Controller
     /**
      * Display the specified resource.
      */
-    #[Authorize('show', Customer::class)]
+    #[Authorize('show', 'customer')]
     public function show(Customer $customer)
     {
         return new CustomerResource($customer);

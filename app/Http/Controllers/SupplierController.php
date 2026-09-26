@@ -33,7 +33,7 @@ class SupplierController extends Controller
         return new SupplierResource($supplier);
     }
 
-    #[Authorize('view', Supplier::class)]
+    #[Authorize('view', 'supplier')]
     public function show(Supplier $supplier)
     {
         return new SupplierResource($supplier->load('purchases'));

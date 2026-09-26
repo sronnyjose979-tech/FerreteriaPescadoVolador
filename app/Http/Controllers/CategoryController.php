@@ -31,7 +31,7 @@ class CategoryController extends Controller
         return response()->json($category, 201);
     }
 
-    #[Authorize('show', Category::class)]
+    #[Authorize('show', 'category')]
     public function show(Category $category)
     {
         return new CategoryResource($category);

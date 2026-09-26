@@ -44,7 +44,7 @@ class ProductController extends Controller
         return response()->json($product, 201);
     }
 
-    #[Authorize('view', Product::class)] //PERMISO PARA VER
+    #[Authorize('view','product')] //PERMISO PARA VER
     public function show(Product $product)
     {
         return new ProductResource($product);

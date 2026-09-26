@@ -43,7 +43,7 @@ class SaleItemController extends Controller
     /**
      * Display the specified resource.
      */
-    #[Authorize('show', SaleItem::class)]
+    #[Authorize('show', 'saleItem')]
 
     public function show(SaleItem $saleItem)
     {

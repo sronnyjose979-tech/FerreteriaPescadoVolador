@@ -43,7 +43,7 @@ class SaleController extends Controller
     /**
      * Display the specified resource.
      */
-    #[Authorize('show', Sale::class)]
+    #[Authorize('show', 'sale')]
     public function show(Sale $sale)
     {
         return new SaleResource($sale);

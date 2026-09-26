@@ -17,7 +17,7 @@ class PurchaseItemResource extends JsonResource
         //return parent::toArray($request);
         return [
             'ID Compra'=>$this->id_Purchase,
-            'ID Producto'=>$this->id_product,
+            'ID Producto'=>$this->product_id,
             'Cantidad'=>$this->quantity,
             'Costo Unitario'=>$this->unit_cost,
             'SubTotal'=>$this->subtotal,

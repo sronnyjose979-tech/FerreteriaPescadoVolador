@@ -18,7 +18,7 @@ class PurchaseResource extends JsonResource //esto
         // return parent::toArray($request);
         return [
             'id_Purchase' => $this->id_Purchase, //falto poner el id de la compra
-            'id_user' => $this->id_user,
+            'id_user' => $this->user_id,
             'id_Supplier' => $this->id_Supplier,
             'Purchase_Total' => $this->Purchase_Total,
             'Purchase_status' => $this->Purchase_status,

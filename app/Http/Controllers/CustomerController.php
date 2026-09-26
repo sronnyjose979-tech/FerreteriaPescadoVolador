@@ -31,7 +31,7 @@ class CustomerController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    #[Authorize('store', Customer::class)]
+    #[Authorize('create', Customer::class)]
     public function store(StoreCustomerRequest $request)
     {
         $customer = $this->customer->crear($request->validated());
@@ -41,7 +41,7 @@ class CustomerController extends Controller
     /**
      * Display the specified resource.
      */
-    #[Authorize('show', 'customer')]
+    #[Authorize('view', 'customer')]
     public function show(Customer $customer)
     {
         return new CustomerResource($customer);
@@ -50,7 +50,7 @@ class CustomerController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    #[Authorize('viewAny', Customer::class)]
+    #[Authorize('update', Customer::class)]
     public function update(UpdateCustomerRequest $request, Customer $customer)
     {
         $customer = $this->customer->actualizar($customer, $request->validated());
@@ -60,7 +60,7 @@ class CustomerController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    #[Authorize('viewAny', Customer::class)]
+    #[Authorize('delete', Customer::class)]
     public function destroy(Customer $customer)
     {
         $this->customer->eliminar($customer);

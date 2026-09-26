@@ -40,12 +40,21 @@ class DatabaseSeeder extends Seeder
         SaleItem::truncate();
         Payment::truncate();
 
-        User::truncate();
-
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+            //CREAMOS LOS USUARIOS
+        $admin =  User::factory()->create([
+            'name' => 'admin',
+            'email' => 'admin@example.com'
         ]);
+        $cajero = User::factory()->create([
+            'name' => 'cajero',
+            'email' => 'cajero@example.com'
+        ]);
+        $bodeguero = User::factory()->create([
+            'name' => 'bodeguero',
+            'email' => 'bodeguero@example.com'
+        ]);
+
+    
 
         $this->call([
 
@@ -63,19 +72,7 @@ class DatabaseSeeder extends Seeder
             InventoryMovementSeeder::class,
         ]);
 
-        //CREAMOS LOS USUARIOS
-        $admin =  User::factory()->create([
-            'name' => 'admin',
-            'email' => 'admin@example.com'
-        ]);
-        $cajero = User::factory()->create([
-            'name' => 'cajero',
-            'email' => 'cajero@example.com'
-        ]);
-        $bodeguero = User::factory()->create([
-            'name' => 'bodeguero',
-            'email' => 'bodeguero@example.com'
-        ]);
+    
 
         //CREAMOS LOS ROLES PARA ASIGNARLOS A LOS USUARIOS
         $roleAdmin = Role::create(['name' => 'admin']);
@@ -96,6 +93,8 @@ class DatabaseSeeder extends Seeder
             'categories' => ['view', 'create', 'update', 'delete'],
             'brands' => ['view', 'create', 'update', 'delete'],
             'units' => ['view', 'create', 'update', 'delete'],
+            'inventory-movements' => ['view', 'create', 'update', 'delete'],
+            'payments' => ['view', 'create', 'update', 'delete'],
         ];
         //EN ESTA PARTE CREAMOS TODOS LOS PERMISOS CREADOS EN LA SECCION DE ARRIBA
         foreach ($permissions as $resource => $actions) {
@@ -114,6 +113,7 @@ class DatabaseSeeder extends Seeder
             'view products',
             'view sales',
             'create sales',
+            'view customers',
         ]);
 
         //SOLO LE DAMOS PERMISOS LIMITADOS AL BODEGUERO
@@ -121,6 +121,7 @@ class DatabaseSeeder extends Seeder
             'view products',
             'create products',
             'update products',
+            'view purchases',
             'view suppliers',
             'create suppliers',
             'update suppliers',

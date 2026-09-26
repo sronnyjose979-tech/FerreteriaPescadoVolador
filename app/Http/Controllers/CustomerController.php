@@ -8,6 +8,7 @@ use App\Http\Resources\CustomerResource;
 use App\Services\CustomerServices;
 use Illuminate\Http\Request;
 use App\Models\Customer;
+use Illuminate\Routing\Attributes\Controllers\Authorize;
 use Illuminate\Support\Facades\Gate;
 
 class CustomerController extends Controller
@@ -19,10 +20,10 @@ class CustomerController extends Controller
     {
         $this->customer = $customer;
     }
-    
+
+    #[Authorize('viewAny', Customer::class)]
     public function index(Request $request)
     {
-        Gate::authorize('viewAny', Customer::class);
         $customer = $this->customer->listPaginated($request->all());
         return CustomerResource::collection($customer);
     }
@@ -30,9 +31,9 @@ class CustomerController extends Controller
     /**
      * Store a newly created resource in storage.
      */
+    #[Authorize('store', Customer::class)]
     public function store(StoreCustomerRequest $request)
     {
-        Gate::authorize('create', Customer::class);
         $customer = $this->customer->crear($request->validated());
         return response()->json($customer, 201);
     }
@@ -40,6 +41,7 @@ class CustomerController extends Controller
     /**
      * Display the specified resource.
      */
+    #[Authorize('show', Customer::class)]
     public function show(Customer $customer)
     {
         return new CustomerResource($customer);
@@ -48,9 +50,9 @@ class CustomerController extends Controller
     /**
      * Update the specified resource in storage.
      */
+    #[Authorize('viewAny', Customer::class)]
     public function update(UpdateCustomerRequest $request, Customer $customer)
     {
-        Gate::authorize('update', $customer);
         $customer = $this->customer->actualizar($customer, $request->validated());
         return new CustomerResource($customer);
     }
@@ -58,9 +60,9 @@ class CustomerController extends Controller
     /**
      * Remove the specified resource from storage.
      */
+    #[Authorize('viewAny', Customer::class)]
     public function destroy(Customer $customer)
     {
-        Gate::authorize('delete', $customer);
         $this->customer->eliminar($customer);
         return response()->json(null, 204);
     }

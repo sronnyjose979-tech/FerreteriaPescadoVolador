@@ -3,58 +3,52 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Brand\StoreBrandRequest;
+use App\Http\Requests\Category\UpdateCategoryRequest;
 use App\Http\Resources\CategoryResource;
 use App\Models\Category;
 use App\Services\CategoryService;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Attributes\Controllers\Authorize;
 
 class CategoryController extends Controller
 {
-    public function __construct(protected CategoryService $categoryService)
+    public function __construct(protected CategoryService $category)
     {
-        $this->categoryService = $categoryService;
+        $this->category = $category;
     }
 
+    #[Authorize('viewAny', Category::class)]
     public function index(Request $request)
     {
-        $category = $this->categoryService->listPaginated($request->all());
+        $category = $this->category->listPaginated($request->all());
         return CategoryResource::collection($category);
     }
 
+    #[Authorize('store', Category::class)]
     public function store(StoreBrandRequest $request)
     {
-        $validated = $request->validated();
-        $category = $this->categoryService->createCategory($validated);
-
-        return response()->json(new CategoryResource($category), 201);
+        $category = $this->category->crear($request->validated());
+        return response()->json($category, 201);
     }
 
-    public function show(string $id)
+    #[Authorize('show', Category::class)]
+    public function show(Category $category)
     {
-        $category = Category::findOrFail($id);
+        return new CategoryResource($category);
+    }
+
+    #[Authorize('update', Category::class)]
+    public function update(UpdateCategoryRequest $request, Category $category)
+    {
+        $category = $this->category->actualizar($category, $request->validated());
 
         return new CategoryResource($category);
     }
 
-    public function update(Request $request, string $id)
+    #[Authorize('delete', Category::class)]
+    public function destroy(Category $category)
     {
-        $category = Category::findOrFail($id);
-
-        $validated = $request->validate([
-            'category_name' => 'string|max:200',
-            'description' => 'string|max:200',
-        ]);
-
-        $category->update($validated);
-
-        return new CategoryResource($category);
-    }
-
-    public function destroy(string $id)
-    {
-        $category = Category::findOrFail($id);
-        $category->delete();
-
+        $this->category->eliminar($category);
         return response()->json(null, 204);
     }
 }

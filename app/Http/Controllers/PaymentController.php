@@ -42,7 +42,7 @@ class PaymentController extends Controller
     /**
      * Display the specified resource.
      */
-    #[Authorize('show', Payment::class)]
+    #[Authorize('show', 'payment')]
     public function show(Payment $payment)
     {
         return new PaymentResource($payment);

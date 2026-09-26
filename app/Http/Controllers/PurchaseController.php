@@ -31,7 +31,7 @@ class PurchaseController extends Controller
         return response()->json($purchase, 201);
     }
 
-    #[Authorize('show', Purchase::class)]
+    #[Authorize('show', 'purchase')]
     public function show(Purchase $purchase)
     {
         return new PurchaseResource($purchase);

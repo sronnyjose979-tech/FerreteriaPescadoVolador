@@ -36,10 +36,9 @@ class UnitController extends Controller
         return response()->json(new UnitResource($unit), 201);
     }
 
-    #[Authorize('view', Unit::class)]
+    #[Authorize('view', 'unit')]
     public function show(Unit $unit)
     {
-
         return new UnitResource($unit);
     }
 

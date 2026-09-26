@@ -32,7 +32,7 @@ class BrandController extends Controller
         return response()->json($brand, 201);
     }
 
-    #[Authorize('show', brand::class)]
+    #[Authorize('show', 'brand')]
     public function show(Brand $brand)
     {
         return new BrandResource($brand);

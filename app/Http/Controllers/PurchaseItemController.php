@@ -21,6 +21,7 @@ class PurchaseItemController extends Controller
     public function index(Request $request)
     {
         $purchaseItems = $this->purchaseItem->listPaginated($request->all());
+
         return PurchaseItemResource::collection($purchaseItems);
     }
 
@@ -28,26 +29,29 @@ class PurchaseItemController extends Controller
     public function store(StorePurchaseItemRequest $request)
     {
         $purchaseItem = $this->purchaseItem->crear($request->validated());
+
         return response()->json($purchaseItem, 201);
     }
 
-    #[Authorize('view', 'purchaseItem')]
+    #[Authorize('view', 'purchase_item')]
     public function show(PurchaseItem $purchaseItem)
     {
         return new PurchaseItemResource($purchaseItem);
     }
 
-    #[Authorize('update', PurchaseItem::class)]
+    #[Authorize('update', 'purchase_item')]
     public function update(UpdatePurchaseItemRequest $request, PurchaseItem $purchaseItem)
     {
         $purchaseItems = $this->purchaseItem->actualizar($purchaseItem, $request->validated());
+
         return new PurchaseItemResource($purchaseItems);
     }
 
-    #[Authorize('delete', PurchaseItem::class)]
+    #[Authorize('delete', 'purchase_item')]
     public function destroy(PurchaseItem $purchaseItem)
     {
         $this->purchaseItem->eliminar($purchaseItem);
+
         return response()->json(null, 204);
     }
 }

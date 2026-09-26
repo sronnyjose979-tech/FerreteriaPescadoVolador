@@ -17,14 +17,15 @@ class BrandController extends Controller
         $this->brand = $brand;
     }
 
-    #[Authorize('viewAny', brand::class)]
+    #[Authorize('viewAny', Brand::class)]
     public function index(Request $request)
     {
         $brand = $this->brand->listPaginated($request->all());
+
         return BrandResource::collection($brand);
     }
 
-    #[Authorize('store', brand::class)]
+    #[Authorize('create', Brand::class)]
     public function store(StoreBrandRequest $request, Brand $brand)
     {
         $brand = $this->brand->actualizar($brand, $request->validated());
@@ -32,23 +33,25 @@ class BrandController extends Controller
         return response()->json($brand, 201);
     }
 
-    #[Authorize('show', 'brand')]
+    #[Authorize('view', 'brand')]
     public function show(Brand $brand)
     {
         return new BrandResource($brand);
     }
 
-    #[Authorize('update', brand::class)]
+    #[Authorize('update', 'brand')]
     public function update(UpdateBrandRequest $request, Brand $brand)
     {
         $brand = $this->brand->actualizar($brand, $request->validated());
+
         return new BrandResource($brand);
     }
 
-    #[Authorize('delete', brand::class)]
+    #[Authorize('delete', 'brand')]
     public function destroy(Brand $brand)
     {
         $this->brand->eliminar($brand);
+
         return response()->json(null, 204);
     }
 }

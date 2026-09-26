@@ -21,23 +21,25 @@ class CategoryController extends Controller
     public function index(Request $request)
     {
         $category = $this->category->listPaginated($request->all());
+
         return CategoryResource::collection($category);
     }
 
-    #[Authorize('store', Category::class)]
+    #[Authorize('create', Category::class)]
     public function store(StoreBrandRequest $request)
     {
         $category = $this->category->crear($request->validated());
+
         return response()->json($category, 201);
     }
 
-    #[Authorize('show', 'category')]
+    #[Authorize('view', 'category')]
     public function show(Category $category)
     {
         return new CategoryResource($category);
     }
 
-    #[Authorize('update', Category::class)]
+    #[Authorize('update', 'category')]
     public function update(UpdateCategoryRequest $request, Category $category)
     {
         $category = $this->category->actualizar($category, $request->validated());
@@ -45,10 +47,11 @@ class CategoryController extends Controller
         return new CategoryResource($category);
     }
 
-    #[Authorize('delete', Category::class)]
+    #[Authorize('delete', 'category')]
     public function destroy(Category $category)
     {
         $this->category->eliminar($category);
+
         return response()->json(null, 204);
     }
 }

@@ -5,16 +5,23 @@ namespace App\Services;
 use App\Models\Category;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 
 class CategoryService
 {
     public function crear(array $validated): Category
     {
+        // Verifica que el usuario tenga permiso para crear categorías
+        Gate::authorize('create', Category::class);
+
         return Category::create($validated);
     }
 
     public function actualizar(Category $category, array $validated): Category
     {
+        // Verifica que el usuario tenga permiso para actualizar esta categoría
+        Gate::authorize('update', $category);
+
         $category->update($validated);
 
         return $category;
@@ -22,13 +29,30 @@ class CategoryService
 
     public function eliminar(Category $category): void
     {
+        // Verifica que el usuario tenga permiso para eliminar esta categoría
+        Gate::authorize('delete', $category);
+
         DB::transaction(function () use ($category) {
             $category->delete();
         });
     }
 
+    public function getById(int $id): Category
+    {
+        // Busca la categoría por su ID
+        $category = Category::findOrFail($id);
+
+        // Verifica que el usuario tenga permiso para ver esta categoría
+        Gate::authorize('view', $category);
+
+        return $category;
+    }
+
     public function listPaginated(array $filters): LengthAwarePaginator
     {
+        // Verifica que el usuario tenga permiso para ver la lista de categorías
+        Gate::authorize('viewAny', Category::class);
+
         $perPage = (int) ($filters['per_page'] ?? 10);
         $perPage = max(1, min($perPage, 50));
 

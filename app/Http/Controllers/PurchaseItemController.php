@@ -24,14 +24,14 @@ class PurchaseItemController extends Controller
         return PurchaseItemResource::collection($purchaseItems);
     }
 
-    #[Authorize('store', PurchaseItem::class)]
+    #[Authorize('create', PurchaseItem::class)]
     public function store(StorePurchaseItemRequest $request)
     {
         $purchaseItem = $this->purchaseItem->crear($request->validated());
         return response()->json($purchaseItem, 201);
     }
 
-    #[Authorize('show', 'purchaseItem')]
+    #[Authorize('view', 'purchaseItem')]
     public function show(PurchaseItem $purchaseItem)
     {
         return new PurchaseItemResource($purchaseItem);

@@ -4,16 +4,23 @@ namespace App\Services;
 
 use App\Models\SaleItem;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Gate;
 
 class SaleItemService
 {
     public function crear(array $saleItem): SaleItem
     {
+        // Verifica que el usuario tenga permiso para crear detalles de venta
+        Gate::authorize('create', SaleItem::class);
+
         return SaleItem::create($saleItem);
     }
 
     public function actualizar(SaleItem $saleItem, array $validated): SaleItem
     {
+        // Verifica que el usuario tenga permiso para actualizar este detalle de venta
+        Gate::authorize('update', $saleItem);
+
         $saleItem->update($validated);
 
         return $saleItem;
@@ -21,18 +28,30 @@ class SaleItemService
 
     public function eliminar(SaleItem $saleItem): void
     {
+        // Verifica que el usuario tenga permiso para eliminar este detalle de venta
+        Gate::authorize('delete', $saleItem);
+
         $saleItem->delete();
     }
 
     public function getById(int $id): SaleItem
     {
-        return SaleItem::findOrFail($id);
+        // Busca el detalle de venta por su ID
+        $saleItem = SaleItem::findOrFail($id);
+
+        // Verifica que el usuario tenga permiso para ver este detalle de venta
+        Gate::authorize('view', $saleItem);
+
+        return $saleItem;
     }
 
 
     //Funcion de la lista paginada (recibe filtros), por ejemplo el parametro array de filtros
     public function listPaginated(array $filters): LengthAwarePaginator //el LengthAwarePaginator es el paginador
     {
+        // Verifica que el usuario tenga permiso para ver la lista de detalles de venta
+        Gate::authorize('viewAny', SaleItem::class);
+
         //El ?? means que si existe es valor usalo pero sino usar el 10
         $perPage = (int) ($filters['per_page'] ?? 10);
         //Cuantos registros mostrar por pagina, minimo 2, max 50    
@@ -85,9 +104,10 @@ class SaleItemService
                     puede estar en 5,15,500, etc*/
             });
         }
+
         //aqui se devuelven los resultados de la busqueda 
         return $query
-        //Esto es como en SQL ORDER BY quantity DESC
+            //Esto es como en SQL ORDER BY quantity DESC
             ->orderBy($sort, $direction)
             ->orderBy('id', 'asc')
             ->paginate($perPage)

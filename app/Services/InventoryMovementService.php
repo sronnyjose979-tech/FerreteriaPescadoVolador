@@ -2,15 +2,18 @@
 
 namespace App\Services;
 
-use App\Exceptions\BusinessException;
 use App\Models\InventoryMovement;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 
 class InventoryMovementService
 {
     public function crear(array $validated): InventoryMovement
     {
+        // Verifica que el usuario tenga permiso para crear movimientos de inventario
+        Gate::authorize('create', InventoryMovement::class);
+
         return InventoryMovement::create($validated);
     }
 
@@ -18,6 +21,9 @@ class InventoryMovementService
         InventoryMovement $inventoryMovement,
         array $validated
     ): InventoryMovement {
+        // Verifica que el usuario tenga permiso para actualizar este movimiento
+        Gate::authorize('update', $inventoryMovement);
+
         $inventoryMovement->update($validated);
 
         return $inventoryMovement;
@@ -25,13 +31,30 @@ class InventoryMovementService
 
     public function eliminar(InventoryMovement $inventoryMovement): void
     {
+        // Verifica que el usuario tenga permiso para eliminar este movimiento
+        Gate::authorize('delete', $inventoryMovement);
+
         DB::transaction(function () use ($inventoryMovement) {
             $inventoryMovement->delete();
         });
     }
 
+    public function getById(int $id): InventoryMovement
+    {
+        // Busca el movimiento de inventario por su ID
+        $inventoryMovement = InventoryMovement::findOrFail($id);
+
+        // Verifica que el usuario tenga permiso para ver este movimiento
+        Gate::authorize('view', $inventoryMovement);
+
+        return $inventoryMovement;
+    }
+
     public function listPaginated(array $filters): LengthAwarePaginator
     {
+        // Verifica que el usuario tenga permiso para ver la lista de movimientos
+        Gate::authorize('viewAny', InventoryMovement::class);
+
         $perPage = (int) ($filters['per_page'] ?? 10);
         $perPage = max(1, min($perPage, 50));
 

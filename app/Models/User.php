@@ -48,11 +48,11 @@ class User extends Authenticatable
 
     /**
      * Ventas registradas por el usuario.
-     * DER: Sale.id_user → User.id_User
+     * DER: Sale.user_id → User.id
      */
     public function sales(): HasMany
     {
-        return $this->hasMany(Sale::class);
+        return $this->hasMany(Sale::class, 'user_id', 'id');
     }
 
     /**

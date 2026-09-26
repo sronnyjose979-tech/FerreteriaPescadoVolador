@@ -4,16 +4,23 @@ namespace App\Services;
 
 use App\Models\Customer;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Gate;
 
 class CustomerServices
 {
     public function crear(array $customer): Customer
     {
+        // Verifica que el usuario tenga permiso para crear clientes
+        Gate::authorize('create', Customer::class);
+
         return Customer::create($customer);
     }
 
     public function actualizar(Customer $customer, array $validated): Customer
     {
+        // Verifica que el usuario tenga permiso para actualizar este cliente
+        Gate::authorize('update', $customer);
+
         $customer->update($validated);
 
         return $customer;
@@ -21,16 +28,28 @@ class CustomerServices
 
     public function eliminar(Customer $customer): void
     {
+        // Verifica que el usuario tenga permiso para eliminar este cliente
+        Gate::authorize('delete', $customer);
+
         $customer->delete();
     }
 
     public function getById(string $id): Customer
     {
-        return Customer::findOrFail($id);
+        // Busca el cliente por su ID
+        $customer = Customer::findOrFail($id);
+
+        // Verifica que el usuario tenga permiso para ver este cliente
+        Gate::authorize('view', $customer);
+
+        return $customer;
     }
 
     public function listPaginated(array $filters): LengthAwarePaginator
     {
+        // Verifica que el usuario tenga permiso para ver la lista de clientes
+        Gate::authorize('viewAny', Customer::class);
+
         $perPage = (int) ($filters['per_page'] ?? 10);
 
         $perPage = max(1, min($perPage, 50));

@@ -4,16 +4,22 @@ namespace App\Services;
 
 use App\Models\Sale;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 class SaleService
 {
     public function crear(array $sale): Sale
     {
+        Gate::authorize('create', Sale::class);
+        $sale['user_id'] = Auth::id(); //Con esto evitamos que un cajero le asigne la venta a otro usuario
         return Sale::create($sale);
     }
 
     public function actualizar(Sale $sale, array $validated): Sale
     {
+        Gate::authorize('update', $sale);
+
         $sale->update($validated);
 
         return $sale;
@@ -21,12 +27,18 @@ class SaleService
 
     public function eliminar(Sale $sale): void
     {
+        Gate::authorize('delete', $sale);
+
         $sale->delete();
     }
 
     public function getById(int $id): Sale
     {
-        return Sale::findOrFail($id);
+        $sale = Sale::findOrFail($id);
+
+        Gate::authorize('view', $sale);
+
+        return $sale;
     }
 
     public function listPaginated(array $filters): LengthAwarePaginator
@@ -59,6 +71,12 @@ class SaleService
 
         $query = Sale::query();
 
+        $user = Auth::user();
+
+        if (!$user->roles->contains('name', 'admin')) {
+            $query->where('user_id', $user->id);
+        }
+
         if (! empty($filters['q'])) {
             $q = $filters['q'];
 
@@ -66,7 +84,6 @@ class SaleService
                 $w->where('id', 'like', "%{$q}%")
                     ->orWhere('user_id', 'like', "%{$q}%")
                     ->orWhere('id_Customer', 'like', "%{$q}%")
-                   // ->orWhere('order_id', 'like', "%{$q}%")
                     ->orWhere('status', 'like', "%{$q}%");
             });
         }

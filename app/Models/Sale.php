@@ -13,7 +13,7 @@ class Sale extends Model
     /** @use HasFactory<SalesFactory> */
     use HasFactory;
 
-/**
+    /**
      * Atributos asignables de forma masiva.
      */
     protected $fillable = [
@@ -50,11 +50,11 @@ class Sale extends Model
 
     /**
      * Usuario que registró la venta.
-     * DER: Sale (N) — (1) User via id_user
+     * DER: Sale.user_id - User.id
      */
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'id_user', 'id_User');
+        return $this->belongsTo(User::class, 'user_id', 'id');
     }
 
     /**

@@ -1,6 +1,9 @@
 <?php
 
+use App\Models\User;
+use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 /*
@@ -44,7 +47,18 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+/**
+ * Crea un usuario con el rol indicado y lo autentica en la prueba actual.
+ * Si los roles todavía no existen, los siembra con RolePermissionSeeder.
+ */
+function actingAsRole(string $role): User
 {
-    // ..
+    if (Role::query()->doesntExist()) {
+        test()->seed(RolePermissionSeeder::class);
+    }
+
+    $user = User::factory()->create()->assignRole($role);
+    test()->actingAs($user);
+
+    return $user;
 }

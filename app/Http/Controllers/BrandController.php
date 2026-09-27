@@ -26,9 +26,9 @@ class BrandController extends Controller
     }
 
     #[Authorize('create', Brand::class)]
-    public function store(StoreBrandRequest $request, Brand $brand)
+    public function store(StoreBrandRequest $request)
     {
-        $brand = $this->brand->actualizar($brand, $request->validated());
+        $brand = $this->brand->crear($request->validated());
 
         return response()->json($brand, 201);
     }

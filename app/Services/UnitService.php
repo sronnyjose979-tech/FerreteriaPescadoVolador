@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Exceptions\BusinessException;
+use App\Models\Product;
 use App\Models\Unit;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Gate;
@@ -28,6 +30,14 @@ class UnitService
     {
         Gate::authorize('delete', $unit);
 
+        // Verifica que la unidad no tenga productos asociados
+        if (Product::where('unit_id', $unit->id)->exists()) {
+            throw new BusinessException(
+                'No se puede eliminar la unidad porque tiene productos asociados.',
+                409
+            );
+        }
+
         $unit->delete();
     }
 
@@ -53,20 +63,20 @@ class UnitService
         $allowedSorts = [
             'id',
             'unit_name',
-            'created_at'
+            'created_at',
         ];
 
-        if (!in_array($sort, $allowedSorts, true)) {
+        if (! in_array($sort, $allowedSorts, true)) {
             $sort = 'id';
         }
 
-        if (!in_array($direction, ['asc', 'desc'], true)) {
+        if (! in_array($direction, ['asc', 'desc'], true)) {
             $direction = 'asc';
         }
 
         $query = Unit::query();
 
-        if (!empty($filters['q'])) {
+        if (! empty($filters['q'])) {
             $q = $filters['q'];
 
             $query->where(function ($w) use ($q) {

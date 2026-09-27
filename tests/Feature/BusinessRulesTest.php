@@ -13,11 +13,13 @@ use App\Services\ProductService;
 use App\Services\PurchaseItemService;
 use App\Services\PurchaseService;
 use App\Services\SupplierServices;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
 test('no permite eliminar producto con dependencias activas', function () {
+    actingAsRole('admin');
     $product = Product::factory()->create();
     $supplier = Supplier::factory()->create();
     $user = User::factory()->create();
@@ -38,13 +40,14 @@ test('no permite eliminar producto con dependencias activas', function () {
 
     $service = app(ProductService::class);
 
-    expect(fn () => $service->deleteProduct($product))->toThrow(BusinessException::class, 'dependencias activas');
+    expect(fn () => $service->eliminar($product))->toThrow(BusinessException::class, 'dependencias activas');
 });
 
 test('valida coherencia de stock minimo mayor que maximo', function () {
+    actingAsRole('admin');
     $service = app(ProductService::class);
 
-    expect(fn () => $service->createProduct([
+    expect(fn () => $service->crear([
         'category_id' => Category::factory()->create()->id,
         'brand_id' => Brand::factory()->create()->id,
         'unit_id' => Unit::factory()->create()->id,
@@ -58,6 +61,7 @@ test('valida coherencia de stock minimo mayor que maximo', function () {
 });
 
 test('no permite crear compra sin detalle', function () {
+    actingAsRole('admin');
     $supplier = Supplier::factory()->create();
     $user = User::factory()->create();
     $service = app(PurchaseService::class);
@@ -71,6 +75,7 @@ test('no permite crear compra sin detalle', function () {
 });
 
 test('aplica descuento segun umbral y valida total', function () {
+    actingAsRole('admin');
     $supplier = Supplier::factory()->create();
     $user = User::factory()->create();
     $product = Product::factory()->create(['price' => 10000]);
@@ -85,10 +90,11 @@ test('aplica descuento segun umbral y valida total', function () {
         ['product_id' => $product->id, 'quantity' => 2, 'unit_cost' => 6000, 'subtotal' => 12000],
     ]);
 
-    expect($purchase->purchase_total)->toBe(11400.0);
+    expect($purchase->purchase_total)->toBe('11400.00');
 });
 
 test('valida subtotal igual a cantidad por costo unitario', function () {
+    actingAsRole('admin');
     $product = Product::factory()->create();
     $supplier = Supplier::factory()->create();
     $purchase = Purchase::create([
@@ -110,29 +116,32 @@ test('valida subtotal igual a cantidad por costo unitario', function () {
 });
 
 test('reversion de transaccion ante fallo intermedio no deja registros parciales', function () {
+    actingAsRole('admin');
     $supplier = Supplier::factory()->create();
     $user = User::factory()->create();
-    $productOk = Product::factory()->create();
+    $productOk = Product::factory()->create(['stock_quantity' => 10]);
     $service = app(PurchaseService::class);
 
-    try {
-        $service->crearConDetalle([
-            'id_purchase' => 'PUR-005',
-            'user_id' => $user->id,
-            'id_supplier' => $supplier->id_supplier,
-            'purchase_status' => 'pendiente',
-        ], [
-            ['product_id' => $productOk->id, 'quantity' => 1, 'unit_cost' => 100, 'subtotal' => 100],
-            ['product_id' => 999999, 'quantity' => 1, 'unit_cost' => 100, 'subtotal' => 999],
-        ]);
-    } catch (BusinessException $e) {
-    }
+    // Los subtotales son correctos: la falla ocurre en la base de datos al insertar el segundo
+    // detalle (producto inexistente), DESPUÉS de haber creado la compra, el primer detalle y el
+    // aumento de stock. La transacción debe revertir todo.
+    expect(fn () => $service->crearConDetalle([
+        'id_purchase' => 'PUR-005',
+        'user_id' => $user->id,
+        'id_supplier' => $supplier->id_supplier,
+        'purchase_status' => 'pendiente',
+    ], [
+        ['product_id' => $productOk->id, 'quantity' => 1, 'unit_cost' => 100, 'subtotal' => 100],
+        ['product_id' => 999999, 'quantity' => 1, 'unit_cost' => 100, 'subtotal' => 100],
+    ]))->toThrow(QueryException::class);
 
     expect(Purchase::where('id_purchase', 'PUR-005')->exists())->toBeFalse();
     expect(PurchaseItem::where('id_purchase', 'PUR-005')->exists())->toBeFalse();
+    expect($productOk->fresh()->stock_quantity)->toBe(10);
 });
 
 test('no permite eliminar proveedor con compras asociadas', function () {
+    actingAsRole('admin');
     $supplier = Supplier::factory()->create();
     $user = User::factory()->create();
     Purchase::create([

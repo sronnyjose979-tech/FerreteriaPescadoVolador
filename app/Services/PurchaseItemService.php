@@ -17,11 +17,16 @@ class PurchaseItemService
         Gate::authorize('create', PurchaseItem::class);
 
         $expected = round($validated['quantity'] * $validated['unit_cost'], 2);
-        $given = round((float) $validated['subtotal'], 2);
+        if (isset($validated['subtotal'])) {
+            $given = round((float) $validated['subtotal'], 2);
 
-        if (abs($expected - $given) > 0.01) {
-            throw new BusinessException('El subtotal debe ser igual a cantidad por costo unitario.', 422);
+            if (abs($expected - $given) > 0.01) {
+                throw new BusinessException('El subtotal debe ser igual a cantidad por costo unitario.', 422);
+            }
         }
+
+        // El subtotal lo calcula el servicio, no lo recibe del cliente
+        $validated['subtotal'] = $expected;
 
         return DB::transaction(function () use ($validated) {
             $item = PurchaseItem::create($validated);

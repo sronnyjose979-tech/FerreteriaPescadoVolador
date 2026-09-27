@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
+use App\Exceptions\BusinessException;
 use App\Models\Category;
+use App\Models\Product;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -31,6 +33,14 @@ class CategoryService
     {
         // Verifica que el usuario tenga permiso para eliminar esta categoría
         Gate::authorize('delete', $category);
+
+        // Verifica que la categoría no tenga productos asociados
+        if (Product::where('category_id', $category->id)->exists()) {
+            throw new BusinessException(
+                'No se puede eliminar la categoría porque tiene productos asociados.',
+                409
+            );
+        }
 
         DB::transaction(function () use ($category) {
             $category->delete();
@@ -62,7 +72,7 @@ class CategoryService
         $allowedSorts = [
             'id',
             'category_name',
-            'created_at'
+            'created_at',
         ];
 
         if (! in_array($sort, $allowedSorts, true)) {

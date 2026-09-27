@@ -27,7 +27,7 @@ class StorePurchaseItemRequest extends FormRequest
             'product_id' => 'required|exists:products,id',
             'quantity' => 'required|integer|min:1',
             'unit_cost' => 'required|numeric|min:0',
-            'subtotal' => 'required|numeric|min:0',
+            'subtotal' => 'nullable|numeric|min:0',
         ];
     }
 
@@ -48,7 +48,6 @@ class StorePurchaseItemRequest extends FormRequest
             'unit_cost.numeric' => 'El costo unitario debe ser numerico.',
             'unit_cost.min' => 'El costo unitario no puede ser negativo.',
 
-            'subtotal.required' => 'El subtotal es obligatorio.',
             'subtotal.numeric' => 'El subtotal debe ser numerico.',
             'subtotal.min' => 'El subtotal no puede ser negativo.',
         ];

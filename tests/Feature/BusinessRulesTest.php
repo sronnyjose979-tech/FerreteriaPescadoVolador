@@ -71,7 +71,10 @@ test('no permite crear compra sin detalle', function () {
         'user_id' => $user->id,
         'id_supplier' => $supplier->id_supplier,
         'purchase_status' => 'pendiente',
-    ], []))->toThrow(BusinessException::class, 'sin detalle');
+    ], []))->toThrow(function (BusinessException $e) {
+        expect($e->getMessage())->toBe('No se puede confirmar una compra sin detalle.')
+            ->and($e->statusCode)->toBe(409);
+    });
 });
 
 test('aplica descuento segun umbral y valida total', function () {

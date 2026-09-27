@@ -148,24 +148,15 @@ class ProductService
         $stock = $data['stock_quantity'] ?? null;
 
         if ($min !== null && $max !== null && $min > $max) {
-            throw new BusinessException(
-                'El stock mínimo no puede ser mayor que el stock máximo.',
-                422
-            );
+            throw new BusinessException('El stock mínimo no puede ser mayor que el stock máximo.');
         }
 
         if ($stock !== null && $min !== null && $stock < $min) {
-            throw new BusinessException(
-                'La cantidad en stock no puede ser menor que el stock mínimo.',
-                422
-            );
+            throw new BusinessException('La cantidad en stock no puede ser menor que el stock mínimo.');
         }
 
         if ($stock !== null && $max !== null && $stock > $max) {
-            throw new BusinessException(
-                'La cantidad en stock no puede superar el stock máximo.',
-                422
-            );
+            throw new BusinessException('La cantidad en stock no puede superar el stock máximo.');
         }
     }
 }

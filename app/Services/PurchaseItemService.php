@@ -20,7 +20,7 @@ class PurchaseItemService
         $given = round((float) $validated['subtotal'], 2);
 
         if (abs($expected - $given) > 0.01) {
-            throw new BusinessException('El subtotal debe ser igual a cantidad por costo unitario.', 422);
+            throw new BusinessException('El subtotal debe ser igual a cantidad por costo unitario.');
         }
 
         return DB::transaction(function () use ($validated) {
@@ -46,7 +46,7 @@ class PurchaseItemService
             $given = round((float) $validated['subtotal'], 2);
 
             if (abs($expected - $given) > 0.01) {
-                throw new BusinessException('El subtotal debe ser igual a cantidad por costo unitario.', 422);
+                throw new BusinessException('El subtotal debe ser igual a cantidad por costo unitario.');
             }
         }
 

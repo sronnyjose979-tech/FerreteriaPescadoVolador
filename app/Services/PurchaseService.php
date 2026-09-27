@@ -26,7 +26,7 @@ class PurchaseService
         Gate::authorize('create', Purchase::class);
 
         if (empty($items)) {
-            throw new BusinessException('No se puede confirmar una compra sin detalle.', 422);
+            throw new BusinessException('No se puede confirmar una compra sin detalle.');
         }
 
         return DB::transaction(function () use ($purchaseData, $items) {
@@ -34,7 +34,7 @@ class PurchaseService
 
             foreach ($items as $item) {
                 if (! isset($item['quantity'], $item['unit_cost'])) {
-                    throw new BusinessException('Cada detalle debe incluir cantidad y costo unitario.', 422);
+                    throw new BusinessException('Cada detalle debe incluir cantidad y costo unitario.');
                 }
 
                 $expected = round($item['quantity'] * $item['unit_cost'], 2);
@@ -44,7 +44,7 @@ class PurchaseService
                     : $expected;
 
                 if (abs($expected - $subtotal) > 0.01) {
-                    throw new BusinessException('El subtotal no coincide con cantidad por costo unitario.', 422);
+                    throw new BusinessException('El subtotal no coincide con cantidad por costo unitario.');
                 }
 
                 $calculatedTotal += $subtotal;
@@ -64,10 +64,7 @@ class PurchaseService
                 isset($purchaseData['purchase_total'])
                 && abs((float) $purchaseData['purchase_total'] - $finalTotal) > 0.01
             ) {
-                throw new BusinessException(
-                    'El total de la compra no coincide con la suma de detalles menos descuento.',
-                    422
-                );
+                throw new BusinessException('El total de la compra no coincide con la suma de detalles menos descuento.');
             }
 
             $purchaseData['purchase_total'] = $finalTotal;

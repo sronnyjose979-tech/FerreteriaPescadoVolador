@@ -2,7 +2,8 @@
 
 namespace App\Services;
 
-use App\Exceptions\BusinessException;
+use App\Exceptions\ProductHasDependenciesException;
+use App\Exceptions\InvalidProductStockException;
 use App\Models\Product;
 use App\Models\PurchaseItem;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -42,10 +43,7 @@ class ProductService
         Gate::authorize('delete', $product);
 
         if (PurchaseItem::where('product_id', $product->id)->exists()) {
-            throw new BusinessException(
-                'No se puede eliminar el producto porque tiene dependencias activas.',
-                409
-            );
+            throw new ProductHasDependenciesException();
         }
 
         DB::transaction(function () use ($product) {
@@ -147,8 +145,16 @@ class ProductService
         Gate::authorize('viewAny', Product::class);
 
         return Product::query()
-            ->join('categories', 'products.category_id', '=', 'categories.id')
-            ->groupBy('categories.id', 'categories.category_name')
+            ->join(
+                'categories',
+                'products.category_id',
+                '=',
+                'categories.id'
+            )
+            ->groupBy(
+                'categories.id',
+                'categories.category_name'
+            )
             ->orderBy('categories.category_name')
             ->toBase()
             ->get([
@@ -166,15 +172,21 @@ class ProductService
         $stock = $data['stock_quantity'] ?? null;
 
         if ($min !== null && $max !== null && $min > $max) {
-            throw new BusinessException('El stock mínimo no puede ser mayor que el stock máximo.');
+            throw new InvalidProductStockException(
+                'El stock mínimo no puede ser mayor que el stock máximo.'
+            );
         }
 
         if ($stock !== null && $min !== null && $stock < $min) {
-            throw new BusinessException('La cantidad en stock no puede ser menor que el stock mínimo.');
+            throw new InvalidProductStockException(
+                'La cantidad en stock no puede ser menor que el stock mínimo.'
+            );
         }
 
         if ($stock !== null && $max !== null && $stock > $max) {
-            throw new BusinessException('La cantidad en stock no puede superar el stock máximo.');
+            throw new InvalidProductStockException(
+                'La cantidad en stock no puede superar el stock máximo.'
+            );
         }
     }
 }

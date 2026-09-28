@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Exceptions\BusinessException;
+use App\Exceptions\StockInsuficienteException;
 use App\Models\InventoryMovement;
 use App\Models\Product;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -20,18 +20,18 @@ class InventoryMovementService
         return $this->registrarMovimiento($product, $origen, 'entrada', $cantidad);
     }
 
-    public function registrarSalida(Product $product, Model $origen, int $cantidad): InventoryMovement
-    {
-        if ($product->stock_quantity < $cantidad) {
-            throw new BusinessException(
-                "Stock insuficiente para el producto {$product->name}: disponible {$product->stock_quantity}, solicitado {$cantidad}."
-            );
-        }
-
-        $product->decrement('stock_quantity', $cantidad);
-
-        return $this->registrarMovimiento($product, $origen, 'salida', $cantidad);
+  public function registrarSalida(Product $product, Model $origen, int $cantidad): InventoryMovement
+{
+    if ($product->stock_quantity < $cantidad) {
+        throw new StockInsuficienteException(
+            "Stock insuficiente para el producto {$product->name}: disponible {$product->stock_quantity}, solicitado {$cantidad}."
+        );
     }
+
+    $product->decrement('stock_quantity', $cantidad);
+
+    return $this->registrarMovimiento($product,$origen,'salida',$cantidad);
+}
 
     public function crear(array $validated): InventoryMovement
     {

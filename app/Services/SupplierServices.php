@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Exceptions\BusinessException;
+use App\Exceptions\SupplierHasPurchasesException;
 use App\Models\Supplier;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -35,10 +35,7 @@ class SupplierServices
 
         // Verifica que el proveedor no tenga compras asociadas
         if ($supplier->purchases()->exists()) {
-            throw new BusinessException(
-                'No se puede eliminar el proveedor porque tiene compras asociadas.',
-                409
-            );
+            throw new SupplierHasPurchasesException();
         }
 
         DB::transaction(function () use ($supplier) {

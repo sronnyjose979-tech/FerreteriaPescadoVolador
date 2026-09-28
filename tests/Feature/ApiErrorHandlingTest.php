@@ -1,8 +1,12 @@
 <?php
 
 use App\Exceptions\BusinessException;
+use App\Exceptions\InvalidProductStockException;
+use App\Exceptions\ProductHasDependenciesException;
+use App\Exceptions\SupplierHasPurchasesException;
 use App\Models\Product;
 use App\Models\Purchase;
+use App\Models\PurchaseItem;
 use App\Models\Supplier;
 use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Route;
@@ -70,6 +74,42 @@ test('responde 409 cuando se viola una regla de negocio y no la registra como er
         ->assertExactJson(['message' => 'La cantidad en stock no puede superar el stock máximo.']);
     expect($product->fresh()->stock_quantity)->toBe(20);
     Exceptions::assertNotReported(BusinessException::class);
+    Exceptions::assertNotReported(InvalidProductStockException::class);
+});
+
+test('responde 409 al eliminar un producto que tiene compras asociadas', function () {
+    Exceptions::fake();
+    actingAsRole('admin');
+    $product = Product::factory()->create();
+    $purchase = Purchase::factory()->create([
+        'id_supplier' => Supplier::factory()->create()->id_supplier,
+    ]);
+    PurchaseItem::factory()->create([
+        'id_purchase' => $purchase->id_purchase,
+        'product_id' => $product->id,
+        'quantity' => 2,
+    ]);
+
+    $response = $this->deleteJson("/api/products/{$product->id}");
+
+    $response->assertConflict()
+        ->assertExactJson(['message' => 'No se puede eliminar el producto porque tiene dependencias activas.']);
+    $this->assertNotSoftDeleted($product);
+    Exceptions::assertNotReported(ProductHasDependenciesException::class);
+});
+
+test('responde 409 al eliminar un proveedor que tiene compras asociadas', function () {
+    Exceptions::fake();
+    actingAsRole('admin');
+    $supplier = Supplier::factory()->create();
+    Purchase::factory()->create(['id_supplier' => $supplier->id_supplier]);
+
+    $response = $this->deleteJson("/api/suppliers/{$supplier->id_supplier}");
+
+    $response->assertConflict()
+        ->assertExactJson(['message' => 'No se puede eliminar el proveedor porque tiene compras asociadas.']);
+    $this->assertDatabaseHas('suppliers', ['id_supplier' => $supplier->id_supplier]);
+    Exceptions::assertNotReported(SupplierHasPurchasesException::class);
 });
 
 test('responde 409 cuando el subtotal de un detalle de compra no coincide', function () {

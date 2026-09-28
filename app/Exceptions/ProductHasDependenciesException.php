@@ -2,13 +2,11 @@
 
 namespace App\Exceptions;
 
-use Exception;
-
-class ProductHasDependenciesException extends Exception
+class ProductHasDependenciesException extends BusinessException
 {
     public function __construct(
         string $message = 'No se puede eliminar el producto porque tiene dependencias activas.'
     ) {
-        parent::__construct($message, 409);
+        parent::__construct($message);
     }
 }

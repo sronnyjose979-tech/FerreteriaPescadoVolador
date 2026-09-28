@@ -2,13 +2,11 @@
 
 namespace App\Exceptions;
 
-use Exception;
-
-class SupplierHasPurchasesException extends Exception
+class SupplierHasPurchasesException extends BusinessException
 {
     public function __construct(
         string $message = 'No se puede eliminar el proveedor porque tiene compras asociadas.'
     ) {
-        parent::__construct($message, 409);
+        parent::__construct($message);
     }
 }

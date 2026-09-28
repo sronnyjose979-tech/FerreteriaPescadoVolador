@@ -10,7 +10,7 @@ class BusinessException extends Exception
 {
     public function __construct(
         string $message = '',
-        public int $statusCode = 422,
+        public int $statusCode = 409,
         public array $errors = []
     ) {
         parent::__construct($message);

@@ -19,7 +19,7 @@ use Tests\TestCase;
 
 pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
-    ->in('Feature');
+    ->in('Feature', 'Unit');
 
 /*
 |--------------------------------------------------------------------------
@@ -47,10 +47,6 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-/**
- * Crea un usuario con el rol indicado y lo autentica en la prueba actual.
- * Si los roles todavía no existen, los siembra con RolePermissionSeeder.
- */
 function actingAsRole(string $role): User
 {
     if (Role::query()->doesntExist()) {

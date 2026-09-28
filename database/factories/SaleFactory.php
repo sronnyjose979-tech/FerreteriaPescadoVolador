@@ -22,7 +22,7 @@ class SaleFactory extends Factory
         return [
             'user_id' => User::inRandomOrder()->value('id'), // id de usuarios
             'id_customer' => fake()->boolean() ? Customer::inRandomOrder()->value('id_customer') : null, // esto es por si un cliente no da sus datos se queda en null esa venta
-            'sale_date' => fake()->dateTimeBetween('-1 año', 'ahora'),
+            'sale_date' => fake()->dateTimeBetween('-1 year', 'now'),
             'total' => fake()->randomFloat(2, 1000, 150000),
             'tax_amount' => fake()->randomFloat(2, 100, 20000),
             'discount' => fake()->randomFloat(2, 0, 5000),

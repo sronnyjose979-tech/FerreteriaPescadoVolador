@@ -2,13 +2,37 @@
 
 namespace App\Services;
 
+use App\Exceptions\BusinessException;
 use App\Models\InventoryMovement;
+use App\Models\Product;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
 class InventoryMovementService
 {
+    public function registrarEntrada(Product $product, Model $origen, int $cantidad): InventoryMovement
+    {
+        $product->increment('stock_quantity', $cantidad);
+
+        return $this->registrarMovimiento($product, $origen, 'entrada', $cantidad);
+    }
+
+    public function registrarSalida(Product $product, Model $origen, int $cantidad): InventoryMovement
+    {
+        if ($product->stock_quantity < $cantidad) {
+            throw new BusinessException(
+                "Stock insuficiente para el producto {$product->name}: disponible {$product->stock_quantity}, solicitado {$cantidad}."
+            );
+        }
+
+        $product->decrement('stock_quantity', $cantidad);
+
+        return $this->registrarMovimiento($product, $origen, 'salida', $cantidad);
+    }
+
     public function crear(array $validated): InventoryMovement
     {
         // Verifica que el usuario tenga permiso para crear movimientos de inventario
@@ -69,7 +93,7 @@ class InventoryMovementService
             'type',
             'quantity',
             'stock_after',
-            'created_at'
+            'created_at',
         ];
 
         if (! in_array($sort, $allowedSorts, true)) {
@@ -116,5 +140,18 @@ class InventoryMovementService
             ->orderBy('id', 'asc')
             ->paginate($perPage)
             ->withQueryString();
+    }
+
+    private function registrarMovimiento(Product $product, Model $origen, string $tipo, int $cantidad): InventoryMovement
+    {
+        return InventoryMovement::create([
+            'product_id' => $product->id,
+            'user_id' => Auth::id(),
+            'movementable_type' => $origen->getMorphClass(),
+            'movementable_id' => $origen->getKey(),
+            'type' => $tipo,
+            'quantity' => $cantidad,
+            'stock_after' => $product->stock_quantity,
+        ]);
     }
 }

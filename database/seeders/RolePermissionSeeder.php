@@ -10,7 +10,7 @@ use Spatie\Permission\PermissionRegistrar;
 class RolePermissionSeeder extends Seeder
 {
     /**
-     * Crea los roles del sistema (admin, cajero y bodeguero) y sus permisos por recurso.
+     * Run the database seeds.
      */
     public function run(): void
     {

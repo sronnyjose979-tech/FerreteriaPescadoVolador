@@ -7,18 +7,13 @@ use App\Models\Product;
 use App\Models\Purchase;
 use App\Models\PurchaseItem;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
 class PurchaseService
 {
-    public function crear(array $purchase): Purchase
-    {
-        // Verifica que el usuario tenga permiso para crear compras
-        Gate::authorize('create', Purchase::class);
-
-        return Purchase::create($purchase);
-    }
+    public function __construct(protected InventoryMovementService $inventory) {}
 
     public function crearConDetalle(array $purchaseData, array $items): Purchase
     {
@@ -26,15 +21,17 @@ class PurchaseService
         Gate::authorize('create', Purchase::class);
 
         if (empty($items)) {
-            throw new BusinessException('No se puede confirmar una compra sin detalle.', 422);
+            throw new BusinessException('No se puede confirmar una compra sin detalle.');
         }
+
+        $purchaseData['user_id'] = Auth::id();
 
         return DB::transaction(function () use ($purchaseData, $items) {
             $calculatedTotal = 0;
 
             foreach ($items as $item) {
                 if (! isset($item['quantity'], $item['unit_cost'])) {
-                    throw new BusinessException('Cada detalle debe incluir cantidad y costo unitario.', 422);
+                    throw new BusinessException('Cada detalle debe incluir cantidad y costo unitario.');
                 }
 
                 $expected = round($item['quantity'] * $item['unit_cost'], 2);
@@ -43,11 +40,11 @@ class PurchaseService
                     ? round((float) $item['subtotal'], 2)
                     : $expected;
 
-                if (abs($expected - $subtotal) > 0.01) {
-                    throw new BusinessException('El subtotal no coincide con cantidad por costo unitario.', 422);
+                if (abs(round($expected * 100) - round($subtotal * 100)) > 1) {
+                    throw new BusinessException('El subtotal no coincide con cantidad por costo unitario.');
                 }
 
-                $calculatedTotal += $subtotal;
+                $calculatedTotal += $expected;
             }
 
             $discount = 0;
@@ -62,12 +59,9 @@ class PurchaseService
 
             if (
                 isset($purchaseData['purchase_total'])
-                && abs((float) $purchaseData['purchase_total'] - $finalTotal) > 0.01
+                && abs(round((float) $purchaseData['purchase_total'] * 100) - round($finalTotal * 100)) > 1
             ) {
-                throw new BusinessException(
-                    'El total de la compra no coincide con la suma de detalles menos descuento.',
-                    422
-                );
+                throw new BusinessException('El total de la compra no coincide con la suma de detalles menos descuento.');
             }
 
             $purchaseData['purchase_total'] = $finalTotal;
@@ -77,7 +71,7 @@ class PurchaseService
             foreach ($items as $item) {
                 $subtotal = round($item['quantity'] * $item['unit_cost'], 2);
 
-                PurchaseItem::create([
+                $purchaseItem = PurchaseItem::create([
                     'id_purchase' => $purchase->id_purchase,
                     'product_id' => $item['product_id'],
                     'quantity' => $item['quantity'],
@@ -88,7 +82,7 @@ class PurchaseService
                 $product = Product::lockForUpdate()->find($item['product_id']);
 
                 if ($product) {
-                    $product->increment('stock_quantity', $item['quantity']);
+                    $this->inventory->registrarEntrada($product, $purchaseItem, $item['quantity']);
                 }
             }
 
@@ -161,6 +155,12 @@ class PurchaseService
         }
 
         $query = Purchase::query()->with(['supplier', 'purchaseItems']);
+
+        $user = Auth::user();
+
+        if (! $user->hasRole('admin')) {
+            $query->where('user_id', $user->id);
+        }
 
         if (! empty($filters['q'])) {
             $q = $filters['q'];

@@ -71,7 +71,10 @@ test('no permite crear compra sin detalle', function () {
         'user_id' => $user->id,
         'id_supplier' => $supplier->id_supplier,
         'purchase_status' => 'pendiente',
-    ], []))->toThrow(BusinessException::class, 'sin detalle');
+    ], []))->toThrow(function (BusinessException $e) {
+        expect($e->getMessage())->toBe('No se puede confirmar una compra sin detalle.')
+            ->and($e->statusCode)->toBe(409);
+    });
 });
 
 test('aplica descuento segun umbral y valida total', function () {
@@ -122,9 +125,6 @@ test('reversion de transaccion ante fallo intermedio no deja registros parciales
     $productOk = Product::factory()->create(['stock_quantity' => 10]);
     $service = app(PurchaseService::class);
 
-    // Los subtotales son correctos: la falla ocurre en la base de datos al insertar el segundo
-    // detalle (producto inexistente), DESPUÉS de haber creado la compra, el primer detalle y el
-    // aumento de stock. La transacción debe revertir todo.
     expect(fn () => $service->crearConDetalle([
         'id_purchase' => 'PUR-005',
         'user_id' => $user->id,

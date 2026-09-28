@@ -27,29 +27,25 @@ Ejemplo `ProductResource` mapea `category_id -> category_id`, expone `price` com
 |-----------|--------|--------|------------|
 | Login | POST | 200 token, 401 credenciales, 422 validación | - |
 | Listado | GET | 200 con `current_page, last_page, per_page, total, links`, 401 sin token | - |
-| Detalle | GET | 200, 404 inexistente, 403 no corresponde, 401 | - |
+| Detalle | GET | 200, 404 inexistente o de otra persona (ventas y compras), 403 sin permiso del rol, 401 | - |
 | Creación | POST | 201 + `Location: /api/products/{id}`, 422 invalid | Location |
 | Actualización | PUT | 200, 404, 422 | - |
 | Eliminación | DELETE | 204 sin contenido, 404, 409 dependencias | - |
-Manejo centralizado en `bootstrap/app.php` con `render` para `BusinessException -> 409`, `ModelNotFoundException -> 404`, `ValidationException -> 422` con `errors` por campo. No se expone traza.
+Manejo centralizado en `bootstrap/app.php`: `BusinessException -> 409`, `ModelNotFoundException -> 404`, `ValidationException -> 422` con `errors` por campo, JSON mal formado `-> 400`, sin permiso `-> 403`, método no permitido `-> 405` con encabezado `Allow`, demasiados intentos `-> 429` con `Retry-After` y cualquier otro error `-> 500` con un mensaje genérico. Los mensajes están en español y no se expone traza.
 
 ## 4. Paginación
 Estructura consistente en toda la API:
 ```json
 {
   "data": [],
-  "current_page": 1,
-  "last_page": 5,
-  "per_page": 10,
-  "total": 45,
   "links": {"first": "...", "last": "...", "prev": null, "next": "..."},
-  "meta": {}
+  "meta": {"current_page": 1, "from": 1, "last_page": 5, "path": "...", "per_page": 10, "to": 10, "total": 45}
 }
 ```
 Parámetros `page`, `per_page` con tope 50 validado en Service, `sort` y `direction` con whitelist, filtros combinables `q, category_id, brand_id`.
 
 ## 5. Documentación OpenAPI
-Especificación `docs/openapi.yaml` OpenAPI 3.0.3 con `servers`, `security bearerAuth`, `tags`, `paths` para cada endpoint, `components/schemas` para `Product, Category, Brand, Unit, Supplier, Purchase` y `responses` `401, 403, 404, 409, 422`. Incluye ejemplos `correcto/invalido` y códigos de error. Accesible desde `http://localhost:8000/api/documentation` si se instala `l5-swagger` (`php artisan l5-swagger:generate`), también versionado como archivo estático.
+Especificación `docs/openapi.yaml` OpenAPI 3.0.3 con `servers`, `security bearerAuth`, `tags`, `paths` para cada endpoint, `components/schemas` para `Product, Category, Brand, Unit, Supplier, Purchase` y `responses` `401, 403, 404, 409, 422`. Incluye ejemplos `correcto/invalido` y códigos de error. Accesible desde el navegador en `http://localhost:8000/docs/api` (Swagger UI) y descargable en `http://localhost:8000/docs/openapi.yaml`; el archivo está versionado en `docs/openapi.yaml` y documenta las 66 operaciones con ejemplos reales.
 
 ## 6. Colección HTTP
 `docs/http/lab05-collection.http` (18 solicitudes) y `docs/collection-lab05.postman.json` con variables `baseUrl` y `token`. Cubre casos correctos y error (200, 201, 204, 401, 403, 404, 409, 422). Importar en VS Code REST Client o Postman.

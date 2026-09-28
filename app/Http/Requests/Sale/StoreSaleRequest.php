@@ -23,7 +23,6 @@ class StoreSaleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'user_id' => 'required|exists:users,id',
             'id_customer' => 'nullable|exists:customers,id_customer',
             // 'order_id' => 'nullable|exists:orders,id',
             'sale_date' => 'required|date',
@@ -37,9 +36,6 @@ class StoreSaleRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'user_id.required' => 'El usuario es obligatorio.',
-            'user_id.exists' => 'El usuario seleccionado no existe.',
-
             'id_customer.exists' => 'El cliente seleccionado no existe.',
 
             // 'order_id.exists' => 'La orden seleccionada no existe.',

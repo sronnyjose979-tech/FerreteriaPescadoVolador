@@ -6,6 +6,7 @@ use App\Exceptions\BusinessException;
 use App\Models\Product;
 use App\Models\PurchaseItem;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
@@ -141,6 +142,23 @@ class ProductService
             ->withQueryString();
     }
 
+    public function inventorySummary(): Collection
+    {
+        Gate::authorize('viewAny', Product::class);
+
+        return Product::query()
+            ->join('categories', 'products.category_id', '=', 'categories.id')
+            ->groupBy('categories.id', 'categories.category_name')
+            ->orderBy('categories.category_name')
+            ->toBase()
+            ->get([
+                'categories.category_name as category_name',
+                DB::raw('COUNT(products.id) as total_products'),
+                DB::raw('SUM(products.stock_quantity) as total_stock'),
+                DB::raw('ROUND(AVG(products.price), 2) as average_price'),
+            ]);
+    }
+
     private function validateStockCoherence(array $data): void
     {
         $min = $data['minimum_stock'] ?? null;
@@ -148,24 +166,15 @@ class ProductService
         $stock = $data['stock_quantity'] ?? null;
 
         if ($min !== null && $max !== null && $min > $max) {
-            throw new BusinessException(
-                'El stock mínimo no puede ser mayor que el stock máximo.',
-                422
-            );
+            throw new BusinessException('El stock mínimo no puede ser mayor que el stock máximo.');
         }
 
         if ($stock !== null && $min !== null && $stock < $min) {
-            throw new BusinessException(
-                'La cantidad en stock no puede ser menor que el stock mínimo.',
-                422
-            );
+            throw new BusinessException('La cantidad en stock no puede ser menor que el stock mínimo.');
         }
 
         if ($stock !== null && $max !== null && $stock > $max) {
-            throw new BusinessException(
-                'La cantidad en stock no puede superar el stock máximo.',
-                422
-            );
+            throw new BusinessException('La cantidad en stock no puede superar el stock máximo.');
         }
     }
 }

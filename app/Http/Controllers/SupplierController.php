@@ -7,6 +7,7 @@ use App\Http\Requests\Supplier\UpdateSupplierRequest;
 use App\Http\Resources\SupplierResource;
 use App\Models\Supplier;
 use App\Services\SupplierServices;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Attributes\Controllers\Authorize;
 
@@ -26,11 +27,14 @@ class SupplierController extends Controller
     }
 
     #[Authorize('create', Supplier::class)]
-    public function store(StoreSupplierRequest $request)
+    public function store(StoreSupplierRequest $request): JsonResponse
     {
         $supplier = $this->orderSupplier->crear($request->validated());
 
-        return response()->json(new SupplierResource($supplier), 201);
+        return (new SupplierResource($supplier))
+            ->response()
+            ->setStatusCode(201)
+            ->header('Location', route('suppliers.show', $supplier));
     }
 
     #[Authorize('view', 'supplier')]

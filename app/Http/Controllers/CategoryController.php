@@ -7,6 +7,7 @@ use App\Http\Requests\Category\UpdateCategoryRequest;
 use App\Http\Resources\CategoryResource;
 use App\Models\Category;
 use App\Services\CategoryService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Attributes\Controllers\Authorize;
 
@@ -26,11 +27,14 @@ class CategoryController extends Controller
     }
 
     #[Authorize('create', Category::class)]
-    public function store(StoreCategoryRequest $request)
+    public function store(StoreCategoryRequest $request): JsonResponse
     {
         $category = $this->category->crear($request->validated());
 
-        return response()->json($category, 201);
+        return (new CategoryResource($category))
+            ->response()
+            ->setStatusCode(201)
+            ->header('Location', route('categories.show', $category));
     }
 
     #[Authorize('view', 'category')]

@@ -70,7 +70,6 @@ class DatabaseSeeder extends Seeder
             InventoryMovementSeeder::class,
         ]);
 
-        // LOS ROLES Y PERMISOS SE CREAN EN SU PROPIO SEEDER PARA PODER REUTILIZARLOS EN LAS PRUEBAS
         $this->call(RolePermissionSeeder::class);
 
         // ASIGNAMOS EL ROLE A CADA UNO DE LOS USUARIOS

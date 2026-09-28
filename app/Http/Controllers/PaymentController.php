@@ -7,6 +7,7 @@ use App\Http\Requests\Payment\UpdatePaymenteRequest;
 use App\Http\Resources\PaymentResource;
 use App\Models\Payment;
 use App\Services\PaymentService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Attributes\Controllers\Authorize;
 
@@ -32,11 +33,14 @@ class PaymentController extends Controller
      * Store a newly created resource in storage.
      */
     #[Authorize('create', Payment::class)]
-    public function store(StorePaymentRequest $request)
+    public function store(StorePaymentRequest $request): JsonResponse
     {
         $payment = $this->payment->crear($request->validated());
 
-        return response()->json($payment, 201);
+        return (new PaymentResource($payment))
+            ->response()
+            ->setStatusCode(201)
+            ->header('Location', route('payments.show', $payment));
     }
 
     /**

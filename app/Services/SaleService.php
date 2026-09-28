@@ -44,6 +44,8 @@ class SaleService
 
     public function listPaginated(array $filters): LengthAwarePaginator
     {
+        Gate::authorize('viewAny', Sale::class);
+
         $perPage = (int) ($filters['per_page'] ?? 10);
         $perPage = max(1, min($perPage, 50));
 

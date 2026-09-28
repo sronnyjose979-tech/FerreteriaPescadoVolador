@@ -1,700 +1,1965 @@
 openapi: 3.0.3
 info:
-  title: Ferreteria Pescado Volador - API
-  description: API REST principal en Laravel para ferreteria. Contrato basado en entidad Product con 16 atributos y relaciones Category, Brand, Unit. Incluye recursos anidados para relaciones.
-  version: 1.0.0
+  title: 'Ferreteria Pescado Volador - API'
+  version: 2.0.0
+  description: |-
+    API REST en Laravel para la ferretería. Todas las respuestas son JSON y los errores nunca incluyen trazas.
+
+    Autenticación: POST /api/login devuelve un token Bearer que vence a las 2 horas y lleva como capacidades (abilities) los permisos del rol. POST /api/logout revoca los tokens de la persona.
+
+    Autorización en tres niveles: capacidad del token (403), permiso del rol en la política con #[Authorize] (403) y nuevamente en el servicio con Gate::authorize. Las ventas y compras solo las ve quien las registró o un admin; para otra persona responden 404.
+
+    Roles: admin (todos los permisos), cajero y bodeguero. Cada operación indica el permiso requerido y los roles que lo tienen.
+
+    Códigos de error: 400 JSON mal formado, 401 sin token o token vencido/revocado, 403 sin permiso, 404 recurso inexistente, 409 regla de negocio, 422 validación (errores por campo), 429 demasiados intentos de inicio de sesión.
   contact:
-    name: Equipo IF0009
+    name: 'Equipo IF0009'
     email: proyecto@ucr.ac.cr
 servers:
-  - url: http://localhost:8000
+  -
+    url: 'http://localhost:8000'
     description: Local
-  - url: https://api.ferreteria-ucr.com
-    description: Produccion
 security:
-  - bearerAuth: []
+  -
+    bearerAuth: []
 tags:
-  - name: Auth
-    description: Autenticacion
-  - name: Products
-    description: Entidad principal del contrato comparativo
-  - name: Categories
-  - name: Brands
-  - name: Units
-  - name: Purchases
-  - name: PurchaseItems
-  - name: Suppliers
+  -
+    name: Auth
+    description: 'Registro, inicio y cierre de sesión con tokens de Sanctum'
+  -
+    name: Products
+  -
+    name: Categories
+  -
+    name: Brands
+  -
+    name: Units
+  -
+    name: Suppliers
+  -
+    name: Purchases
+  -
+    name: PurchaseItems
+  -
+    name: Customers
+  -
+    name: Sales
+  -
+    name: SaleItems
+  -
+    name: Payments
+  -
+    name: InventoryMovements
 paths:
-  /api/login:
+  /api/register:
     post:
-      tags: [Auth]
-      summary: Inicio de sesion
-      security: []
+      tags:
+        - Auth
+      summary: 'Registrar una cuenta'
+      description: 'Crea la cuenta con la contraseña derivada con bcrypt y le asigna el rol cajero.'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/LoginRequest'
-            examples:
-              correcto:
-                value:
-                  email: admin@ferreteria.com
-                  password: secret123
-              invalido:
-                value:
-                  email: no-email
-                  password: ""
+              type: object
+              properties:
+                name:
+                  type: string
+                  maxLength: 255
+                email:
+                  type: string
+                  format: email
+                  maxLength: 255
+                  description: 'Valor único.'
+                password:
+                  type: string
+                  minLength: 8
+                  description: 'Requiere password_confirmation con el mismo valor. Mínimo 8 caracteres, con mayúsculas, minúsculas, números y símbolos.'
+              required:
+                - name
+                - email
+                - password
+            example:
+              name: 'Ana Mora'
+              email: ana@example.com
+              password: 'Secreta#2026'
+              password_confirmation: 'Secreta#2026'
       responses:
-        '200':
-          description: Token emitido
+        '201':
+          description: 'Cuenta creada'
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  token:
+                  data:
+                    $ref: '#/components/schemas/User'
+                  message:
                     type: string
-                    example: 1|abc123
-              example:
-                token: 1|abc123
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '422':
-          $ref: '#/components/responses/ValidationError'
-  /api/products:
-    get:
-      tags: [Products]
-      summary: Listado paginado de productos
-      parameters:
-        - $ref: '#/components/parameters/Page'
-        - $ref: '#/components/parameters/PerPage'
-        - $ref: '#/components/parameters/Q'
-        - $ref: '#/components/parameters/Sort'
-        - $ref: '#/components/parameters/Direction'
-        - name: category_id
-          in: query
-          schema:
-            type: integer
-        - name: brand_id
-          in: query
-          schema:
-            type: integer
-        - name: is_active
-          in: query
-          schema:
-            type: boolean
-      responses:
-        '200':
-          description: Lista paginada
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/PaginationMeta'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/Product'
               example:
                 data:
-                  - id: 1
-                    name: Martillo de Una Profesional 16oz
-                    sku: SKU-MART-016-001
-                    price: 12500.00
-                    stock_quantity: 45
-                current_page: 1
-                last_page: 5
-                per_page: 10
-                total: 45
-                links:
-                  first: /api/products?page=1
-                  last: /api/products?page=5
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                  id: 4
+                  nombre: 'Ana Mora'
+                  correo: ana@example.com
+                  roles:
+                    - cajero
+                message: 'Usuario registrado correctamente.'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/login:
     post:
-      tags: [Products]
-      summary: Crear producto
+      tags:
+        - Auth
+      summary: 'Iniciar sesión'
+      description: 'Devuelve un token Bearer con vencimiento de 2 horas y con los permisos del rol como capacidades. El mensaje de error es el mismo si el correo no existe o si la contraseña es incorrecta. Tras 5 intentos fallidos por minuto (correo + IP) responde 429.'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ProductInput'
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  maxLength: 255
+                password:
+                  type: string
+              required:
+                - email
+                - password
             examples:
               correcto:
                 value:
-                  category_id: 1
-                  brand_id: 2
-                  unit_id: 1
-                  name: Martillo de Una Profesional 16oz
-                  description: Martillo de acero forjado
-                  sku: SKU-MART-016-001
-                  barcode: "7501234567890"
-                  price: 12500.00
-                  tax_rate: 13.00
-                  stock_quantity: 45
-                  minimum_stock: 10
-                  maximum_stock: 100
-                  weight: 0.45
-                  image_url: https://ferreteria-ucr.com/images/martillo-16oz.jpg
-                  is_active: true
+                  email: cajero@example.com
+                  password: password
               invalido:
                 value:
-                  name: ""
-                  price: -5
-                  sku: ""
+                  email: no-es-correo
+                  password: ''
       responses:
-        '201':
-          description: Creado
-          headers:
-            Location:
-              schema:
-                type: string
-              example: /api/products/6
+        '200':
+          description: 'Token emitido'
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Product'
+                $ref: '#/components/schemas/Token'
+              example:
+                token: 5|Xq3kM2vL8pR1sT6wY9zA4bC7dE0fG2hJ5kL8mN1p
+                token_type: Bearer
+                expires_at: '2026-09-28T03:17:27.000000Z'
+                abilities:
+                  - 'view products'
+                  - 'view customers'
+                  - 'view sales'
+                  - 'create sales'
+        '401':
+          description: 'Credenciales incorrectas (mismo mensaje exista o no la cuenta)'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                message: 'Las credenciales proporcionadas son incorrectas.'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '422':
           $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /api/logout:
+    post:
+      tags:
+        - Auth
+      summary: 'Cerrar sesión'
+      description: 'Revoca todos los tokens de la persona. Usar el token después responde 401.'
+      responses:
+        '200':
+          description: 'Sesión cerrada'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                message: 'Sesión cerrada correctamente.'
         '401':
           $ref: '#/components/responses/Unauthorized'
-  /api/products/{id}:
+  /api/user:
     get:
-      tags: [Products]
-      summary: Detalle de producto
+      tags:
+        - Auth
+      summary: 'Persona autenticada'
+      responses:
+        '200':
+          description: 'Datos de la persona y sus roles'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/User'
+              example:
+                data:
+                  id: 2
+                  nombre: cajero
+                  correo: cajero@example.com
+                  roles:
+                    - cajero
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/products:
+    get:
+      tags:
+        - Products
+      summary: 'Listado paginado'
+      description: 'Permiso requerido: `view products` (roles: admin, cajero, bodeguero).'
       parameters:
-        - name: id
-          in: path
-          required: true
+        -
+          $ref: '#/components/parameters/Page'
+        -
+          $ref: '#/components/parameters/PerPage'
+        -
+          $ref: '#/components/parameters/Q'
+        -
+          name: sort
+          in: query
+          schema:
+            type: string
+            enum:
+              - name
+              - price
+              - stock_quantity
+              - id
+              - created_at
+        -
+          $ref: '#/components/parameters/Direction'
+        -
+          name: category_id
+          in: query
           schema:
             type: integer
+        -
+          name: brand_id
+          in: query
+          schema:
+            type: integer
+        -
+          name: is_active
+          in: query
+          schema:
+            type: boolean
+        -
+          name: low_stock
+          in: query
+          schema:
+            type: boolean
+        -
+          name: min_price
+          in: query
+          schema:
+            type: number
+        -
+          name: max_price
+          in: query
+          schema:
+            type: number
+      responses:
+        '200':
+          description: 'Lista paginada'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+                  links:
+                    $ref: '#/components/schemas/PaginationLinks'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+              example:
+                data:
+                  -
+                    id: 1
+                    id_categoria: 1
+                    id_marca: 1
+                    id_unidad: 1
+                    nombre: 'assumenda quam non'
+                    descripcion: 'Sed et quaerat similique quis sit ab consequatur fugit sequi perspiciatis accusamus.'
+                    sku: FERR-37065
+                    codigo_barras: '8851706592717'
+                    precio: 41207.37
+                    tasa_impuesto: 0.13
+                    cantidad_stock: 124
+                    stock_minimo: 10
+                    stock_maximo: 479
+                    peso: '18.60'
+                    esta_activo: true
+                  -
+                    id: 2
+                    id_categoria: 3
+                    id_marca: 2
+                    id_unidad: 3
+                    nombre: 'enim omnis ea'
+                    descripcion: 'Voluptates odio aliquid dicta et corrupti et vel aliquid voluptates.'
+                    sku: FERR-94535
+                    codigo_barras: '3180125059200'
+                    precio: 40139.64
+                    tasa_impuesto: 0.13
+                    cantidad_stock: 169
+                    stock_minimo: 5
+                    stock_maximo: 258
+                    peso: '11.73'
+                    esta_activo: true
+                links:
+                  first: 'http://localhost:8000/api/products?per_page=2&page=1'
+                  last: 'http://localhost:8000/api/products?per_page=2&page=11'
+                  prev: null
+                  next: 'http://localhost:8000/api/products?per_page=2&page=2'
+                meta:
+                  current_page: 1
+                  from: 1
+                  last_page: 11
+                  links:
+                    -
+                      url: null
+                      label: '&laquo; Previous'
+                      page: null
+                      active: false
+                    -
+                      url: 'http://localhost:8000/api/products?per_page=2&page=1'
+                      label: '1'
+                      page: 1
+                      active: true
+                  path: 'http://localhost:8000/api/products'
+                  per_page: 2
+                  to: 2
+                  total: 22
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags:
+        - Products
+      summary: Crear
+      description: 'Permiso requerido: `create products` (roles: admin, bodeguero).'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                category_id:
+                  type: integer
+                  description: 'Debe existir en categories.id.'
+                brand_id:
+                  type: integer
+                  description: 'Debe existir en brands.id.'
+                unit_id:
+                  type: integer
+                  description: 'Debe existir en units.id.'
+                name:
+                  type: string
+                  maxLength: 150
+                description:
+                  type: string
+                  nullable: true
+                  maxLength: 1000
+                price:
+                  type: number
+                  minimum: 0
+                  maximum: 99999999.99
+                sku:
+                  type: string
+                  maxLength: 50
+                  description: 'Valor único.'
+                barcode:
+                  type: string
+                  nullable: true
+                  maxLength: 50
+                  description: 'Valor único.'
+                stock_quantity:
+                  type: integer
+                  minimum: 0
+                  maximum: 1000000
+                tax_rate:
+                  type: number
+                  nullable: true
+                  minimum: 0
+                  maximum: 100
+                minimum_stock:
+                  type: integer
+                  nullable: true
+                  minimum: 0
+                  maximum: 1000000
+                maximum_stock:
+                  type: integer
+                  nullable: true
+                  minimum: 0
+                  maximum: 1000000
+                weight:
+                  type: number
+                  nullable: true
+                  minimum: 0
+                  maximum: 100000
+                image_url:
+                  type: string
+                  nullable: true
+                  format: uri
+                  maxLength: 255
+                is_active:
+                  type: boolean
+              required:
+                - category_id
+                - brand_id
+                - unit_id
+                - name
+                - price
+                - sku
+                - stock_quantity
+            example:
+              category_id: 1
+              brand_id: 1
+              unit_id: 1
+              name: 'Martillo de Uña Profesional 16oz'
+              description: 'Martillo de acero forjado con mango de fibra de vidrio.'
+              sku: SKU-MART-016-001
+              barcode: '7501234567890'
+              price: 12500
+              tax_rate: 0.13
+              stock_quantity: 45
+              minimum_stock: 10
+              maximum_stock: 100
+              weight: 0.45
+              image_url: 'https://ferreteria-ucr.com/images/martillo-16oz.jpg'
+              is_active: true
+      responses:
+        '201':
+          description: 'Creado; el encabezado Location apunta al recurso'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Product'
+              example:
+                data:
+                  id: 22
+                  id_categoria: 1
+                  id_marca: 1
+                  id_unidad: 1
+                  nombre: 'Martillo de Uña Profesional 16oz'
+                  descripcion: 'Martillo de acero forjado con mango de fibra de vidrio.'
+                  sku: SKU-MART-016-001
+                  codigo_barras: '7501234567890'
+                  precio: 12500
+                  tasa_impuesto: 0.13
+                  cantidad_stock: 45
+                  stock_minimo: 10
+                  stock_maximo: 100
+                  peso: '0.45'
+                  esta_activo: true
+          headers:
+            Location:
+              description: 'URL del recurso creado'
+              schema:
+                type: string
+              example: 'http://localhost:8000/api/products/22'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: 'Se viola una regla de negocio'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                stockIncoherente:
+                  value:
+                    message: 'La cantidad en stock no puede superar el stock máximo.'
+                minimoMayorQueMaximo:
+                  value:
+                    message: 'El stock mínimo no puede ser mayor que el stock máximo.'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  '/api/products/{product}':
+    parameters:
+      -
+        name: product
+        in: path
+        required: true
+        description: 'Identificador del producto'
+        schema:
+          type: integer
+    get:
+      tags:
+        - Products
+      summary: Detalle
+      description: 'Permiso requerido: `view products` (roles: admin, cajero, bodeguero).'
       responses:
         '200':
           description: Encontrado
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Product'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Product'
+              example:
+                data:
+                  id: 22
+                  id_categoria: 1
+                  id_marca: 1
+                  id_unidad: 1
+                  nombre: 'Martillo de Uña Profesional 16oz'
+                  descripcion: 'Martillo de acero forjado con mango de fibra de vidrio.'
+                  sku: SKU-MART-016-001
+                  codigo_barras: '7501234567890'
+                  precio: 12500
+                  tasa_impuesto: 0.13
+                  cantidad_stock: 45
+                  stock_minimo: 10
+                  stock_maximo: 100
+                  peso: '0.45'
+                  esta_activo: true
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
     put:
-      tags: [Products]
-      summary: Actualizar producto
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
+      tags:
+        - Products
+      summary: 'Actualizar (también acepta PATCH)'
+      description: 'Permiso requerido: `update products` (roles: admin, bodeguero). Todos los campos son opcionales.'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ProductInput'
+              type: object
+              properties:
+                category_id:
+                  type: string
+                  description: 'Debe existir en categories.id.'
+                brand_id:
+                  type: string
+                  description: 'Debe existir en brands.id.'
+                unit_id:
+                  type: string
+                  description: 'Debe existir en units.id.'
+                name:
+                  type: string
+                  maxLength: 150
+                description:
+                  type: string
+                  nullable: true
+                  maxLength: 1000
+                sku:
+                  type: string
+                  maxLength: 50
+                  description: 'Valor único.'
+                barcode:
+                  type: string
+                  nullable: true
+                  maxLength: 50
+                  description: 'Valor único.'
+                price:
+                  type: number
+                  minimum: 0
+                  maximum: 99999999.99
+                tax_rate:
+                  type: number
+                  nullable: true
+                  minimum: 0
+                  maximum: 100
+                stock_quantity:
+                  type: integer
+                  minimum: 0
+                  maximum: 1000000
+                minimum_stock:
+                  type: integer
+                  nullable: true
+                  minimum: 0
+                  maximum: 1000000
+                maximum_stock:
+                  type: integer
+                  nullable: true
+                  minimum: 0
+                  maximum: 1000000
+                weight:
+                  type: number
+                  nullable: true
+                  minimum: 0
+                  maximum: 100000
+                image_url:
+                  type: string
+                  nullable: true
+                  format: uri
+                  maxLength: 255
+                is_active:
+                  type: boolean
+            example:
+              price: 13900
+              stock_quantity: 50
       responses:
         '200':
           description: Actualizado
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Product'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '422':
-          $ref: '#/components/responses/ValidationError'
-    delete:
-      tags: [Products]
-      summary: Eliminar producto
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '204':
-          description: Eliminado
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Product'
+              example:
+                data:
+                  id: 22
+                  id_categoria: 1
+                  id_marca: 1
+                  id_unidad: 1
+                  nombre: 'Martillo de Uña Profesional 16oz'
+                  descripcion: 'Martillo de acero forjado con mango de fibra de vidrio.'
+                  sku: SKU-MART-016-001
+                  codigo_barras: '7501234567890'
+                  precio: 13900
+                  tasa_impuesto: 0.13
+                  cantidad_stock: 50
+                  stock_minimo: 10
+                  stock_maximo: 100
+                  peso: '0.45'
+                  esta_activo: true
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
         '409':
-          description: Tiene dependencias
+          description: 'Se viola una regla de negocio'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-              example:
-                message: No se puede eliminar el producto porque tiene dependencias activas.
+              examples:
+                stockIncoherente:
+                  value:
+                    message: 'La cantidad en stock no puede ser menor que el stock mínimo.'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      tags:
+        - Products
+      summary: Eliminar
+      description: 'Permiso requerido: `delete products` (roles: admin).'
+      responses:
+        '204':
+          description: 'Eliminado, sin contenido'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: 'Se viola una regla de negocio'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                dependencias:
+                  value:
+                    message: 'No se puede eliminar el producto porque tiene dependencias activas.'
   /api/products/inventory-summary:
     get:
-      tags: [Products]
-      summary: Reporte agregado por categoria
+      tags:
+        - Products
+      summary: 'Reporte de inventario por categoría'
+      description: 'Permiso requerido: `view products` (roles: admin, cajero, bodeguero). Agrupa los productos activos (no eliminados) por categoría.'
       responses:
         '200':
           description: Reporte
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    category_name:
-                      type: string
-                    total_products:
-                      type: integer
-                    total_stock:
-                      type: integer
-                    average_price:
-                      type: number
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/InventorySummaryRow'
+              example:
+                data:
+                  -
+                    category_name: Electricidad
+                    total_products: 7
+                    total_stock: 783
+                    average_price: 27348.39
+                  -
+                    category_name: Hogar
+                    total_products: 12
+                    total_stock: 1459
+                    average_price: 26428.39
+                  -
+                    category_name: Hogar
+                    total_products: 3
+                    total_stock: 371
+                    average_price: 24671.74
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
   /api/categories:
     get:
-      tags: [Categories]
-      summary: Listado paginado categorias
+      tags:
+        - Categories
+      summary: 'Listado paginado'
+      description: 'Permiso requerido: `view categories` (roles: admin).'
       parameters:
-        - $ref: '#/components/parameters/Page'
-        - $ref: '#/components/parameters/PerPage'
-        - $ref: '#/components/parameters/Q'
+        -
+          $ref: '#/components/parameters/Page'
+        -
+          $ref: '#/components/parameters/PerPage'
+        -
+          $ref: '#/components/parameters/Q'
+        -
+          name: sort
+          in: query
+          schema:
+            type: string
+            enum:
+              - id
+              - category_name
+              - created_at
+        -
+          $ref: '#/components/parameters/Direction'
       responses:
         '200':
-          description: Lista paginada
+          description: 'Lista paginada'
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/PaginationMeta'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/Category'
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Category'
+                  links:
+                    $ref: '#/components/schemas/PaginationLinks'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+              example:
+                data:
+                  -
+                    'ID Categoria': 1
+                    Nombre: Hogar
+                    Descripcion: 'Producto de mejor calidad'
+                  -
+                    'ID Categoria': 2
+                    Nombre: Hogar
+                    Descripcion: 'En inventario'
+                links:
+                  first: 'http://localhost:8000/api/categories?per_page=2&page=1'
+                  last: 'http://localhost:8000/api/categories?per_page=2&page=2'
+                  prev: null
+                  next: 'http://localhost:8000/api/categories?per_page=2&page=2'
+                meta:
+                  current_page: 1
+                  from: 1
+                  last_page: 2
+                  links:
+                    -
+                      url: null
+                      label: '&laquo; Previous'
+                      page: null
+                      active: false
+                    -
+                      url: 'http://localhost:8000/api/categories?per_page=2&page=1'
+                      label: '1'
+                      page: 1
+                      active: true
+                  path: 'http://localhost:8000/api/categories'
+                  per_page: 2
+                  to: 2
+                  total: 4
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
     post:
-      tags: [Categories]
-      summary: Crear categoria
+      tags:
+        - Categories
+      summary: Crear
+      description: 'Permiso requerido: `create categories` (roles: admin).'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CategoryInput'
+              type: object
+              properties:
+                category_name:
+                  type: string
+                  maxLength: 200
+                description:
+                  type: string
+                  maxLength: 200
+              required:
+                - category_name
+                - description
+            example:
+              category_name: 'Herramientas manuales'
+              description: 'Martillos, destornilladores y llaves'
       responses:
         '201':
-          description: Creado
-          headers:
-            Location:
-              schema:
-                type: string
-        '422':
-          $ref: '#/components/responses/ValidationError'
-  /api/categories/{id}:
-    get:
-      tags: [Categories]
-      summary: Detalle categoria
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: OK
+          description: 'Creado; el encabezado Location apunta al recurso'
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Category'
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Category'
+              example:
+                data:
+                  'ID Categoria': 4
+                  Nombre: 'Herramientas manuales'
+                  Descripcion: 'Martillos, destornilladores y llaves'
+          headers:
+            Location:
+              description: 'URL del recurso creado'
+              schema:
+                type: string
+              example: 'http://localhost:8000/api/categories/4'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  '/api/categories/{category}':
+    parameters:
+      -
+        name: category
+        in: path
+        required: true
+        description: 'Identificador de la categoría'
+        schema:
+          type: integer
+    get:
+      tags:
+        - Categories
+      summary: Detalle
+      description: 'Permiso requerido: `view categories` (roles: admin).'
+      responses:
+        '200':
+          description: Encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Category'
+              example:
+                data:
+                  'ID Categoria': 4
+                  Nombre: 'Herramientas manuales'
+                  Descripcion: 'Martillos, destornilladores y llaves'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
     put:
-      tags: [Categories]
-      summary: Actualizar categoria
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
+      tags:
+        - Categories
+      summary: 'Actualizar (también acepta PATCH)'
+      description: 'Permiso requerido: `update categories` (roles: admin). Todos los campos son opcionales.'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CategoryInput'
+              type: object
+              properties:
+                category_name:
+                  type: string
+                  maxLength: 200
+                description:
+                  type: string
+                  maxLength: 200
+            example:
+              description: 'Herramientas de uso manual'
       responses:
         '200':
-          description: OK
+          description: Actualizado
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Category'
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Category'
+              example:
+                data:
+                  'ID Categoria': 4
+                  Nombre: 'Herramientas manuales'
+                  Descripcion: 'Herramientas de uso manual'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
         '422':
           $ref: '#/components/responses/ValidationError'
     delete:
-      tags: [Categories]
-      summary: Eliminar categoria
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
+      tags:
+        - Categories
+      summary: Eliminar
+      description: 'Permiso requerido: `delete categories` (roles: admin).'
       responses:
         '204':
-          description: Eliminado
+          description: 'Eliminado, sin contenido'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
         '409':
-          description: Tiene dependencias
+          description: 'Se viola una regla de negocio'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                conProductos:
+                  value:
+                    message: 'No se puede eliminar la categoría porque tiene productos asociados.'
   /api/brands:
     get:
-      tags: [Brands]
-      summary: Listado marcas
+      tags:
+        - Brands
+      summary: 'Listado paginado'
+      description: 'Permiso requerido: `view brands` (roles: admin).'
       parameters:
-        - $ref: '#/components/parameters/Page'
-        - $ref: '#/components/parameters/PerPage'
+        -
+          $ref: '#/components/parameters/Page'
+        -
+          $ref: '#/components/parameters/PerPage'
+        -
+          $ref: '#/components/parameters/Q'
+        -
+          name: sort
+          in: query
+          schema:
+            type: string
+            enum:
+              - brand_name
+              - id
+              - created_at
+        -
+          $ref: '#/components/parameters/Direction'
       responses:
         '200':
-          description: OK
+          description: 'Lista paginada'
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/PaginationMeta'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/Brand'
-    post:
-      tags: [Brands]
-      summary: Crear marca
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/BrandInput'
-      responses:
-        '201':
-          description: Creado
-        '422':
-          $ref: '#/components/responses/ValidationError'
-  /api/brands/{id}:
-    get:
-      tags: [Brands]
-      summary: Detalle marca
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Brand'
-        '404':
-          $ref: '#/components/responses/NotFound'
-    put:
-      tags: [Brands]
-      summary: Actualizar marca
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/BrandInput'
-      responses:
-        '200':
-          description: OK
-        '422':
-          $ref: '#/components/responses/ValidationError'
-    delete:
-      tags: [Brands]
-      summary: Eliminar marca
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '204':
-          description: Eliminado
-        '409':
-          description: Tiene dependencias
-  /api/units:
-    get:
-      tags: [Units]
-      summary: Listado unidades
-      parameters:
-        - $ref: '#/components/parameters/Page'
-        - $ref: '#/components/parameters/PerPage'
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/PaginationMeta'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/Unit'
-    post:
-      tags: [Units]
-      summary: Crear unidad
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UnitInput'
-      responses:
-        '201':
-          description: Creado
-        '422':
-          $ref: '#/components/responses/ValidationError'
-  /api/units/{id}:
-    get:
-      tags: [Units]
-      summary: Detalle unidad
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Unit'
-        '404':
-          $ref: '#/components/responses/NotFound'
-    put:
-      tags: [Units]
-      summary: Actualizar unidad
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UnitInput'
-      responses:
-        '200':
-          description: OK
-        '422':
-          $ref: '#/components/responses/ValidationError'
-    delete:
-      tags: [Units]
-      summary: Eliminar unidad
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '204':
-          description: Eliminado
-        '409':
-          description: Tiene dependencias
-  /api/suppliers:
-    get:
-      tags: [Suppliers]
-      summary: Listado proveedores
-      parameters:
-        - $ref: '#/components/parameters/Page'
-        - $ref: '#/components/parameters/PerPage'
-        - $ref: '#/components/parameters/Q'
-        - $ref: '#/components/parameters/Sort'
-        - $ref: '#/components/parameters/Direction'
-      responses:
-        '200':
-          description: Lista paginada
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/PaginationMeta'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/Supplier'
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Brand'
+                  links:
+                    $ref: '#/components/schemas/PaginationLinks'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+              example:
+                data:
+                  -
+                    'ID Marca': 1
+                    Nombre: ToolsFaster
+                  -
+                    'ID Marca': 2
+                    Nombre: ToolsFaster
+                links:
+                  first: 'http://localhost:8000/api/brands?per_page=2&page=1'
+                  last: 'http://localhost:8000/api/brands?per_page=2&page=2'
+                  prev: null
+                  next: 'http://localhost:8000/api/brands?per_page=2&page=2'
+                meta:
+                  current_page: 1
+                  from: 1
+                  last_page: 2
+                  links:
+                    -
+                      url: null
+                      label: '&laquo; Previous'
+                      page: null
+                      active: false
+                    -
+                      url: 'http://localhost:8000/api/brands?per_page=2&page=1'
+                      label: '1'
+                      page: 1
+                      active: true
+                  path: 'http://localhost:8000/api/brands'
+                  per_page: 2
+                  to: 2
+                  total: 4
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
     post:
-      tags: [Suppliers]
-      summary: Crear proveedor
+      tags:
+        - Brands
+      summary: Crear
+      description: 'Permiso requerido: `create brands` (roles: admin).'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SupplierInput'
+              type: object
+              properties:
+                brand_name:
+                  type: string
+                  maxLength: 200
+              required:
+                - brand_name
+            example:
+              brand_name: Truper
       responses:
         '201':
-          description: Creado
-          headers:
-            Location:
-              schema:
-                type: string
-        '422':
-          $ref: '#/components/responses/ValidationError'
-  /api/suppliers/{id}:
-    get:
-      tags: [Suppliers]
-      summary: Detalle proveedor
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: OK
+          description: 'Creado; el encabezado Location apunta al recurso'
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Supplier'
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Brand'
+              example:
+                data:
+                  'ID Marca': 4
+                  Nombre: Truper
+          headers:
+            Location:
+              description: 'URL del recurso creado'
+              schema:
+                type: string
+              example: 'http://localhost:8000/api/brands/4'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  '/api/brands/{brand}':
+    parameters:
+      -
+        name: brand
+        in: path
+        required: true
+        description: 'Identificador de la marca'
+        schema:
+          type: integer
+    get:
+      tags:
+        - Brands
+      summary: Detalle
+      description: 'Permiso requerido: `view brands` (roles: admin).'
+      responses:
+        '200':
+          description: Encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Brand'
+              example:
+                data:
+                  'ID Marca': 4
+                  Nombre: Truper
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
     put:
-      tags: [Suppliers]
-      summary: Actualizar proveedor
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
+      tags:
+        - Brands
+      summary: 'Actualizar (también acepta PATCH)'
+      description: 'Permiso requerido: `update brands` (roles: admin). Todos los campos son opcionales.'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SupplierInput'
+              type: object
+              properties:
+                brand_name:
+                  type: string
+                  maxLength: 200
+            example:
+              brand_name: 'Truper Pro'
       responses:
         '200':
-          description: OK
+          description: Actualizado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Brand'
+              example:
+                data:
+                  'ID Marca': 4
+                  Nombre: 'Truper Pro'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
         '422':
           $ref: '#/components/responses/ValidationError'
     delete:
-      tags: [Suppliers]
-      summary: Eliminar proveedor
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
+      tags:
+        - Brands
+      summary: Eliminar
+      description: 'Permiso requerido: `delete brands` (roles: admin).'
       responses:
         '204':
-          description: Eliminado
+          description: 'Eliminado, sin contenido'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
         '409':
-          description: Tiene dependencias
-  /api/purchases:
-    get:
-      tags: [Purchases]
-      summary: Listado compras
-      parameters:
-        - $ref: '#/components/parameters/Page'
-        - $ref: '#/components/parameters/PerPage'
-        - $ref: '#/components/parameters/Sort'
-        - $ref: '#/components/parameters/Direction'
-      responses:
-        '200':
-          description: Lista paginada
+          description: 'Se viola una regla de negocio'
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/PaginationMeta'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/Purchase'
+                $ref: '#/components/schemas/Error'
+              examples:
+                conProductos:
+                  value:
+                    message: 'No se puede eliminar la marca porque tiene productos asociados.'
+  /api/units:
+    get:
+      tags:
+        - Units
+      summary: 'Listado paginado'
+      description: 'Permiso requerido: `view units` (roles: admin).'
+      parameters:
+        -
+          $ref: '#/components/parameters/Page'
+        -
+          $ref: '#/components/parameters/PerPage'
+        -
+          $ref: '#/components/parameters/Q'
+        -
+          name: sort
+          in: query
+          schema:
+            type: string
+            enum:
+              - id
+              - unit_name
+              - created_at
+        -
+          $ref: '#/components/parameters/Direction'
+      responses:
+        '200':
+          description: 'Lista paginada'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Unit'
+                  links:
+                    $ref: '#/components/schemas/PaginationLinks'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+              example:
+                data:
+                  -
+                    'ID Unidad de Medida': 1
+                    Nombre: ml
+                  -
+                    'ID Unidad de Medida': 2
+                    Nombre: Cm
+                links:
+                  first: 'http://localhost:8000/api/units?per_page=2&page=1'
+                  last: 'http://localhost:8000/api/units?per_page=2&page=2'
+                  prev: null
+                  next: 'http://localhost:8000/api/units?per_page=2&page=2'
+                meta:
+                  current_page: 1
+                  from: 1
+                  last_page: 2
+                  links:
+                    -
+                      url: null
+                      label: '&laquo; Previous'
+                      page: null
+                      active: false
+                    -
+                      url: 'http://localhost:8000/api/units?per_page=2&page=1'
+                      label: '1'
+                      page: 1
+                      active: true
+                  path: 'http://localhost:8000/api/units'
+                  per_page: 2
+                  to: 2
+                  total: 4
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
     post:
-      tags: [Purchases]
-      summary: Crear compra con detalle transaccional
+      tags:
+        - Units
+      summary: Crear
+      description: 'Permiso requerido: `create units` (roles: admin).'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PurchaseInput'
-            examples:
-              conDescuento:
-                value:
-                  id_purchase: PUR-100
-                  user_id: 1
-                  id_supplier: SUP100
-                  purchase_status: pendiente
-                  purchase_total: 11400
-                  items:
-                    - product_id: 1
-                      quantity: 2
-                      unit_cost: 6000
-                      subtotal: 12000
-              sinDetalle:
-                value:
-                  id_purchase: PUR-101
-                  user_id: 1
-                  id_supplier: SUP100
-                  purchase_status: pendiente
-                  purchase_total: 0
-                  items: []
+              type: object
+              properties:
+                unit_name:
+                  type: string
+                  maxLength: 255
+              required:
+                - unit_name
+            example:
+              unit_name: Galón
       responses:
         '201':
-          description: Creado
-          headers:
-            Location:
-              schema:
-                type: string
+          description: 'Creado; el encabezado Location apunta al recurso'
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Purchase'
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Unit'
+              example:
+                data:
+                  'ID Unidad de Medida': 4
+                  Nombre: Galón
+          headers:
+            Location:
+              description: 'URL del recurso creado'
+              schema:
+                type: string
+              example: 'http://localhost:8000/api/units/4'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '422':
-          description: Regla de negocio violada
+          $ref: '#/components/responses/ValidationError'
+  '/api/units/{unit}':
+    parameters:
+      -
+        name: unit
+        in: path
+        required: true
+        description: 'Identificador de la unidad de medida'
+        schema:
+          type: integer
+    get:
+      tags:
+        - Units
+      summary: Detalle
+      description: 'Permiso requerido: `view units` (roles: admin).'
+      responses:
+        '200':
+          description: Encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Unit'
+              example:
+                data:
+                  'ID Unidad de Medida': 4
+                  Nombre: Galón
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags:
+        - Units
+      summary: 'Actualizar (también acepta PATCH)'
+      description: 'Permiso requerido: `update units` (roles: admin). Todos los campos son opcionales.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                unit_name:
+                  type: string
+                  maxLength: 200
+            example:
+              unit_name: 'Galón US'
+      responses:
+        '200':
+          description: Actualizado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Unit'
+              example:
+                data:
+                  'ID Unidad de Medida': 4
+                  Nombre: 'Galón US'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      tags:
+        - Units
+      summary: Eliminar
+      description: 'Permiso requerido: `delete units` (roles: admin).'
+      responses:
+        '204':
+          description: 'Eliminado, sin contenido'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: 'Se viola una regla de negocio'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                conProductos:
+                  value:
+                    message: 'No se puede eliminar la unidad porque tiene productos asociados.'
+  /api/suppliers:
+    get:
+      tags:
+        - Suppliers
+      summary: 'Listado paginado'
+      description: 'Permiso requerido: `view suppliers` (roles: admin, bodeguero).'
+      parameters:
+        -
+          $ref: '#/components/parameters/Page'
+        -
+          $ref: '#/components/parameters/PerPage'
+        -
+          $ref: '#/components/parameters/Q'
+        -
+          name: sort
+          in: query
+          schema:
+            type: string
+            enum:
+              - supplier_first_name
+              - supplier_last_name
+              - supplier_email
+              - id_supplier
+              - created_at
+        -
+          $ref: '#/components/parameters/Direction'
+        -
+          name: supplier_type
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 'Lista paginada'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Supplier'
+                  links:
+                    $ref: '#/components/schemas/PaginationLinks'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+              example:
+                data:
+                  -
+                    id: SUP-900
+                    supplier_first_name: Juan
+                    supplier_last_name: Madrigal
+                    supplier_phone: '22223333'
+                    supplier_address: 'San Pedro, Montes de Oca'
+                    supplier_email: ventas@truper.example.com
+                    supplier_type: 'Proveedor de herramientas'
+                    purchases: []
+                  -
+                    id: SUP117
+                    supplier_first_name: Pedro
+                    supplier_last_name: Madrigal
+                    supplier_phone: '0987654321'
+                    supplier_address: 'Avenida 2'
+                    supplier_email: cole.bennett@halvorson.com
+                    supplier_type: 'Proveedor de productos de limpieza'
+                    purchases:
+                      -
+                        id_purchase: PUR380
+                        user_id: 2
+                        id_supplier: SUP117
+                        purchase_total: '520.46'
+                        purchase_status: pendiente
+                        purchaseItems:
+                          -
+                            'ID Detalle': 16
+                            'ID Compra': PUR380
+                            'ID Producto': 20
+                            Cantidad: 1
+                            'Costo Unitario': '263.05'
+                            SubTotal: '263.05'
+                          -
+                            'ID Detalle': 17
+                            'ID Compra': PUR380
+                            'ID Producto': 6
+                            Cantidad: 3
+                            'Costo Unitario': '210.69'
+                            SubTotal: '632.07'
+                links:
+                  first: 'http://localhost:8000/api/suppliers?per_page=2&page=1'
+                  last: 'http://localhost:8000/api/suppliers?per_page=2&page=11'
+                  prev: null
+                  next: 'http://localhost:8000/api/suppliers?per_page=2&page=2'
+                meta:
+                  current_page: 1
+                  from: 1
+                  last_page: 11
+                  links:
+                    -
+                      url: null
+                      label: '&laquo; Previous'
+                      page: null
+                      active: false
+                    -
+                      url: 'http://localhost:8000/api/suppliers?per_page=2&page=1'
+                      label: '1'
+                      page: 1
+                      active: true
+                  path: 'http://localhost:8000/api/suppliers'
+                  per_page: 2
+                  to: 2
+                  total: 21
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags:
+        - Suppliers
+      summary: Crear
+      description: 'Permiso requerido: `create suppliers` (roles: admin, bodeguero).'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id_supplier:
+                  type: string
+                  description: 'Valor único.'
+                supplier_first_name:
+                  type: string
+                  maxLength: 50
+                supplier_last_name:
+                  type: string
+                  maxLength: 50
+                supplier_phone:
+                  type: string
+                  maxLength: 20
+                supplier_address:
+                  type: string
+                  maxLength: 100
+                supplier_type:
+                  type: string
+                  maxLength: 50
+                supplier_email:
+                  type: string
+                  format: email
+                  maxLength: 100
+                  description: 'Valor único.'
+              required:
+                - id_supplier
+                - supplier_first_name
+                - supplier_last_name
+                - supplier_phone
+                - supplier_address
+                - supplier_type
+                - supplier_email
+            example:
+              id_supplier: SUP-900
+              supplier_first_name: Juan
+              supplier_last_name: Madrigal
+              supplier_phone: '22223333'
+              supplier_address: 'San Pedro, Montes de Oca'
+              supplier_type: 'Proveedor de herramientas'
+              supplier_email: ventas@truper.example.com
+      responses:
+        '201':
+          description: 'Creado; el encabezado Location apunta al recurso'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Supplier'
+              example:
+                data:
+                  id: SUP-900
+                  supplier_first_name: Juan
+                  supplier_last_name: Madrigal
+                  supplier_phone: '22223333'
+                  supplier_address: 'San Pedro, Montes de Oca'
+                  supplier_email: ventas@truper.example.com
+                  supplier_type: 'Proveedor de herramientas'
+                  purchases: []
+          headers:
+            Location:
+              description: 'URL del recurso creado'
+              schema:
+                type: string
+              example: 'http://localhost:8000/api/suppliers/SUP-900'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  '/api/suppliers/{supplier}':
+    parameters:
+      -
+        name: supplier
+        in: path
+        required: true
+        description: 'Identificador del proveedor (id_supplier)'
+        schema:
+          type: string
+    get:
+      tags:
+        - Suppliers
+      summary: Detalle
+      description: 'Permiso requerido: `view suppliers` (roles: admin, bodeguero).'
+      responses:
+        '200':
+          description: Encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Supplier'
+              example:
+                data:
+                  id: SUP-900
+                  supplier_first_name: Juan
+                  supplier_last_name: Madrigal
+                  supplier_phone: '22223333'
+                  supplier_address: 'San Pedro, Montes de Oca'
+                  supplier_email: ventas@truper.example.com
+                  supplier_type: 'Proveedor de herramientas'
+                  purchases: []
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags:
+        - Suppliers
+      summary: 'Actualizar (también acepta PATCH)'
+      description: 'Permiso requerido: `update suppliers` (roles: admin, bodeguero). Todos los campos son opcionales.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id_supplier:
+                  type: string
+                  maxLength: 50
+                  description: 'Valor único.'
+                supplier_first_name:
+                  type: string
+                  maxLength: 50
+                supplier_last_name:
+                  type: string
+                  maxLength: 50
+                supplier_phone:
+                  type: string
+                  maxLength: 20
+                supplier_address:
+                  type: string
+                  maxLength: 100
+                supplier_email:
+                  type: string
+                  format: email
+                  maxLength: 100
+                  description: 'Valor único.'
+                supplier_type:
+                  type: string
+                  nullable: true
+                  maxLength: 50
+            example:
+              supplier_phone: '22224444'
+      responses:
+        '200':
+          description: Actualizado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Supplier'
+              example:
+                data:
+                  id: SUP-900
+                  supplier_first_name: Juan
+                  supplier_last_name: Madrigal
+                  supplier_phone: '22224444'
+                  supplier_address: 'San Pedro, Montes de Oca'
+                  supplier_email: ventas@truper.example.com
+                  supplier_type: 'Proveedor de herramientas'
+                  purchases: []
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      tags:
+        - Suppliers
+      summary: Eliminar
+      description: 'Permiso requerido: `delete suppliers` (roles: admin).'
+      responses:
+        '204':
+          description: 'Eliminado, sin contenido'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: 'Se viola una regla de negocio'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                conCompras:
+                  value:
+                    message: 'No se puede eliminar el proveedor porque tiene compras asociadas.'
+  /api/purchases:
+    get:
+      tags:
+        - Purchases
+      summary: 'Listado paginado'
+      description: 'Permiso requerido: `view purchases` (roles: admin, bodeguero). Quien no es admin solo recibe sus propios registros.'
+      parameters:
+        -
+          $ref: '#/components/parameters/Page'
+        -
+          $ref: '#/components/parameters/PerPage'
+        -
+          $ref: '#/components/parameters/Q'
+        -
+          name: sort
+          in: query
+          schema:
+            type: string
+            enum:
+              - id_purchase
+              - purchase_total
+              - purchase_status
+              - created_at
+        -
+          $ref: '#/components/parameters/Direction'
+        -
+          name: id_supplier
+          in: query
+          schema:
+            type: string
+        -
+          name: purchase_status
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 'Lista paginada'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Purchase'
+                  links:
+                    $ref: '#/components/schemas/PaginationLinks'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+              example:
+                data:
+                  -
+                    id_purchase: PUR-900
+                    user_id: 1
+                    id_supplier: SUP194
+                    purchase_total: '11400.00'
+                    purchase_status: pendiente
+                    purchaseItems:
+                      -
+                        'ID Detalle': 50
+                        'ID Compra': PUR-900
+                        'ID Producto': 21
+                        Cantidad: 2
+                        'Costo Unitario': '6000.00'
+                        SubTotal: '12000.00'
+                  -
+                    id_purchase: PUR106
+                    user_id: 3
+                    id_supplier: SUP358
+                    purchase_total: '640.72'
+                    purchase_status: cancelada
+                    purchaseItems:
+                      -
+                        'ID Detalle': 15
+                        'ID Compra': PUR106
+                        'ID Producto': 12
+                        Cantidad: 7
+                        'Costo Unitario': '410.90'
+                        SubTotal: '2876.30'
+                links:
+                  first: 'http://localhost:8000/api/purchases?per_page=2&page=1'
+                  last: 'http://localhost:8000/api/purchases?per_page=2&page=11'
+                  prev: null
+                  next: 'http://localhost:8000/api/purchases?per_page=2&page=2'
+                meta:
+                  current_page: 1
+                  from: 1
+                  last_page: 11
+                  links:
+                    -
+                      url: null
+                      label: '&laquo; Previous'
+                      page: null
+                      active: false
+                    -
+                      url: 'http://localhost:8000/api/purchases?per_page=2&page=1'
+                      label: '1'
+                      page: 1
+                      active: true
+                  path: 'http://localhost:8000/api/purchases'
+                  per_page: 2
+                  to: 2
+                  total: 21
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags:
+        - Purchases
+      summary: Crear
+      description: 'Permiso requerido: `create purchases` (roles: admin). Crea la compra y sus detalles en una transacción, suma el stock y registra un movimiento de entrada por detalle. El total se calcula en el servidor: 5 % de descuento desde 10 000 y 10 % desde 50 000. La compra queda a nombre de quien envía el token (se ignora cualquier user_id).'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id_purchase:
+                  type: string
+                  maxLength: 50
+                  description: 'Valor único.'
+                id_supplier:
+                  type: string
+                  maxLength: 50
+                  description: 'Debe existir en suppliers.id_supplier.'
+                purchase_total:
+                  type: number
+                  nullable: true
+                  minimum: 0
+                  maximum: 9999999999.99
+                purchase_status:
+                  type: string
+                  enum:
+                    - pendiente
+                    - confirmada
+                    - recibida
+                    - cancelada
+                  maxLength: 20
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      product_id:
+                        type: integer
+                        description: 'Debe existir en products.id.'
+                      quantity:
+                        type: integer
+                        minimum: 1
+                        maximum: 100000
+                      unit_cost:
+                        type: number
+                        minimum: 0
+                        maximum: 9999999999.99
+                      subtotal:
+                        type: number
+                        nullable: true
+                        minimum: 0
+                    required:
+                      - product_id
+                      - quantity
+                      - unit_cost
+              required:
+                - id_purchase
+                - id_supplier
+                - purchase_status
+                - items
+            example:
+              id_purchase: PUR-900
+              id_supplier: SUP194
+              purchase_status: pendiente
+              items:
+                -
+                  product_id: 21
+                  quantity: 2
+                  unit_cost: 6000
+                  subtotal: 12000
+      responses:
+        '201':
+          description: 'Creado; el encabezado Location apunta al recurso'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Purchase'
+              example:
+                data:
+                  id_purchase: PUR-900
+                  user_id: 1
+                  id_supplier: SUP194
+                  purchase_total: '11400.00'
+                  purchase_status: pendiente
+                  purchaseItems:
+                    -
+                      'ID Detalle': 50
+                      'ID Compra': PUR-900
+                      'ID Producto': 21
+                      Cantidad: 2
+                      'Costo Unitario': '6000.00'
+                      SubTotal: '12000.00'
+          headers:
+            Location:
+              description: 'URL del recurso creado'
+              schema:
+                type: string
+              example: 'http://localhost:8000/api/purchases/PUR-900'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: 'Se viola una regla de negocio'
           content:
             application/json:
               schema:
@@ -702,175 +1967,2082 @@ paths:
               examples:
                 sinDetalle:
                   value:
-                    message: No se puede confirmar una compra sin detalle.
+                    message: 'No se puede confirmar una compra sin detalle.'
                 subtotalIncoherente:
                   value:
-                    message: El subtotal no coincide con cantidad por costo unitario.
-  /api/purchases/{id}:
+                    message: 'El subtotal no coincide con cantidad por costo unitario.'
+                totalIncoherente:
+                  value:
+                    message: 'El total de la compra no coincide con la suma de detalles menos descuento.'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  '/api/purchases/{purchase}':
+    parameters:
+      -
+        name: purchase
+        in: path
+        required: true
+        description: 'Identificador de la compra (id_purchase)'
+        schema:
+          type: string
     get:
-      tags: [Purchases]
-      summary: Detalle compra
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
+      tags:
+        - Purchases
+      summary: Detalle
+      description: 'Permiso requerido: `view purchases` (roles: admin, bodeguero). Solo quien la registró o un admin; para otra persona responde 404.'
       responses:
         '200':
-          description: OK
+          description: Encontrado
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Purchase'
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Purchase'
+              example:
+                data:
+                  id_purchase: PUR-900
+                  user_id: 1
+                  id_supplier: SUP194
+                  purchase_total: '11400.00'
+                  purchase_status: pendiente
+                  purchaseItems:
+                    -
+                      'ID Detalle': 50
+                      'ID Compra': PUR-900
+                      'ID Producto': 21
+                      Cantidad: 2
+                      'Costo Unitario': '6000.00'
+                      SubTotal: '12000.00'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
     put:
-      tags: [Purchases]
-      summary: Actualizar compra
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
+      tags:
+        - Purchases
+      summary: 'Actualizar (también acepta PATCH)'
+      description: 'Permiso requerido: `update purchases` (roles: admin). Solo quien la registró o un admin; para otra persona responde 404. Todos los campos son opcionales.'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PurchaseInput'
+              type: object
+              properties:
+                id_purchase:
+                  type: string
+                  maxLength: 50
+                  description: 'Valor único.'
+                user_id:
+                  type: string
+                  description: 'Debe existir en users.id.'
+                id_supplier:
+                  type: string
+                  description: 'Debe existir en suppliers.id_supplier.'
+                purchase_total:
+                  type: number
+                  minimum: 0
+                  maximum: 9999999999.99
+                purchase_status:
+                  type: string
+                  enum:
+                    - pendiente
+                    - confirmada
+                    - recibida
+                    - cancelada
+                  maxLength: 20
+                items:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: object
+                    properties:
+                      product_id:
+                        type: string
+                        description: 'Debe existir en products.id.'
+                      quantity:
+                        type: integer
+                        minimum: 1
+                        maximum: 100000
+                      unit_cost:
+                        type: number
+                        minimum: 0
+                    required:
+                      - product_id
+                      - quantity
+                      - unit_cost
+            example:
+              purchase_status: recibida
       responses:
         '200':
-          description: OK
+          description: Actualizado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Purchase'
+              example:
+                data:
+                  id_purchase: PUR-900
+                  user_id: 1
+                  id_supplier: SUP194
+                  purchase_total: '11400.00'
+                  purchase_status: recibida
+                  purchaseItems:
+                    -
+                      'ID Detalle': 50
+                      'ID Compra': PUR-900
+                      'ID Producto': 21
+                      Cantidad: 2
+                      'Costo Unitario': '6000.00'
+                      SubTotal: '12000.00'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
         '422':
           $ref: '#/components/responses/ValidationError'
     delete:
-      tags: [Purchases]
-      summary: Eliminar compra
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
+      tags:
+        - Purchases
+      summary: Eliminar
+      description: 'Permiso requerido: `delete purchases` (roles: admin). Solo quien la registró o un admin; para otra persona responde 404.'
       responses:
         '204':
-          description: Eliminado
+          description: 'Eliminado, sin contenido'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
         '409':
-          description: Tiene detalles
+          description: 'Se viola una regla de negocio'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                conDetalles:
+                  value:
+                    message: 'No se puede eliminar la compra porque tiene detalles asociados.'
+  '/api/purchases/{purchase}/items':
+    parameters:
+      -
+        name: purchase
+        in: path
+        required: true
+        description: 'Identificador de la compra (id_purchase)'
+        schema:
+          type: string
+    get:
+      tags:
+        - Purchases
+        - PurchaseItems
+      summary: 'Detalles de una compra (recurso anidado)'
+      description: 'Permiso requerido: `view purchases` (roles: admin, bodeguero). Solo quien registró la compra o un admin; para otra persona responde 404.'
+      parameters:
+        -
+          $ref: '#/components/parameters/Page'
+        -
+          $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          description: 'Lista paginada de detalles'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PurchaseItem'
+                  links:
+                    $ref: '#/components/schemas/PaginationLinks'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+              example:
+                data:
+                  -
+                    'ID Detalle': 50
+                    'ID Compra': PUR-900
+                    'ID Producto': 21
+                    Producto: 'accusamus explicabo voluptatem'
+                    Cantidad: 2
+                    'Costo Unitario': '6000.00'
+                    SubTotal: '12000.00'
+                links:
+                  first: 'http://localhost:8000/api/purchases/PUR-900/items?page=1'
+                  last: 'http://localhost:8000/api/purchases/PUR-900/items?page=1'
+                  prev: null
+                  next: null
+                meta:
+                  current_page: 1
+                  from: 1
+                  last_page: 1
+                  links:
+                    -
+                      url: null
+                      label: '&laquo; Previous'
+                      page: null
+                      active: false
+                    -
+                      url: 'http://localhost:8000/api/purchases/PUR-900/items?page=1'
+                      label: '1'
+                      page: 1
+                      active: true
+                  path: 'http://localhost:8000/api/purchases/PUR-900/items'
+                  per_page: 10
+                  to: 1
+                  total: 1
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/purchase-items:
     get:
-      tags: [PurchaseItems]
-      summary: Listado detalles de compra
+      tags:
+        - PurchaseItems
+      summary: 'Listado paginado'
+      description: 'Permiso requerido: `view purchase-items` (roles: admin).'
       parameters:
-        - $ref: '#/components/parameters/Page'
-        - $ref: '#/components/parameters/PerPage'
+        -
+          $ref: '#/components/parameters/Page'
+        -
+          $ref: '#/components/parameters/PerPage'
+        -
+          name: sort
+          in: query
+          schema:
+            type: string
+            enum:
+              - quantity
+              - unit_cost
+              - subtotal
+              - id
+              - created_at
+        -
+          $ref: '#/components/parameters/Direction'
+        -
+          name: id_purchase
+          in: query
+          schema:
+            type: string
+        -
+          name: product_id
+          in: query
+          schema:
+            type: integer
       responses:
         '200':
-          description: Lista paginada
+          description: 'Lista paginada'
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/PaginationMeta'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/PurchaseItem'
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PurchaseItem'
+                  links:
+                    $ref: '#/components/schemas/PaginationLinks'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+              example:
+                data:
+                  -
+                    'ID Detalle': 1
+                    'ID Compra': PUR607
+                    'ID Producto': 12
+                    Producto: 'at pariatur aut'
+                    Cantidad: 7
+                    'Costo Unitario': '441.59'
+                    SubTotal: '3091.13'
+                  -
+                    'ID Detalle': 2
+                    'ID Compra': PUR167
+                    'ID Producto': 4
+                    Producto: 'omnis pariatur omnis'
+                    Cantidad: 6
+                    'Costo Unitario': '259.84'
+                    SubTotal: '1559.04'
+                links:
+                  first: 'http://localhost:8000/api/purchase-items?per_page=2&page=1'
+                  last: 'http://localhost:8000/api/purchase-items?per_page=2&page=26'
+                  prev: null
+                  next: 'http://localhost:8000/api/purchase-items?per_page=2&page=2'
+                meta:
+                  current_page: 1
+                  from: 1
+                  last_page: 26
+                  links:
+                    -
+                      url: null
+                      label: '&laquo; Previous'
+                      page: null
+                      active: false
+                    -
+                      url: 'http://localhost:8000/api/purchase-items?per_page=2&page=1'
+                      label: '1'
+                      page: 1
+                      active: true
+                  path: 'http://localhost:8000/api/purchase-items'
+                  per_page: 2
+                  to: 2
+                  total: 51
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
     post:
-      tags: [PurchaseItems]
-      summary: Crear detalle
+      tags:
+        - PurchaseItems
+      summary: Crear
+      description: 'Permiso requerido: `create purchase-items` (roles: admin). El subtotal es opcional: si se envía debe coincidir con cantidad por costo. Suma el stock y registra un movimiento de entrada.'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PurchaseItemInput'
+              type: object
+              properties:
+                id_purchase:
+                  type: string
+                  description: 'Debe existir en purchases.id_purchase.'
+                product_id:
+                  type: integer
+                  description: 'Debe existir en products.id.'
+                quantity:
+                  type: integer
+                  minimum: 1
+                unit_cost:
+                  type: number
+                  minimum: 0
+                subtotal:
+                  type: number
+                  nullable: true
+                  minimum: 0
+              required:
+                - id_purchase
+                - product_id
+                - quantity
+                - unit_cost
+            example:
+              id_purchase: PUR-900
+              product_id: 21
+              quantity: 3
+              unit_cost: 2500
       responses:
         '201':
-          description: Creado
-        '422':
-          $ref: '#/components/responses/ValidationError'
-  /api/purchase-items/{id}:
-    get:
-      tags: [PurchaseItems]
-      summary: Detalle item
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: OK
+          description: 'Creado; el encabezado Location apunta al recurso'
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PurchaseItem'
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/PurchaseItem'
+              example:
+                data:
+                  'ID Detalle': 51
+                  'ID Compra': PUR-900
+                  'ID Producto': 21
+                  Cantidad: 3
+                  'Costo Unitario': '2500.00'
+                  SubTotal: '7500.00'
+          headers:
+            Location:
+              description: 'URL del recurso creado'
+              schema:
+                type: string
+              example: 'http://localhost:8000/api/purchase-items/51'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: 'Se viola una regla de negocio'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                subtotalIncoherente:
+                  value:
+                    message: 'El subtotal debe ser igual a cantidad por costo unitario.'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  '/api/purchase-items/{purchase_item}':
+    parameters:
+      -
+        name: purchase_item
+        in: path
+        required: true
+        description: 'Identificador del detalle de compra'
+        schema:
+          type: integer
+    get:
+      tags:
+        - PurchaseItems
+      summary: Detalle
+      description: 'Permiso requerido: `view purchase-items` (roles: admin).'
+      responses:
+        '200':
+          description: Encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/PurchaseItem'
+              example:
+                data:
+                  'ID Detalle': 51
+                  'ID Compra': PUR-900
+                  'ID Producto': 21
+                  Cantidad: 3
+                  'Costo Unitario': '2500.00'
+                  SubTotal: '7500.00'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
     put:
-      tags: [PurchaseItems]
-      summary: Actualizar detalle
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
+      tags:
+        - PurchaseItems
+      summary: 'Actualizar (también acepta PATCH)'
+      description: 'Permiso requerido: `update purchase-items` (roles: admin). Todos los campos son opcionales.'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PurchaseItemInput'
+              type: object
+              properties:
+                id_purchase:
+                  type: string
+                  description: 'Debe existir en purchases.id_purchase.'
+                product_id:
+                  type: string
+                  description: 'Debe existir en products.id.'
+                quantity:
+                  type: integer
+                  minimum: 1
+                  maximum: 100000
+                unit_cost:
+                  type: number
+                  minimum: 0
+                subtotal:
+                  type: number
+                  minimum: 0
+            example:
+              quantity: 4
       responses:
         '200':
-          description: OK
-        '422':
-          $ref: '#/components/responses/ValidationError'
-    delete:
-      tags: [PurchaseItems]
-      summary: Eliminar detalle
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '204':
-          description: Eliminado
-  /api/purchases/{purchaseId}/items:
-    get:
-      tags: [PurchaseItems]
-      summary: Listado anidado items de una compra
-      parameters:
-        - name: purchaseId
-          in: path
-          required: true
-          schema:
-            type: string
-        - $ref: '#/components/parameters/Page'
-        - $ref: '#/components/parameters/PerPage'
-      responses:
-        '200':
-          description: Lista paginada anidada
+          description: Actualizado
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/PaginationMeta'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/PurchaseItem'
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/PurchaseItem'
+              example:
+                data:
+                  'ID Detalle': 51
+                  'ID Compra': PUR-900
+                  'ID Producto': 21
+                  Cantidad: 4
+                  'Costo Unitario': '2500.00'
+                  SubTotal: '10000.00'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: 'Se viola una regla de negocio'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                subtotalIncoherente:
+                  value:
+                    message: 'El subtotal debe ser igual a cantidad por costo unitario.'
+                stockInsuficiente:
+                  value:
+                    message: 'Stock insuficiente para el producto Martillo: disponible 1, solicitado 3.'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      tags:
+        - PurchaseItems
+      summary: Eliminar
+      description: 'Permiso requerido: `delete purchase-items` (roles: admin).'
+      responses:
+        '204':
+          description: 'Eliminado, sin contenido'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: 'Se viola una regla de negocio'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                stockInsuficiente:
+                  value:
+                    message: 'Stock insuficiente para el producto Martillo: disponible 1, solicitado 3.'
+  /api/customers:
+    get:
+      tags:
+        - Customers
+      summary: 'Listado paginado'
+      description: 'Permiso requerido: `view customers` (roles: admin, cajero).'
+      parameters:
+        -
+          $ref: '#/components/parameters/Page'
+        -
+          $ref: '#/components/parameters/PerPage'
+        -
+          $ref: '#/components/parameters/Q'
+        -
+          name: sort
+          in: query
+          schema:
+            type: string
+            enum:
+              - id_customer
+              - first_name
+              - second_name
+              - last_name1
+              - last_name2
+              - email
+              - telephone_number
+              - created_at
+        -
+          $ref: '#/components/parameters/Direction'
+      responses:
+        '200':
+          description: 'Lista paginada'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Customer'
+                  links:
+                    $ref: '#/components/schemas/PaginationLinks'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+              example:
+                data:
+                  -
+                    id_customer: CUS107
+                    first_name: Steven
+                    second_name: Enrique
+                    last_name1: Fernandez
+                    last_name2: Zamora
+                    email: vzieme@example.org
+                    telephone_number: '45787567'
+                  -
+                    id_customer: CUS156
+                    first_name: Pedro
+                    second_name: Alejandra
+                    last_name1: Fernandez
+                    last_name2: Alfaro
+                    email: jazmin69@example.com
+                    telephone_number: '345654323'
+                links:
+                  first: 'http://localhost:8000/api/customers?per_page=2&page=1'
+                  last: 'http://localhost:8000/api/customers?per_page=2&page=11'
+                  prev: null
+                  next: 'http://localhost:8000/api/customers?per_page=2&page=2'
+                meta:
+                  current_page: 1
+                  from: 1
+                  last_page: 11
+                  links:
+                    -
+                      url: null
+                      label: '&laquo; Previous'
+                      page: null
+                      active: false
+                    -
+                      url: 'http://localhost:8000/api/customers?per_page=2&page=1'
+                      label: '1'
+                      page: 1
+                      active: true
+                  path: 'http://localhost:8000/api/customers'
+                  per_page: 2
+                  to: 2
+                  total: 21
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags:
+        - Customers
+      summary: Crear
+      description: 'Permiso requerido: `create customers` (roles: admin).'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id_customer:
+                  type: string
+                  description: 'Valor único.'
+                first_name:
+                  type: string
+                  maxLength: 50
+                second_name:
+                  type: string
+                  nullable: true
+                  maxLength: 50
+                last_name1:
+                  type: string
+                  maxLength: 50
+                last_name2:
+                  type: string
+                  nullable: true
+                  maxLength: 50
+                email:
+                  type: string
+                  format: email
+                  maxLength: 100
+                  description: 'Valor único.'
+                telephone_number:
+                  type: string
+                  nullable: true
+                  maxLength: 20
+              required:
+                - id_customer
+                - first_name
+                - last_name1
+                - email
+            example:
+              id_customer: CUS950
+              first_name: Sofía
+              second_name: María
+              last_name1: Camacho
+              last_name2: Mora
+              email: sofia.camacho@example.com
+              telephone_number: '88887777'
+      responses:
+        '201':
+          description: 'Creado; el encabezado Location apunta al recurso'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Customer'
+              example:
+                data:
+                  id_customer: CUS950
+                  first_name: Sofía
+                  second_name: María
+                  last_name1: Camacho
+                  last_name2: Mora
+                  email: sofia.camacho@example.com
+                  telephone_number: '88887777'
+          headers:
+            Location:
+              description: 'URL del recurso creado'
+              schema:
+                type: string
+              example: 'http://localhost:8000/api/customers/CUS950'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  '/api/customers/{customer}':
+    parameters:
+      -
+        name: customer
+        in: path
+        required: true
+        description: 'Identificador del cliente (id_customer)'
+        schema:
+          type: string
+    get:
+      tags:
+        - Customers
+      summary: Detalle
+      description: 'Permiso requerido: `view customers` (roles: admin, cajero).'
+      responses:
+        '200':
+          description: Encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Customer'
+              example:
+                data:
+                  id_customer: CUS950
+                  first_name: Sofía
+                  second_name: María
+                  last_name1: Camacho
+                  last_name2: Mora
+                  email: sofia.camacho@example.com
+                  telephone_number: '88887777'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags:
+        - Customers
+      summary: 'Actualizar (también acepta PATCH)'
+      description: 'Permiso requerido: `update customers` (roles: admin). Todos los campos son opcionales.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                first_name:
+                  type: string
+                  maxLength: 50
+                second_name:
+                  type: string
+                  nullable: true
+                  maxLength: 50
+                last_name1:
+                  type: string
+                  maxLength: 50
+                last_name2:
+                  type: string
+                  nullable: true
+                  maxLength: 50
+                email:
+                  type: string
+                  format: email
+                  maxLength: 100
+                  description: 'Valor único.'
+                telephone_number:
+                  type: string
+                  nullable: true
+                  maxLength: 20
+            example:
+              telephone_number: '88886666'
+      responses:
+        '200':
+          description: Actualizado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Customer'
+              example:
+                data:
+                  id_customer: CUS950
+                  first_name: Sofía
+                  second_name: María
+                  last_name1: Camacho
+                  last_name2: Mora
+                  email: sofia.camacho@example.com
+                  telephone_number: '88886666'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      tags:
+        - Customers
+      summary: Eliminar
+      description: 'Permiso requerido: `delete customers` (roles: admin).'
+      responses:
+        '204':
+          description: 'Eliminado, sin contenido'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/sales:
+    get:
+      tags:
+        - Sales
+      summary: 'Listado paginado'
+      description: 'Permiso requerido: `view sales` (roles: admin, cajero). Quien no es admin solo recibe sus propios registros.'
+      parameters:
+        -
+          $ref: '#/components/parameters/Page'
+        -
+          $ref: '#/components/parameters/PerPage'
+        -
+          $ref: '#/components/parameters/Q'
+        -
+          name: sort
+          in: query
+          schema:
+            type: string
+            enum:
+              - id
+              - user_id
+              - id_customer
+              - sale_date
+              - total
+              - tax_amount
+              - discount
+              - status
+              - created_at
+        -
+          $ref: '#/components/parameters/Direction'
+        -
+          name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 'Lista paginada'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Sale'
+                  links:
+                    $ref: '#/components/schemas/PaginationLinks'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+              example:
+                data:
+                  -
+                    id: 1
+                    user_id: 1
+                    id_customer: null
+                    sale_date: '2026-01-19T02:16:37.000000Z'
+                    total: '57417.54'
+                    tax_amount: '6624.19'
+                    discount: '605.44'
+                    status: pendiente
+                    saleItems:
+                      -
+                        id: 1
+                        product_id: 18
+                        quantity: 1
+                        unit_price: 40136.57
+                        subtotal: 40136.57
+                  -
+                    id: 2
+                    user_id: 3
+                    id_customer: CUS784
+                    sale_date: '2026-05-09T15:12:47.000000Z'
+                    total: '42670.61'
+                    tax_amount: '5744.82'
+                    discount: '948.80'
+                    status: pendiente
+                    saleItems:
+                      -
+                        id: 2
+                        product_id: 3
+                        quantity: 8
+                        unit_price: 24451.3
+                        subtotal: 195610.4
+                      -
+                        id: 3
+                        product_id: 6
+                        quantity: 9
+                        unit_price: 85031.73
+                        subtotal: 765285.57
+                links:
+                  first: 'http://localhost:8000/api/sales?per_page=2&page=1'
+                  last: 'http://localhost:8000/api/sales?per_page=2&page=11'
+                  prev: null
+                  next: 'http://localhost:8000/api/sales?per_page=2&page=2'
+                meta:
+                  current_page: 1
+                  from: 1
+                  last_page: 11
+                  links:
+                    -
+                      url: null
+                      label: '&laquo; Previous'
+                      page: null
+                      active: false
+                    -
+                      url: 'http://localhost:8000/api/sales?per_page=2&page=1'
+                      label: '1'
+                      page: 1
+                      active: true
+                  path: 'http://localhost:8000/api/sales'
+                  per_page: 2
+                  to: 2
+                  total: 21
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags:
+        - Sales
+      summary: Crear
+      description: 'Permiso requerido: `create sales` (roles: admin, cajero). La venta queda a nombre de quien envía el token (se ignora cualquier user_id).'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id_customer:
+                  type: string
+                  nullable: true
+                  description: 'Debe existir en customers.id_customer.'
+                sale_date:
+                  type: string
+                  format: date-time
+                total:
+                  type: number
+                  minimum: 0
+                tax_amount:
+                  type: number
+                  nullable: true
+                  minimum: 0
+                discount:
+                  type: number
+                  nullable: true
+                  minimum: 0
+                status:
+                  type: string
+                  maxLength: 20
+              required:
+                - sale_date
+                - total
+                - status
+            example:
+              sale_date: '2026-09-22 10:00:00'
+              total: 15000
+              tax_amount: 1725.66
+              discount: 0
+              status: completed
+      responses:
+        '201':
+          description: 'Creado; el encabezado Location apunta al recurso'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Sale'
+              example:
+                data:
+                  id: 21
+                  user_id: 1
+                  id_customer: null
+                  sale_date: '2026-09-22T10:00:00.000000Z'
+                  total: '15000.00'
+                  tax_amount: '1725.66'
+                  discount: '0.00'
+                  status: completed
+                  saleItems: []
+          headers:
+            Location:
+              description: 'URL del recurso creado'
+              schema:
+                type: string
+              example: 'http://localhost:8000/api/sales/21'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  '/api/sales/{sale}':
+    parameters:
+      -
+        name: sale
+        in: path
+        required: true
+        description: 'Identificador de la venta'
+        schema:
+          type: integer
+    get:
+      tags:
+        - Sales
+      summary: Detalle
+      description: 'Permiso requerido: `view sales` (roles: admin, cajero). Solo quien la registró o un admin; para otra persona responde 404.'
+      responses:
+        '200':
+          description: Encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Sale'
+              example:
+                data:
+                  id: 21
+                  user_id: 1
+                  id_customer: null
+                  sale_date: '2026-09-22T10:00:00.000000Z'
+                  total: '15000.00'
+                  tax_amount: '1725.66'
+                  discount: '0.00'
+                  status: completed
+                  saleItems: []
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags:
+        - Sales
+      summary: 'Actualizar (también acepta PATCH)'
+      description: 'Permiso requerido: `update sales` (roles: admin). Solo quien la registró o un admin; para otra persona responde 404. Todos los campos son opcionales.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_id:
+                  type: string
+                  description: 'Debe existir en users.id.'
+                id_customer:
+                  type: string
+                  nullable: true
+                  description: 'Debe existir en customers.id_customer.'
+                sale_date:
+                  type: string
+                  format: date-time
+                total:
+                  type: number
+                  minimum: 0
+                tax_amount:
+                  type: number
+                  nullable: true
+                  minimum: 0
+                discount:
+                  type: number
+                  nullable: true
+                  minimum: 0
+                status:
+                  type: string
+                  maxLength: 20
+            example:
+              status: completado
+      responses:
+        '200':
+          description: Actualizado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Sale'
+              example:
+                data:
+                  id: 21
+                  user_id: 1
+                  id_customer: null
+                  sale_date: '2026-09-22T10:00:00.000000Z'
+                  total: '15000.00'
+                  tax_amount: '1725.66'
+                  discount: '0.00'
+                  status: completado
+                  saleItems: []
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      tags:
+        - Sales
+      summary: Eliminar
+      description: 'Permiso requerido: `delete sales` (roles: admin). Solo quien la registró o un admin; para otra persona responde 404.'
+      responses:
+        '204':
+          description: 'Eliminado, sin contenido'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/sale-items:
+    get:
+      tags:
+        - SaleItems
+      summary: 'Listado paginado'
+      description: 'Permiso requerido: `view sale-items` (roles: admin).'
+      parameters:
+        -
+          $ref: '#/components/parameters/Page'
+        -
+          $ref: '#/components/parameters/PerPage'
+        -
+          $ref: '#/components/parameters/Q'
+        -
+          name: sort
+          in: query
+          schema:
+            type: string
+            enum:
+              - id
+              - sale_id
+              - product_id
+              - quantity
+              - unit_price
+              - subtotal
+              - created_at
+        -
+          $ref: '#/components/parameters/Direction'
+      responses:
+        '200':
+          description: 'Lista paginada'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SaleItem'
+                  links:
+                    $ref: '#/components/schemas/PaginationLinks'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+              example:
+                data:
+                  -
+                    id: 1
+                    product_id: 18
+                    quantity: 1
+                    unit_price: 40136.57
+                    subtotal: 40136.57
+                  -
+                    id: 2
+                    product_id: 3
+                    quantity: 8
+                    unit_price: 24451.3
+                    subtotal: 195610.4
+                links:
+                  first: 'http://localhost:8000/api/sale-items?per_page=2&page=1'
+                  last: 'http://localhost:8000/api/sale-items?per_page=2&page=27'
+                  prev: null
+                  next: 'http://localhost:8000/api/sale-items?per_page=2&page=2'
+                meta:
+                  current_page: 1
+                  from: 1
+                  last_page: 27
+                  links:
+                    -
+                      url: null
+                      label: '&laquo; Previous'
+                      page: null
+                      active: false
+                    -
+                      url: 'http://localhost:8000/api/sale-items?per_page=2&page=1'
+                      label: '1'
+                      page: 1
+                      active: true
+                  path: 'http://localhost:8000/api/sale-items'
+                  per_page: 2
+                  to: 2
+                  total: 53
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags:
+        - SaleItems
+      summary: Crear
+      description: 'Permiso requerido: `create sale-items` (roles: admin). Descuenta el stock y registra un movimiento de salida en la misma transacción. El subtotal es opcional y se calcula como cantidad por precio unitario.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sale_id:
+                  type: integer
+                  description: 'Debe existir en sales.id.'
+                product_id:
+                  type: integer
+                  description: 'Debe existir en products.id.'
+                quantity:
+                  type: integer
+                  minimum: 1
+                unit_price:
+                  type: number
+                  minimum: 0
+                subtotal:
+                  type: number
+                  nullable: true
+                  minimum: 0
+              required:
+                - sale_id
+                - product_id
+                - quantity
+                - unit_price
+            example:
+              sale_id: 1
+              product_id: 21
+              quantity: 3
+              unit_price: 1500
+      responses:
+        '201':
+          description: 'Creado; el encabezado Location apunta al recurso'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/SaleItem'
+              example:
+                data:
+                  id: 53
+                  product_id: 21
+                  quantity: 3
+                  unit_price: 1500
+                  subtotal: 4500
+          headers:
+            Location:
+              description: 'URL del recurso creado'
+              schema:
+                type: string
+              example: 'http://localhost:8000/api/sale-items/53'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: 'Se viola una regla de negocio'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                stockInsuficiente:
+                  value:
+                    message: 'Stock insuficiente para el producto Taladro: disponible 2, solicitado 3.'
+                subtotalIncoherente:
+                  value:
+                    message: 'El subtotal debe ser igual a cantidad por precio unitario.'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  '/api/sale-items/{sale_item}':
+    parameters:
+      -
+        name: sale_item
+        in: path
+        required: true
+        description: 'Identificador del detalle de venta'
+        schema:
+          type: integer
+    get:
+      tags:
+        - SaleItems
+      summary: Detalle
+      description: 'Permiso requerido: `view sale-items` (roles: admin).'
+      responses:
+        '200':
+          description: Encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/SaleItem'
+              example:
+                data:
+                  id: 53
+                  product_id: 21
+                  quantity: 3
+                  unit_price: 1500
+                  subtotal: 4500
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags:
+        - SaleItems
+      summary: 'Actualizar (también acepta PATCH)'
+      description: 'Permiso requerido: `update sale-items` (roles: admin). Todos los campos son opcionales.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sale_id:
+                  type: string
+                  description: 'Debe existir en sales.id.'
+                product_id:
+                  type: string
+                  description: 'Debe existir en products.id.'
+                quantity:
+                  type: integer
+                  minimum: 1
+                unit_price:
+                  type: number
+                  minimum: 0
+                subtotal:
+                  type: number
+                  minimum: 0
+            example:
+              quantity: 2
+      responses:
+        '200':
+          description: Actualizado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/SaleItem'
+              example:
+                data:
+                  id: 53
+                  product_id: 21
+                  quantity: 2
+                  unit_price: 1500
+                  subtotal: 3000
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: 'Se viola una regla de negocio'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                stockInsuficiente:
+                  value:
+                    message: 'Stock insuficiente para el producto Taladro: disponible 2, solicitado 3.'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      tags:
+        - SaleItems
+      summary: Eliminar
+      description: 'Permiso requerido: `delete sale-items` (roles: admin).'
+      responses:
+        '204':
+          description: 'Eliminado, sin contenido'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/payments:
+    get:
+      tags:
+        - Payments
+      summary: 'Listado paginado'
+      description: 'Permiso requerido: `view payments` (roles: admin).'
+      parameters:
+        -
+          $ref: '#/components/parameters/Page'
+        -
+          $ref: '#/components/parameters/PerPage'
+        -
+          $ref: '#/components/parameters/Q'
+        -
+          name: sort
+          in: query
+          schema:
+            type: string
+            enum:
+              - id
+              - sale_id
+              - payment_method
+              - status
+              - created_at
+        -
+          $ref: '#/components/parameters/Direction'
+        -
+          name: sale_id
+          in: query
+          schema:
+            type: integer
+        -
+          name: payment_method
+          in: query
+          schema:
+            type: string
+        -
+          name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 'Lista paginada'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Payment'
+                  links:
+                    $ref: '#/components/schemas/PaginationLinks'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+              example:
+                data:
+                  -
+                    'ID Pago': 1
+                    'ID Venta': 8
+                    'Metodo de Pago': sinpe
+                    Monto: 931.88
+                    'Referencia de Transaccion': TXN-43635782
+                    Estado: pending
+                    'Fecha de Creacion': '2026-09-28T01:17:24.000000Z'
+                    'Fecha de Actualizacion': '2026-09-28T01:17:24.000000Z'
+                  -
+                    'ID Pago': 2
+                    'ID Venta': 4
+                    'Metodo de Pago': sinpe
+                    Monto: 3877.7
+                    'Referencia de Transaccion': TXN-96223671
+                    Estado: cancelled
+                    'Fecha de Creacion': '2026-09-28T01:17:24.000000Z'
+                    'Fecha de Actualizacion': '2026-09-28T01:17:24.000000Z'
+                links:
+                  first: 'http://localhost:8000/api/payments?per_page=2&page=1'
+                  last: 'http://localhost:8000/api/payments?per_page=2&page=11'
+                  prev: null
+                  next: 'http://localhost:8000/api/payments?per_page=2&page=2'
+                meta:
+                  current_page: 1
+                  from: 1
+                  last_page: 11
+                  links:
+                    -
+                      url: null
+                      label: '&laquo; Previous'
+                      page: null
+                      active: false
+                    -
+                      url: 'http://localhost:8000/api/payments?per_page=2&page=1'
+                      label: '1'
+                      page: 1
+                      active: true
+                  path: 'http://localhost:8000/api/payments'
+                  per_page: 2
+                  to: 2
+                  total: 21
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags:
+        - Payments
+      summary: Crear
+      description: 'Permiso requerido: `create payments` (roles: admin). Permite pagos mixtos: la suma de los pagos no cancelados no puede superar el total de la venta.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sale_id:
+                  type: integer
+                  description: 'Debe existir en sales.id.'
+                payment_method:
+                  type: string
+                  enum:
+                    - cash
+                    - card
+                    - sinpe
+                  maxLength: 50
+                amount:
+                  type: number
+                  minimum: 0.01
+                  maximum: 9999999999.99
+                transaction_reference:
+                  type: string
+                  nullable: true
+                  maxLength: 255
+                status:
+                  type: string
+                  enum:
+                    - completed
+                    - pending
+                    - cancelled
+                  maxLength: 20
+              required:
+                - sale_id
+                - payment_method
+                - amount
+                - status
+            example:
+              sale_id: 1
+              payment_method: card
+              amount: 1000
+              transaction_reference: TXN-00012345
+              status: completed
+      responses:
+        '201':
+          description: 'Creado; el encabezado Location apunta al recurso'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Payment'
+              example:
+                data:
+                  'ID Pago': 21
+                  'ID Venta': 1
+                  'Metodo de Pago': card
+                  Monto: 1000
+                  'Referencia de Transaccion': TXN-00012345
+                  Estado: completed
+                  'Fecha de Creacion': '2026-09-28T01:17:28.000000Z'
+                  'Fecha de Actualizacion': '2026-09-28T01:17:28.000000Z'
+          headers:
+            Location:
+              description: 'URL del recurso creado'
+              schema:
+                type: string
+              example: 'http://localhost:8000/api/payments/21'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: 'Se viola una regla de negocio'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                superaTotal:
+                  value:
+                    message: 'La suma de los pagos no puede superar el total de la venta.'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  '/api/payments/{payment}':
+    parameters:
+      -
+        name: payment
+        in: path
+        required: true
+        description: 'Identificador del pago'
+        schema:
+          type: integer
+    get:
+      tags:
+        - Payments
+      summary: Detalle
+      description: 'Permiso requerido: `view payments` (roles: admin).'
+      responses:
+        '200':
+          description: Encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Payment'
+              example:
+                data:
+                  'ID Pago': 21
+                  'ID Venta': 1
+                  'Metodo de Pago': card
+                  Monto: 1000
+                  'Referencia de Transaccion': TXN-00012345
+                  Estado: completed
+                  'Fecha de Creacion': '2026-09-28T01:17:28.000000Z'
+                  'Fecha de Actualizacion': '2026-09-28T01:17:28.000000Z'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags:
+        - Payments
+      summary: 'Actualizar (también acepta PATCH)'
+      description: 'Permiso requerido: `update payments` (roles: admin). Todos los campos son opcionales.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sale_id:
+                  type: string
+                  description: 'Debe existir en sales.id.'
+                payment_method:
+                  type: string
+                  enum:
+                    - cash
+                    - card
+                    - sinpe
+                  maxLength: 50
+                amount:
+                  type: number
+                  minimum: 0.01
+                  maximum: 9999999999.99
+                transaction_reference:
+                  type: string
+                  nullable: true
+                  maxLength: 255
+                status:
+                  type: string
+                  enum:
+                    - completed
+                    - pending
+                    - cancelled
+                  maxLength: 20
+            example:
+              status: cancelled
+      responses:
+        '200':
+          description: Actualizado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Payment'
+              example:
+                data:
+                  'ID Pago': 21
+                  'ID Venta': 1
+                  'Metodo de Pago': card
+                  Monto: 1000
+                  'Referencia de Transaccion': TXN-00012345
+                  Estado: cancelled
+                  'Fecha de Creacion': '2026-09-28T01:17:28.000000Z'
+                  'Fecha de Actualizacion': '2026-09-28T01:17:28.000000Z'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: 'Se viola una regla de negocio'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                superaTotal:
+                  value:
+                    message: 'La suma de los pagos no puede superar el total de la venta.'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      tags:
+        - Payments
+      summary: Eliminar
+      description: 'Permiso requerido: `delete payments` (roles: admin).'
+      responses:
+        '204':
+          description: 'Eliminado, sin contenido'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/inventory-movements:
+    get:
+      tags:
+        - InventoryMovements
+      summary: 'Listado paginado'
+      description: 'Permiso requerido: `view inventory-movements` (roles: admin).'
+      parameters:
+        -
+          $ref: '#/components/parameters/Page'
+        -
+          $ref: '#/components/parameters/PerPage'
+        -
+          name: sort
+          in: query
+          schema:
+            type: string
+            enum:
+              - id
+              - product_id
+              - movementable_type
+              - movementable_id
+              - type
+              - quantity
+              - stock_after
+              - created_at
+        -
+          $ref: '#/components/parameters/Direction'
+        -
+          name: product_id
+          in: query
+          schema:
+            type: integer
+        -
+          name: movementable_type
+          in: query
+          schema:
+            type: string
+        -
+          name: movementable_id
+          in: query
+          schema:
+            type: integer
+        -
+          name: type
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 'Lista paginada'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/InventoryMovement'
+                  links:
+                    $ref: '#/components/schemas/PaginationLinks'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+              example:
+                data:
+                  -
+                    'ID Movimiento': 1
+                    'ID Producto': 12
+                    Tipo: entrada
+                    Cantidad: 7
+                    'Stock Despues': 104
+                    'Tipo de Origen': Compra
+                    'ID de Origen': 1
+                  -
+                    'ID Movimiento': 2
+                    'ID Producto': 4
+                    Tipo: entrada
+                    Cantidad: 6
+                    'Stock Despues': 181
+                    'Tipo de Origen': Compra
+                    'ID de Origen': 2
+                links:
+                  first: 'http://localhost:8000/api/inventory-movements?per_page=2&page=1'
+                  last: 'http://localhost:8000/api/inventory-movements?per_page=2&page=55'
+                  prev: null
+                  next: 'http://localhost:8000/api/inventory-movements?per_page=2&page=2'
+                meta:
+                  current_page: 1
+                  from: 1
+                  last_page: 55
+                  links:
+                    -
+                      url: null
+                      label: '&laquo; Previous'
+                      page: null
+                      active: false
+                    -
+                      url: 'http://localhost:8000/api/inventory-movements?per_page=2&page=1'
+                      label: '1'
+                      page: 1
+                      active: true
+                  path: 'http://localhost:8000/api/inventory-movements'
+                  per_page: 2
+                  to: 2
+                  total: 109
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags:
+        - InventoryMovements
+      summary: Crear
+      description: 'Permiso requerido: `create inventory-movements` (roles: admin).'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                product_id:
+                  type: integer
+                  description: 'Debe existir en products.id.'
+                movementable_type:
+                  type: string
+                  maxLength: 255
+                movementable_id:
+                  type: integer
+                type:
+                  type: string
+                  maxLength: 20
+                quantity:
+                  type: integer
+                stock_after:
+                  type: integer
+              required:
+                - product_id
+                - movementable_type
+                - movementable_id
+                - type
+                - quantity
+                - stock_after
+            example:
+              product_id: 21
+              movementable_type: App\Models\PurchaseItem
+              movementable_id: 1
+              type: entrada
+              quantity: 5
+              stock_after: 55
+      responses:
+        '201':
+          description: 'Creado; el encabezado Location apunta al recurso'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/InventoryMovement'
+              example:
+                data:
+                  'ID Movimiento': 109
+                  'ID Producto': 21
+                  Tipo: entrada
+                  Cantidad: 5
+                  'Stock Despues': 55
+                  'Tipo de Origen': Compra
+                  'ID de Origen': 1
+          headers:
+            Location:
+              description: 'URL del recurso creado'
+              schema:
+                type: string
+              example: 'http://localhost:8000/api/inventory-movements/109'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  '/api/inventory-movements/{inventory_movement}':
+    parameters:
+      -
+        name: inventory_movement
+        in: path
+        required: true
+        description: 'Identificador del movimiento'
+        schema:
+          type: integer
+    get:
+      tags:
+        - InventoryMovements
+      summary: Detalle
+      description: 'Permiso requerido: `view inventory-movements` (roles: admin).'
+      responses:
+        '200':
+          description: Encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/InventoryMovement'
+              example:
+                data:
+                  'ID Movimiento': 109
+                  'ID Producto': 21
+                  Tipo: entrada
+                  Cantidad: 5
+                  'Stock Despues': 55
+                  'Tipo de Origen': Compra
+                  'ID de Origen': 1
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags:
+        - InventoryMovements
+      summary: 'Actualizar (también acepta PATCH)'
+      description: 'Permiso requerido: `update inventory-movements` (roles: admin). Todos los campos son opcionales.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                product_id:
+                  type: string
+                  description: 'Debe existir en products.id.'
+                movementable_type:
+                  type: string
+                  maxLength: 255
+                movementable_id:
+                  type: integer
+                type:
+                  type: string
+                  maxLength: 20
+                quantity:
+                  type: integer
+                stock_after:
+                  type: integer
+            example:
+              quantity: 6
+      responses:
+        '200':
+          description: Actualizado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/InventoryMovement'
+              example:
+                data:
+                  'ID Movimiento': 109
+                  'ID Producto': 21
+                  Tipo: entrada
+                  Cantidad: 6
+                  'Stock Despues': 55
+                  'Tipo de Origen': Compra
+                  'ID de Origen': 1
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      tags:
+        - InventoryMovements
+      summary: Eliminar
+      description: 'Permiso requerido: `delete inventory-movements` (roles: admin).'
+      responses:
+        '204':
+          description: 'Eliminado, sin contenido'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
 components:
@@ -878,7 +4050,7 @@ components:
     bearerAuth:
       type: http
       scheme: bearer
-      bearerFormat: JWT
+      description: 'Token personal de Sanctum obtenido en POST /api/login'
   parameters:
     Page:
       name: page
@@ -889,299 +4061,77 @@ components:
     PerPage:
       name: per_page
       in: query
+      description: 'Tamaño de página. Máximo 50.'
       schema:
         type: integer
         default: 10
         maximum: 50
-      description: Maximo 50
     Q:
       name: q
       in: query
+      description: 'Texto a buscar'
       schema:
         type: string
-    Sort:
-      name: sort
-      in: query
-      schema:
-        type: string
-        enum: [name, price, stock_quantity, id, created_at, supplier_first_name, purchase_total]
     Direction:
       name: direction
       in: query
       schema:
         type: string
-        enum: [asc, desc]
+        enum:
+          - asc
+          - desc
+        default: asc
   schemas:
+    PaginationLinks:
+      type: object
+      properties:
+        first:
+          type: string
+        last:
+          type: string
+        prev:
+          type: string
+          nullable: true
+        next:
+          type: string
     PaginationMeta:
       type: object
       properties:
         current_page:
           type: integer
+        from:
+          type: integer
         last_page:
           type: integer
+        links:
+          type: array
+          items:
+            type: object
+            properties:
+              url:
+                type: string
+                nullable: true
+              label:
+                type: string
+              page:
+                type: string
+                nullable: true
+              active:
+                type: boolean
+        path:
+          type: string
         per_page:
+          type: integer
+        to:
           type: integer
         total:
           type: integer
-        links:
-          type: object
-          properties:
-            first:
-              type: string
-            last:
-              type: string
-            prev:
-              type: string
-              nullable: true
-            next:
-              type: string
-              nullable: true
-    Product:
-      type: object
-      properties:
-        id:
-          type: integer
-        category_id:
-          type: integer
-        brand_id:
-          type: integer
-        unit_id:
-          type: integer
-        name:
-          type: string
-        description:
-          type: string
-          nullable: true
-        sku:
-          type: string
-        barcode:
-          type: string
-          nullable: true
-        price:
-          type: number
-          format: float
-        tax_rate:
-          type: number
-        stock_quantity:
-          type: integer
-        minimum_stock:
-          type: integer
-        maximum_stock:
-          type: integer
-          nullable: true
-        weight:
-          type: number
-          nullable: true
-        image_url:
-          type: string
-          nullable: true
-        is_active:
-          type: boolean
-        category:
-          $ref: '#/components/schemas/Category'
-        brand:
-          $ref: '#/components/schemas/Brand'
-        unit:
-          $ref: '#/components/schemas/Unit'
-    ProductInput:
-      type: object
-      required: [category_id, brand_id, unit_id, name, price, sku]
-      properties:
-        category_id:
-          type: integer
-        brand_id:
-          type: integer
-        unit_id:
-          type: integer
-        name:
-          type: string
-          maxLength: 200
-        description:
-          type: string
-        sku:
-          type: string
-          maxLength: 50
-        barcode:
-          type: string
-        price:
-          type: number
-          minimum: 0
-        tax_rate:
-          type: number
-        stock_quantity:
-          type: integer
-          minimum: 0
-        minimum_stock:
-          type: integer
-        maximum_stock:
-          type: integer
-        weight:
-          type: number
-        image_url:
-          type: string
-          format: uri
-        is_active:
-          type: boolean
-    Category:
-      type: object
-      properties:
-        id:
-          type: integer
-        category_name:
-          type: string
-        description:
-          type: string
-    CategoryInput:
-      type: object
-      required: [category_name]
-      properties:
-        category_name:
-          type: string
-        description:
-          type: string
-    Brand:
-      type: object
-      properties:
-        id:
-          type: integer
-        brand_name:
-          type: string
-    BrandInput:
-      type: object
-      required: [brand_name]
-      properties:
-        brand_name:
-          type: string
-    Unit:
-      type: object
-      properties:
-        id:
-          type: integer
-        unit_name:
-          type: string
-    UnitInput:
-      type: object
-      required: [unit_name]
-      properties:
-        unit_name:
-          type: string
-    Supplier:
-      type: object
-      properties:
-        id_supplier:
-          type: string
-        supplier_first_name:
-          type: string
-        supplier_last_name:
-          type: string
-        supplier_phone:
-          type: string
-        supplier_address:
-          type: string
-        supplier_email:
-          type: string
-          format: email
-        supplier_type:
-          type: string
-    SupplierInput:
-      type: object
-      required: [id_supplier, supplier_first_name, supplier_last_name, supplier_phone, supplier_address, supplier_email]
-      properties:
-        id_supplier:
-          type: string
-        supplier_first_name:
-          type: string
-        supplier_last_name:
-          type: string
-        supplier_phone:
-          type: string
-        supplier_address:
-          type: string
-        supplier_email:
-          type: string
-          format: email
-        supplier_type:
-          type: string
-    Purchase:
-      type: object
-      properties:
-        id_purchase:
-          type: string
-        user_id:
-          type: integer
-        id_supplier:
-          type: string
-        purchase_total:
-          type: number
-        purchase_status:
-          type: string
-          enum: [pendiente, confirmada, recibida, cancelada]
-        supplier:
-          $ref: '#/components/schemas/Supplier'
-        purchase_items:
-          type: array
-          items:
-            $ref: '#/components/schemas/PurchaseItem'
-    PurchaseInput:
-      type: object
-      required: [id_purchase, user_id, id_supplier, purchase_status]
-      properties:
-        id_purchase:
-          type: string
-        user_id:
-          type: integer
-        id_supplier:
-          type: string
-        purchase_total:
-          type: number
-        purchase_status:
-          type: string
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/PurchaseItemInput'
-    PurchaseItem:
-      type: object
-      properties:
-        id:
-          type: integer
-        id_purchase:
-          type: string
-        product_id:
-          type: integer
-        quantity:
-          type: integer
-        unit_cost:
-          type: number
-        subtotal:
-          type: number
-    PurchaseItemInput:
-      type: object
-      required: [id_purchase, product_id, quantity, unit_cost, subtotal]
-      properties:
-        id_purchase:
-          type: string
-        product_id:
-          type: integer
-        quantity:
-          type: integer
-          minimum: 1
-        unit_cost:
-          type: number
-          minimum: 0
-        subtotal:
-          type: number
-          minimum: 0
-    LoginRequest:
-      type: object
-      required: [email, password]
-      properties:
-        email:
-          type: string
-          format: email
-        password:
-          type: string
     Error:
+      type: object
+      properties:
+        message:
+          type: string
+    ValidationError:
       type: object
       properties:
         message:
@@ -1192,41 +4142,331 @@ components:
             type: array
             items:
               type: string
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        nombre:
+          type: string
+        correo:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
+    Token:
+      type: object
+      properties:
+        token:
+          type: string
+        token_type:
+          type: string
+        expires_at:
+          type: string
+          format: date-time
+          description: 'Fecha de vencimiento (2 horas después del inicio de sesión)'
+        abilities:
+          type: array
+          items:
+            type: string
+          description: 'Capacidades del token: los permisos del rol al iniciar sesión'
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+        id_categoria:
+          type: integer
+        id_marca:
+          type: integer
+        id_unidad:
+          type: integer
+        nombre:
+          type: string
+        descripcion:
+          type: string
+        sku:
+          type: string
+        codigo_barras:
+          type: string
+        precio:
+          type: number
+        tasa_impuesto:
+          type: number
+        cantidad_stock:
+          type: integer
+        stock_minimo:
+          type: integer
+        stock_maximo:
+          type: integer
+        peso:
+          type: string
+          description: 'Decimal con dos cifras'
+        esta_activo:
+          type: boolean
+    InventorySummaryRow:
+      type: object
+      properties:
+        category_name:
+          type: string
+        total_products:
+          type: integer
+        total_stock:
+          type: integer
+        average_price:
+          type: number
+    Category:
+      type: object
+      properties:
+        'ID Categoria':
+          type: integer
+        Nombre:
+          type: string
+        Descripcion:
+          type: string
+    Brand:
+      type: object
+      properties:
+        'ID Marca':
+          type: integer
+        Nombre:
+          type: string
+    Unit:
+      type: object
+      properties:
+        'ID Unidad de Medida':
+          type: integer
+        Nombre:
+          type: string
+    Supplier:
+      type: object
+      properties:
+        id:
+          type: string
+        supplier_first_name:
+          type: string
+        supplier_last_name:
+          type: string
+        supplier_phone:
+          type: string
+        supplier_address:
+          type: string
+        supplier_email:
+          type: string
+        supplier_type:
+          type: string
+        purchases:
+          type: array
+          items: {}
+    Purchase:
+      type: object
+      properties:
+        id_purchase:
+          type: string
+        user_id:
+          type: integer
+        id_supplier:
+          type: string
+        purchase_total:
+          type: string
+          description: 'Decimal con dos cifras'
+        purchase_status:
+          type: string
+        purchaseItems:
+          type: array
+          items:
+            type: object
+            properties:
+              'ID Detalle':
+                type: integer
+              'ID Compra':
+                type: string
+              'ID Producto':
+                type: integer
+              Cantidad:
+                type: integer
+              'Costo Unitario':
+                type: string
+                description: 'Decimal con dos cifras'
+              SubTotal:
+                type: string
+                description: 'Decimal con dos cifras'
+    PurchaseItem:
+      type: object
+      properties:
+        'ID Detalle':
+          type: integer
+        'ID Compra':
+          type: string
+        'ID Producto':
+          type: integer
+        Producto:
+          type: string
+        Cantidad:
+          type: integer
+        'Costo Unitario':
+          type: string
+          description: 'Decimal con dos cifras'
+        SubTotal:
+          type: string
+          description: 'Decimal con dos cifras'
+    Customer:
+      type: object
+      properties:
+        id_customer:
+          type: string
+        first_name:
+          type: string
+        second_name:
+          type: string
+        last_name1:
+          type: string
+        last_name2:
+          type: string
+        email:
+          type: string
+        telephone_number:
+          type: string
+    Sale:
+      type: object
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: integer
+        id_customer:
+          type: string
+          nullable: true
+        sale_date:
+          type: string
+          format: date-time
+        total:
+          type: string
+          description: 'Decimal con dos cifras'
+        tax_amount:
+          type: string
+          description: 'Decimal con dos cifras'
+        discount:
+          type: string
+          description: 'Decimal con dos cifras'
+        status:
+          type: string
+        saleItems:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              product_id:
+                type: integer
+              quantity:
+                type: integer
+              unit_price:
+                type: number
+              subtotal:
+                type: number
+    SaleItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        product_id:
+          type: integer
+        quantity:
+          type: integer
+        unit_price:
+          type: number
+        subtotal:
+          type: number
+    Payment:
+      type: object
+      properties:
+        'ID Pago':
+          type: integer
+        'ID Venta':
+          type: integer
+        'Metodo de Pago':
+          type: string
+        Monto:
+          type: number
+        'Referencia de Transaccion':
+          type: string
+        Estado:
+          type: string
+        'Fecha de Creacion':
+          type: string
+          format: date-time
+        'Fecha de Actualizacion':
+          type: string
+          format: date-time
+    InventoryMovement:
+      type: object
+      properties:
+        'ID Movimiento':
+          type: integer
+        'ID Producto':
+          type: integer
+        Tipo:
+          type: string
+        Cantidad:
+          type: integer
+        'Stock Despues':
+          type: integer
+        'Tipo de Origen':
+          type: string
+        'ID de Origen':
+          type: integer
   responses:
+    BadRequest:
+      description: 'El cuerpo no es un JSON válido'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: 'El cuerpo de la solicitud no es un JSON válido.'
     Unauthorized:
-      description: No autenticado
+      description: 'Sin token, token vencido o revocado'
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
           example:
-            message: Unauthenticated.
+            message: 'No autenticado.'
     Forbidden:
-      description: Prohibido
+      description: 'El rol o la capacidad del token no permite la acción'
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
           example:
-            message: Forbidden
+            message: 'No tiene permiso para realizar esta acción.'
     NotFound:
-      description: No encontrado
+      description: 'El recurso no existe o pertenece a otra persona'
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
           example:
-            message: Recurso no encontrado.
+            message: 'El recurso solicitado no existe.'
     ValidationError:
-      description: Datos invalidos
+      description: 'Datos inválidos, con los errores por campo'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationError'
+    TooManyRequests:
+      description: 'Demasiados intentos de inicio de sesión (5 por minuto por correo e IP)'
+      headers:
+        Retry-After:
+          description: 'Segundos que faltan para volver a intentar'
+          schema:
+            type: integer
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
           example:
-            message: Datos invalidos
-            errors:
-              name:
-                - El campo nombre es obligatorio.
-              price:
-                - El campo precio debe ser un numero.
+            message: 'Demasiados intentos. Intente nuevamente más tarde.'

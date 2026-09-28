@@ -16,6 +16,7 @@ class PaymentResource extends JsonResource
             'ID Pago' => $this->id,
             'ID Venta' => $this->sale_id,
             'Metodo de Pago' => $this->payment_method,
+            'Monto' => (float) $this->amount,
             'Referencia de Transaccion' => $this->transaction_reference,
             'Estado' => $this->status,
             'Fecha de Creacion' => $this->created_at,

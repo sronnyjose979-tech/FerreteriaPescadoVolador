@@ -7,6 +7,7 @@ use App\Http\Requests\Purchase\UpdatePurchaseRequest;
 use App\Http\Resources\PurchaseResource;
 use App\Models\Purchase;
 use App\Services\PurchaseService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Attributes\Controllers\Authorize;
 
@@ -26,11 +27,17 @@ class PurchaseController extends Controller
     }
 
     #[Authorize('create', Purchase::class)]
-    public function store(StorePurchaseRequest $request)
+    public function store(StorePurchaseRequest $request): JsonResponse
     {
-        $purchase = $this->purchase->crear($request->validated());
+        $purchase = $this->purchase->crearConDetalle(
+            $request->safe()->except('items'),
+            $request->validated('items'),
+        );
 
-        return response()->json($purchase, 201);
+        return (new PurchaseResource($purchase))
+            ->response()
+            ->setStatusCode(201)
+            ->header('Location', route('purchases.show', $purchase));
     }
 
     #[Authorize('view', 'purchase')]

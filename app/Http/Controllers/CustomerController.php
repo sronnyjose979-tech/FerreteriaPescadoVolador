@@ -7,6 +7,7 @@ use App\Http\Requests\Customer\UpdateCustomerRequest;
 use App\Http\Resources\CustomerResource;
 use App\Models\Customer;
 use App\Services\CustomerServices;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Attributes\Controllers\Authorize;
 
@@ -32,11 +33,14 @@ class CustomerController extends Controller
      * Store a newly created resource in storage.
      */
     #[Authorize('create', Customer::class)]
-    public function store(StoreCustomerRequest $request)
+    public function store(StoreCustomerRequest $request): JsonResponse
     {
         $customer = $this->customer->crear($request->validated());
 
-        return response()->json($customer, 201);
+        return (new CustomerResource($customer))
+            ->response()
+            ->setStatusCode(201)
+            ->header('Location', route('customers.show', $customer));
     }
 
     /**

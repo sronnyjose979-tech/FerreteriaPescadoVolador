@@ -7,9 +7,9 @@ use App\Http\Requests\Product\UpdateProductRequest;
 use App\Http\Resources\ProductResource;
 use App\Models\Product;
 use App\Services\ProductService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Attributes\Controllers\Authorize;
-use Illuminate\Support\Facades\DB;
 
 class ProductController extends Controller
 {
@@ -26,24 +26,21 @@ class ProductController extends Controller
         return ProductResource::collection($product);
     }
 
-    public function inventorySummary()
+    #[Authorize('viewAny', Product::class)]
+    public function inventorySummary(): JsonResponse
     {
-        $report = Product::select(
-            'categories.category_name as category_name',
-            DB::raw('COUNT(products.id) as total_products'),
-            DB::raw('SUM(products.stock_quantity) as total_stock'),
-            DB::raw('AVG(products.price) as average_price')
-        )->join('categories', 'products.category_id', '=', 'categories.id')->groupBy('categories.id', 'categories.category_name')->get();
-
-        return $report;
+        return response()->json(['data' => $this->product->inventorySummary()]);
     }
 
     #[Authorize('create', Product::class)] // PERMISO PARA CREAR
-    public function store(StoreProductRequest $request)
+    public function store(StoreProductRequest $request): JsonResponse
     {
         $product = $this->product->crear($request->validated());
 
-        return response()->json($product, 201);
+        return (new ProductResource($product))
+            ->response()
+            ->setStatusCode(201)
+            ->header('Location', route('products.show', $product));
     }
 
     #[Authorize('view', 'product')] // PERMISO PARA VER

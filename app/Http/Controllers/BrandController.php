@@ -7,6 +7,7 @@ use App\Http\Requests\Brand\UpdateBrandRequest;
 use App\Http\Resources\BrandResource;
 use App\Models\Brand;
 use App\Services\BrandService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Attributes\Controllers\Authorize;
 
@@ -26,11 +27,14 @@ class BrandController extends Controller
     }
 
     #[Authorize('create', Brand::class)]
-    public function store(StoreBrandRequest $request)
+    public function store(StoreBrandRequest $request): JsonResponse
     {
         $brand = $this->brand->crear($request->validated());
 
-        return response()->json($brand, 201);
+        return (new BrandResource($brand))
+            ->response()
+            ->setStatusCode(201)
+            ->header('Location', route('brands.show', $brand));
     }
 
     #[Authorize('view', 'brand')]

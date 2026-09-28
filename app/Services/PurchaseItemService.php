@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Exceptions\BusinessException;
 use App\Models\Product;
+use App\Models\Purchase;
 use App\Models\PurchaseItem;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -11,22 +12,15 @@ use Illuminate\Support\Facades\Gate;
 
 class PurchaseItemService
 {
+    public function __construct(protected InventoryMovementService $inventory) {}
+
     public function crear(array $validated): PurchaseItem
     {
         // Verifica que el usuario tenga permiso para crear detalles de compra
         Gate::authorize('create', PurchaseItem::class);
 
-        $expected = round($validated['quantity'] * $validated['unit_cost'], 2);
-        if (isset($validated['subtotal'])) {
-            $given = round((float) $validated['subtotal'], 2);
-
-            if (abs($expected - $given) > 0.01) {
-                throw new BusinessException('El subtotal debe ser igual a cantidad por costo unitario.');
-            }
-        }
-
         // El subtotal lo calcula el servicio, no lo recibe del cliente
-        $validated['subtotal'] = $expected;
+        $validated['subtotal'] = $this->calcularSubtotal($validated);
 
         return DB::transaction(function () use ($validated) {
             $item = PurchaseItem::create($validated);
@@ -34,7 +28,7 @@ class PurchaseItemService
             $product = Product::lockForUpdate()->find($validated['product_id']);
 
             if ($product) {
-                $product->increment('stock_quantity', $validated['quantity']);
+                $this->inventory->registrarEntrada($product, $item, $item->quantity);
             }
 
             return $item;
@@ -46,14 +40,9 @@ class PurchaseItemService
         // Verifica que el usuario tenga permiso para actualizar este detalle de compra
         Gate::authorize('update', $item);
 
-        if (isset($validated['quantity'], $validated['unit_cost'], $validated['subtotal'])) {
-            $expected = round($validated['quantity'] * $validated['unit_cost'], 2);
-            $given = round((float) $validated['subtotal'], 2);
-
-            if (abs($expected - $given) > 0.01) {
-                throw new BusinessException('El subtotal debe ser igual a cantidad por costo unitario.');
-            }
-        }
+        $validated['subtotal'] = $this->calcularSubtotal(
+            array_merge($item->only(['quantity', 'unit_cost']), $validated)
+        );
 
         return DB::transaction(function () use ($item, $validated) {
             $oldQuantity = $item->quantity;
@@ -61,17 +50,17 @@ class PurchaseItemService
 
             $item->update($validated);
 
-            if ($oldProductId !== $item->product_id || $oldQuantity !== $item->quantity) {
+            if ($item->wasChanged(['product_id', 'quantity'])) {
                 $oldProduct = Product::lockForUpdate()->find($oldProductId);
 
                 if ($oldProduct) {
-                    $oldProduct->decrement('stock_quantity', $oldQuantity);
+                    $this->inventory->registrarSalida($oldProduct, $item, $oldQuantity);
                 }
 
                 $newProduct = Product::lockForUpdate()->find($item->product_id);
 
                 if ($newProduct) {
-                    $newProduct->increment('stock_quantity', $item->quantity);
+                    $this->inventory->registrarEntrada($newProduct, $item, $item->quantity);
                 }
             }
 
@@ -88,7 +77,7 @@ class PurchaseItemService
             $product = Product::lockForUpdate()->find($item->product_id);
 
             if ($product) {
-                $product->decrement('stock_quantity', $item->quantity);
+                $this->inventory->registrarSalida($product, $item, $item->quantity);
             }
 
             $item->delete();
@@ -104,6 +93,20 @@ class PurchaseItemService
         Gate::authorize('view', $item);
 
         return $item;
+    }
+
+    public function listByPurchase(Purchase $purchase, array $filters): LengthAwarePaginator
+    {
+        Gate::authorize('view', $purchase);
+
+        $perPage = (int) ($filters['per_page'] ?? 10);
+        $perPage = max(1, min($perPage, 50));
+
+        return $purchase->purchaseItems()
+            ->with('product')
+            ->orderBy('id', 'asc')
+            ->paginate($perPage)
+            ->withQueryString();
     }
 
     public function listPaginated(array $filters): LengthAwarePaginator
@@ -148,5 +151,20 @@ class PurchaseItemService
             ->orderBy('id', 'asc')
             ->paginate($perPage)
             ->withQueryString();
+    }
+
+    private function calcularSubtotal(array $datos): float
+    {
+        $expected = round($datos['quantity'] * $datos['unit_cost'], 2);
+
+        if (isset($datos['subtotal'])) {
+            $given = round((float) $datos['subtotal'], 2);
+
+            if (abs(round($expected * 100) - round($given * 100)) > 1) {
+                throw new BusinessException('El subtotal debe ser igual a cantidad por costo unitario.');
+            }
+        }
+
+        return $expected;
     }
 }

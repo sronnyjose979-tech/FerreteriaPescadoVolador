@@ -6,6 +6,7 @@ use Database\Factories\PurchaseItemFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 
 class PurchaseItem extends Model
 {
@@ -57,5 +58,10 @@ class PurchaseItem extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function inventoryMovement(): MorphOne
+    {
+        return $this->morphOne(InventoryMovement::class, 'movementable')->latestOfMany();
     }
 }

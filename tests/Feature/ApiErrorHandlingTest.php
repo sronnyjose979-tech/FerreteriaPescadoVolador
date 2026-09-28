@@ -7,11 +7,24 @@ use App\Models\Supplier;
 use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Route;
 
+test('responde 400 cuando el cuerpo JSON está mal formado', function () {
+    actingAsRole('admin');
+
+    $response = $this->call('POST', '/api/brands', server: [
+        'CONTENT_TYPE' => 'application/json',
+        'HTTP_ACCEPT' => 'application/json',
+    ], content: '{"brand_name": "Truper"');
+
+    $response->assertBadRequest()
+        ->assertExactJson(['message' => 'El cuerpo de la solicitud no es un JSON válido.']);
+    $this->assertDatabaseCount('brands', 0);
+});
+
 test('responde 401 sin traza cuando la peticion no trae token', function () {
     $response = $this->getJson('/api/products');
 
     $response->assertUnauthorized()
-        ->assertExactJson(['message' => 'Unauthenticated.']);
+        ->assertExactJson(['message' => 'No autenticado.']);
 });
 
 test('responde 403 sin traza cuando el rol no tiene permiso', function () {
@@ -86,6 +99,7 @@ test('responde 422 con los errores por campo y sin traza cuando los datos son in
     $response = $this->postJson('/api/products', []);
 
     $response->assertUnprocessable()
+        ->assertJsonPath('message', 'Los datos enviados no son válidos.')
         ->assertJsonValidationErrors([
             'category_id' => 'El campo categoría es obligatorio.',
             'name' => 'El campo nombre es obligatorio.',

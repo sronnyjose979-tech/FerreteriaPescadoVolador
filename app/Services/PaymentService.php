@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
+use App\Exceptions\BusinessException;
 use App\Models\Payment;
+use App\Models\Sale;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -14,7 +16,13 @@ class PaymentService
         // Verifica que el usuario tenga permiso para crear pagos
         Gate::authorize('create', Payment::class);
 
-        return Payment::create($validated);
+        return DB::transaction(function () use ($validated) {
+            $sale = Sale::lockForUpdate()->findOrFail($validated['sale_id']);
+
+            $this->validarMontoDisponible($sale, $validated);
+
+            return Payment::create($validated);
+        });
     }
 
     public function actualizar(Payment $payment, array $validated): Payment
@@ -22,9 +30,16 @@ class PaymentService
         // Verifica que el usuario tenga permiso para actualizar este pago
         Gate::authorize('update', $payment);
 
-        $payment->update($validated);
+        return DB::transaction(function () use ($payment, $validated) {
+            $datos = array_merge($payment->only(['sale_id', 'amount', 'status']), $validated);
+            $sale = Sale::lockForUpdate()->findOrFail($datos['sale_id']);
 
-        return $payment;
+            $this->validarMontoDisponible($sale, $datos, $payment);
+
+            $payment->update($validated);
+
+            return $payment;
+        });
     }
 
     public function eliminar(Payment $payment): void
@@ -64,7 +79,7 @@ class PaymentService
             'sale_id',
             'payment_method',
             'status',
-            'created_at'
+            'created_at',
         ];
 
         if (! in_array($sort, $allowedSorts, true)) {
@@ -110,5 +125,21 @@ class PaymentService
             ->orderBy('id', 'asc')
             ->paginate($perPage)
             ->withQueryString();
+    }
+
+    private function validarMontoDisponible(Sale $sale, array $pago, ?Payment $actual = null): void
+    {
+        if (($pago['status'] ?? null) === 'cancelled') {
+            return;
+        }
+
+        $pagado = $sale->payments()
+            ->where('status', '!=', 'cancelled')
+            ->when($actual, fn ($query) => $query->whereKeyNot($actual->getKey()))
+            ->sum('amount');
+
+        if (round($pagado + $pago['amount'], 2) > round((float) $sale->total, 2)) {
+            throw new BusinessException('La suma de los pagos no puede superar el total de la venta.');
+        }
     }
 }

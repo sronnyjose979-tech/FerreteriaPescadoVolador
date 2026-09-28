@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Database\Factories\PaymentFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,13 +11,13 @@ class Payment extends Model
     /** @use HasFactory<PaymentsFactory> */
     use HasFactory;
 
-
     /**
      * Atributos asignables de forma masiva.
      */
     protected $fillable = [
         'sale_id',
         'payment_method',
+        'amount',
         'transaction_reference',
         'status',
     ];
@@ -30,6 +29,13 @@ class Payment extends Model
         'created_at',
         'updated_at',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'amount' => 'decimal:2',
+        ];
+    }
 
     /**
      * Pedido pagado.

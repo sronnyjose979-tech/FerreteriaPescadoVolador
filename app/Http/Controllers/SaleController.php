@@ -7,6 +7,7 @@ use App\Http\Requests\Sale\UpdateSaleRequest;
 use App\Http\Resources\SaleResource;
 use App\Models\Sale;
 use App\Services\SaleService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Attributes\Controllers\Authorize;
 
@@ -32,11 +33,14 @@ class SaleController extends Controller
      * Store a newly created resource in storage.
      */
     #[Authorize('create', Sale::class)]
-    public function store(StoreSaleRequest $request)
+    public function store(StoreSaleRequest $request): JsonResponse
     {
         $sale = $this->sale->crear($request->validated());
 
-        return response()->json($sale, 201);
+        return (new SaleResource($sale))
+            ->response()
+            ->setStatusCode(201)
+            ->header('Location', route('sales.show', $sale));
     }
 
     /**

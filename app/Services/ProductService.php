@@ -6,6 +6,7 @@ use App\Exceptions\BusinessException;
 use App\Models\Product;
 use App\Models\PurchaseItem;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
@@ -139,6 +140,23 @@ class ProductService
             ->orderBy('id', 'asc')
             ->paginate($perPage)
             ->withQueryString();
+    }
+
+    public function inventorySummary(): Collection
+    {
+        Gate::authorize('viewAny', Product::class);
+
+        return Product::query()
+            ->join('categories', 'products.category_id', '=', 'categories.id')
+            ->groupBy('categories.id', 'categories.category_name')
+            ->orderBy('categories.category_name')
+            ->toBase()
+            ->get([
+                'categories.category_name as category_name',
+                DB::raw('COUNT(products.id) as total_products'),
+                DB::raw('SUM(products.stock_quantity) as total_stock'),
+                DB::raw('ROUND(AVG(products.price), 2) as average_price'),
+            ]);
     }
 
     private function validateStockCoherence(array $data): void

@@ -2,18 +2,33 @@
 
 namespace App\Services;
 
+use App\Exceptions\BusinessException;
+use App\Models\Product;
 use App\Models\SaleItem;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
 class SaleItemService
 {
+    public function __construct(protected InventoryMovementService $inventory) {}
+
     public function crear(array $saleItem): SaleItem
     {
         // Verifica que el usuario tenga permiso para crear detalles de venta
         Gate::authorize('create', SaleItem::class);
 
-        return SaleItem::create($saleItem);
+        $saleItem['subtotal'] = $this->calcularSubtotal($saleItem);
+
+        return DB::transaction(function () use ($saleItem) {
+            $product = Product::lockForUpdate()->findOrFail($saleItem['product_id']);
+
+            $item = SaleItem::create($saleItem);
+
+            $this->inventory->registrarSalida($product, $item, $item->quantity);
+
+            return $item;
+        });
     }
 
     public function actualizar(SaleItem $saleItem, array $validated): SaleItem
@@ -21,9 +36,23 @@ class SaleItemService
         // Verifica que el usuario tenga permiso para actualizar este detalle de venta
         Gate::authorize('update', $saleItem);
 
-        $saleItem->update($validated);
+        $validated['subtotal'] = $this->calcularSubtotal(
+            array_merge($saleItem->only(['quantity', 'unit_price']), $validated)
+        );
 
-        return $saleItem;
+        return DB::transaction(function () use ($saleItem, $validated) {
+            $oldProductId = $saleItem->product_id;
+            $oldQuantity = $saleItem->quantity;
+
+            $saleItem->update($validated);
+
+            if ($saleItem->wasChanged(['product_id', 'quantity'])) {
+                $this->inventory->registrarEntrada(Product::lockForUpdate()->findOrFail($oldProductId), $saleItem, $oldQuantity);
+                $this->inventory->registrarSalida(Product::lockForUpdate()->findOrFail($saleItem->product_id), $saleItem, $saleItem->quantity);
+            }
+
+            return $saleItem;
+        });
     }
 
     public function eliminar(SaleItem $saleItem): void
@@ -31,7 +60,11 @@ class SaleItemService
         // Verifica que el usuario tenga permiso para eliminar este detalle de venta
         Gate::authorize('delete', $saleItem);
 
-        $saleItem->delete();
+        DB::transaction(function () use ($saleItem) {
+            $this->inventory->registrarEntrada(Product::lockForUpdate()->findOrFail($saleItem->product_id), $saleItem, $saleItem->quantity);
+
+            $saleItem->delete();
+        });
     }
 
     public function getById(int $id): SaleItem
@@ -111,5 +144,16 @@ class SaleItemService
             ->orderBy('id', 'asc')
             ->paginate($perPage)
             ->withQueryString();
+    }
+
+    private function calcularSubtotal(array $datos): float
+    {
+        $esperado = round($datos['quantity'] * $datos['unit_price'], 2);
+
+        if (isset($datos['subtotal']) && abs(round($esperado * 100) - round((float) $datos['subtotal'] * 100)) > 1) {
+            throw new BusinessException('El subtotal debe ser igual a cantidad por precio unitario.');
+        }
+
+        return $esperado;
     }
 }

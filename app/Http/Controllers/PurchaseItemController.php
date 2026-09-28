@@ -5,9 +5,12 @@ namespace App\Http\Controllers;
 use App\Http\Requests\PurchaseItem\StorePurchaseItemRequest;
 use App\Http\Requests\PurchaseItem\UpdatePurchaseItemRequest;
 use App\Http\Resources\PurchaseItemResource;
+use App\Models\Purchase;
 use App\Models\PurchaseItem;
 use App\Services\PurchaseItemService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Routing\Attributes\Controllers\Authorize;
 
 class PurchaseItemController extends Controller
@@ -25,12 +28,23 @@ class PurchaseItemController extends Controller
         return PurchaseItemResource::collection($purchaseItems);
     }
 
+    #[Authorize('view', 'purchase')]
+    public function indexByPurchase(Request $request, Purchase $purchase): AnonymousResourceCollection
+    {
+        $purchaseItems = $this->purchaseItem->listByPurchase($purchase, $request->all());
+
+        return PurchaseItemResource::collection($purchaseItems);
+    }
+
     #[Authorize('create', PurchaseItem::class)]
-    public function store(StorePurchaseItemRequest $request)
+    public function store(StorePurchaseItemRequest $request): JsonResponse
     {
         $purchaseItem = $this->purchaseItem->crear($request->validated());
 
-        return response()->json($purchaseItem, 201);
+        return (new PurchaseItemResource($purchaseItem))
+            ->response()
+            ->setStatusCode(201)
+            ->header('Location', route('purchase-items.show', $purchaseItem));
     }
 
     #[Authorize('view', 'purchase_item')]

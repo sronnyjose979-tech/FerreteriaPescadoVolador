@@ -4,10 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Unit\StoreUnitRequest;
 use App\Http\Requests\Unit\UpdateUnitRequest;
-use App\Http\Requests\Unit\DeleteUnitRequest;
 use App\Http\Resources\UnitResource;
 use App\Models\Unit;
 use App\Services\UnitService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Attributes\Controllers\Authorize;
 
@@ -29,13 +29,16 @@ class UnitController extends Controller
     }
 
     #[Authorize('create', Unit::class)]
-    public function store(StoreUnitRequest $request)
+    public function store(StoreUnitRequest $request): JsonResponse
     {
         $unit = $this->unitService->crear(
             $request->validated()
         );
 
-        return response()->json(new UnitResource($unit), 201);
+        return (new UnitResource($unit))
+            ->response()
+            ->setStatusCode(201)
+            ->header('Location', route('units.show', $unit));
     }
 
     #[Authorize('view', 'unit')]

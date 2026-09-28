@@ -7,6 +7,7 @@ use App\Http\Requests\InventaryMovement\UpdateInventaryMovementRequest;
 use App\Http\Resources\InventoryMovementResource;
 use App\Models\InventoryMovement;
 use App\Services\InventoryMovementService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Attributes\Controllers\Authorize;
 
@@ -32,11 +33,14 @@ class InventoryMovementController extends Controller
      * Store a newly created resource in storage.
      */
     #[Authorize('create', InventoryMovement::class)]
-    public function store(StoreInventaryMovementRequest $request)
+    public function store(StoreInventaryMovementRequest $request): JsonResponse
     {
         $inventoryMovement = $this->inventaryMovement->crear($request->validated());
 
-        return response()->json($inventoryMovement, 201);
+        return (new InventoryMovementResource($inventoryMovement))
+            ->response()
+            ->setStatusCode(201)
+            ->header('Location', route('inventory-movements.show', $inventoryMovement));
     }
 
     /**

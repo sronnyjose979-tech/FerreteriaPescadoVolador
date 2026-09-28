@@ -36,6 +36,7 @@ class DeleteSupplierRequest extends FormRequest
     {
         return [
             'id_supplier.required' => 'El proveedor es obligatorio.',
+            'id_supplier.string' => 'El identificador del proveedor debe ser una cadena de texto.',
             'id_supplier.exists' => 'El proveedor no existe.',
         ];
     }

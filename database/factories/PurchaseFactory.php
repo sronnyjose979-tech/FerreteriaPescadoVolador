@@ -24,9 +24,9 @@ class PurchaseFactory extends Factory
             'id_supplier' => Supplier::inRandomOrder()->value('id_supplier'),
             'purchase_total' => fake()->randomFloat(2, 10, 1000),
             'purchase_status' => fake()->randomElement([
-                'Pendiente',
-                'Completada',
-                'Cancelada',
+                'pendiente',
+                'recibida',
+                'cancelada',
             ]),
 
         ];

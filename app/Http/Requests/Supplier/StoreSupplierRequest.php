@@ -28,6 +28,7 @@ class StoreSupplierRequest extends FormRequest
             'supplier_last_name' => 'required|string|max:50',
             'supplier_phone' => 'required|string|max:20',
             'supplier_address' => 'required|string|max:100',
+            'supplier_type' => 'required|string|max:50',
             'supplier_email' => 'required|email|max:100|unique:suppliers,supplier_email',
         ];
     }
@@ -49,6 +50,9 @@ class StoreSupplierRequest extends FormRequest
             'supplier_address.required' => 'El campo supplier_address es obligatorio.',
             'supplier_address.string' => 'El campo supplier_address debe ser una cadena de texto.',
             'supplier_address.max' => 'El campo supplier_address no puede tener más de 100 caracteres.',
+            'supplier_type.required' => 'El campo tipo de proveedor es obligatorio.',
+            'supplier_type.string' => 'El campo tipo de proveedor debe ser una cadena de texto.',
+            'supplier_type.max' => 'El campo tipo de proveedor no puede tener más de 50 caracteres.',
             'supplier_email.required' => 'El campo supplier_email es obligatorio.',
             'supplier_email.email' => 'El campo supplier_email debe ser un correo electrónico válido.',
             'supplier_email.max' => 'El campo supplier_email no puede tener más de 100 caracteres.',

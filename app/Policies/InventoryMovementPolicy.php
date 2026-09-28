@@ -2,10 +2,8 @@
 
 namespace App\Policies;
 
-use App\Models\InventaryMovement;
 use App\Models\InventoryMovement;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class InventoryMovementPolicy
 {
@@ -14,15 +12,15 @@ class InventoryMovementPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('view payments');
+        return $user->can('view inventory-movements');
     }
 
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, InventoryMovement $inventaryMovement): bool
+    public function view(User $user, InventoryMovement $inventoryMovement): bool
     {
-        return $user->can('view payments');
+        return $user->can('view inventory-movements');
     }
 
     /**
@@ -30,29 +28,29 @@ class InventoryMovementPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('create payments');
+        return $user->can('create inventory-movements');
     }
 
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, InventoryMovement $inventaryMovement): bool
+    public function update(User $user, InventoryMovement $inventoryMovement): bool
     {
-        return $user->can('update payments');
+        return $user->can('update inventory-movements');
     }
 
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, InventoryMovement $inventaryMovement): bool
+    public function delete(User $user, InventoryMovement $inventoryMovement): bool
     {
-        return $user->can('delete payments');
+        return $user->can('delete inventory-movements');
     }
 
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, InventoryMovement $inventaryMovement): bool
+    public function restore(User $user, InventoryMovement $inventoryMovement): bool
     {
         return false;
     }
@@ -60,7 +58,7 @@ class InventoryMovementPolicy
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, InventoryMovement $inventaryMovement): bool
+    public function forceDelete(User $user, InventoryMovement $inventoryMovement): bool
     {
         return false;
     }

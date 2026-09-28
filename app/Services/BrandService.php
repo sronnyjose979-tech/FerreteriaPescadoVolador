@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
+use App\Exceptions\BusinessException;
 use App\Models\Brand;
+use App\Models\Product;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -31,6 +33,14 @@ class BrandService
     {
         // Verifica que el usuario tenga permiso para eliminar esta marca
         Gate::authorize('delete', $brand);
+
+        // Verifica que la marca no tenga productos asociados
+        if (Product::where('brand_id', $brand->id)->exists()) {
+            throw new BusinessException(
+                'No se puede eliminar la marca porque tiene productos asociados.',
+                409
+            );
+        }
 
         DB::transaction(function () use ($brand) {
             $brand->delete();
@@ -62,7 +72,7 @@ class BrandService
         $allowedSorts = [
             'brand_name',
             'id',
-            'created_at'
+            'created_at',
         ];
 
         if (! in_array($sort, $allowedSorts, true)) {

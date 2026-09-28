@@ -84,7 +84,7 @@ class SupplierServices
             $direction = 'asc';
         }
 
-        $query = Supplier::query();
+        $query = Supplier::query()->with('purchases.purchaseItems');
 
         if (! empty($filters['q'])) {
             $q = $filters['q'];

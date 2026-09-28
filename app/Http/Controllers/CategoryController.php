@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\Brand\StoreBrandRequest;
+use App\Http\Requests\Category\StoreCategoryRequest;
 use App\Http\Requests\Category\UpdateCategoryRequest;
 use App\Http\Resources\CategoryResource;
 use App\Models\Category;
@@ -26,7 +26,7 @@ class CategoryController extends Controller
     }
 
     #[Authorize('create', Category::class)]
-    public function store(StoreBrandRequest $request)
+    public function store(StoreCategoryRequest $request)
     {
         $category = $this->category->crear($request->validated());
 

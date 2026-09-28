@@ -12,7 +12,7 @@ class UpdateSaleRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -25,7 +25,6 @@ class UpdateSaleRequest extends FormRequest
         return [
             'user_id' => 'sometimes|required|exists:users,id',
             'id_customer' => 'sometimes|nullable|exists:customers,id_customer',
-            'order_id' => 'sometimes|nullable|exists:orders,id',
             'sale_date' => 'sometimes|required|date',
             'total' => 'sometimes|required|numeric|min:0',
             'tax_amount' => 'sometimes|nullable|numeric|min:0',
@@ -42,7 +41,6 @@ class UpdateSaleRequest extends FormRequest
 
             'id_customer.exists' => 'El cliente seleccionado no existe.',
 
-            // 'order_id.exists' => 'La orden seleccionada no existe.',
 
             'sale_date.required' => 'La fecha de venta es obligatoria.',
             'sale_date.date' => 'La fecha de venta debe tener un formato válido.',

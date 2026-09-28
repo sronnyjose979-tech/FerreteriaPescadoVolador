@@ -30,13 +30,13 @@ class SupplierController extends Controller
     {
         $supplier = $this->orderSupplier->crear($request->validated());
 
-        return new SupplierResource($supplier);
+        return response()->json(new SupplierResource($supplier), 201);
     }
 
     #[Authorize('view', 'supplier')]
     public function show(Supplier $supplier)
     {
-        return new SupplierResource($supplier->load('purchases'));
+        return new SupplierResource($supplier->load('purchases.purchaseItems'));
     }
 
     #[Authorize('update', 'supplier')]

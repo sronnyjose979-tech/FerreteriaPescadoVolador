@@ -4,7 +4,6 @@ namespace App\Policies;
 
 use App\Models\Product;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class ProductPolicy
 {
@@ -42,7 +41,7 @@ class ProductPolicy
      */
     public function delete(User $user, Product $product): bool
     {
-         return $user->can('delete products');
+        return $user->can('delete products');
     }
 
     /**
@@ -58,7 +57,7 @@ class ProductPolicy
      */
     public function forceDelete(User $user, Product $product): bool
     {
-        //POR EL MOMENTO NADIE PUEDE BORAR NINGUN MODELO
+        // POR EL MOMENTO NADIE PUEDE BORAR NINGUN MODELO
         return false;
     }
 }

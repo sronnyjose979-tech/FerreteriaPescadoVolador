@@ -2,12 +2,10 @@
 
 namespace App\Exceptions;
 
-use Exception;
-
-class StockInsuficienteException extends Exception
+class StockInsuficienteException extends BusinessException
 {
     public function __construct(string $message)
     {
-        parent::__construct($message, 409);
+        parent::__construct($message);
     }
 }

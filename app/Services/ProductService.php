@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Exceptions\ProductHasDependenciesException;
 use App\Exceptions\InvalidProductStockException;
+use App\Exceptions\ProductHasDependenciesException;
 use App\Models\Product;
 use App\Models\PurchaseItem;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -43,7 +43,7 @@ class ProductService
         Gate::authorize('delete', $product);
 
         if (PurchaseItem::where('product_id', $product->id)->exists()) {
-            throw new ProductHasDependenciesException();
+            throw new ProductHasDependenciesException;
         }
 
         DB::transaction(function () use ($product) {
@@ -57,6 +57,18 @@ class ProductService
         $product = Product::findOrFail($id);
 
         // Verifica que el usuario tenga permiso para ver este producto
+        Gate::authorize('view', $product);
+
+        return $product;
+    }
+
+    public function getByBarcode(string $barcode): Product
+    {
+        Gate::authorize('viewAny', Product::class);
+
+        $product = Product::query()->where('barcode', $barcode)->firstOrFail();
+
+        abort_unless(hash_equals((string) $product->barcode, $barcode), 404);
         Gate::authorize('view', $product);
 
         return $product;

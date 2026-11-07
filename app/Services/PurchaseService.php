@@ -79,10 +79,14 @@ class PurchaseService
                     'subtotal' => $subtotal,
                 ]);
 
-                $product = Product::lockForUpdate()->find($item['product_id']);
+                if ($purchase->purchase_status !== 'pendiente') {
+                    $product = Product::lockForUpdate()->find($item['product_id']);
 
-                if ($product) {
-                    $this->inventory->registrarEntrada($product, $purchaseItem, $item['quantity']);
+                    if ($product) {
+                        $this->inventory->registrarEntrada($product, $purchaseItem, $item['quantity']);
+                        $purchaseItem->received_at = now();
+                        $purchaseItem->save();
+                    }
                 }
             }
 
@@ -95,9 +99,20 @@ class PurchaseService
         // Verifica que el usuario tenga permiso para actualizar esta compra
         Gate::authorize('update', $purchase);
 
-        $purchase->update($validated);
+        return DB::transaction(function () use ($purchase, $validated): Purchase {
+            $purchase = Purchase::lockForUpdate()->findOrFail($purchase->getKey());
 
-        return $purchase;
+            if ($purchase->usesReceiptFlow() && (
+                (isset($validated['purchase_status']) && $validated['purchase_status'] !== $purchase->purchase_status)
+                || (isset($validated['id_purchase']) && $validated['id_purchase'] !== $purchase->id_purchase)
+            )) {
+                throw new BusinessException('El estado de recepción se actualiza al confirmar los detalles.');
+            }
+
+            $purchase->update($validated);
+
+            return $purchase;
+        });
     }
 
     public function eliminar(Purchase $purchase): void

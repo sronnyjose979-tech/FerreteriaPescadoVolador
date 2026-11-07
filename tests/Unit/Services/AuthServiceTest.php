@@ -23,6 +23,7 @@ test('emite un token con las capacidades del rol que vence en dos horas', functi
         'create products',
         'update products',
         'view purchases',
+        'receive purchases',
         'view suppliers',
         'create suppliers',
         'update suppliers',

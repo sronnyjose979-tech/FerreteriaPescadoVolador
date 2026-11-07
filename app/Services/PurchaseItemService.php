@@ -9,11 +9,13 @@ use App\Models\PurchaseItem;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\ValidationException;
 
 class PurchaseItemService
 {
     public function __construct(protected InventoryMovementService $inventory) {}
 
+    /** @param array{id_purchase: string, product_id: int|string, quantity: int|string, unit_cost: int|float|string, subtotal?: int|float|string} $validated */
     public function crear(array $validated): PurchaseItem
     {
         // Verifica que el usuario tenga permiso para crear detalles de compra
@@ -23,12 +25,22 @@ class PurchaseItemService
         $validated['subtotal'] = $this->calcularSubtotal($validated);
 
         return DB::transaction(function () use ($validated) {
+            $purchase = Purchase::lockForUpdate()->findOrFail($validated['id_purchase']);
+
+            if ($purchase->usesReceiptFlow() && $purchase->purchase_status !== 'pendiente') {
+                throw new BusinessException('No se pueden agregar detalles a una compra recibida.');
+            }
+
             $item = PurchaseItem::create($validated);
 
-            $product = Product::lockForUpdate()->find($validated['product_id']);
+            if ($purchase->purchase_status !== 'pendiente') {
+                $product = Product::lockForUpdate()->find($validated['product_id']);
 
-            if ($product) {
-                $this->inventory->registrarEntrada($product, $item, $item->quantity);
+                if ($product) {
+                    $this->inventory->registrarEntrada($product, $item, $item->quantity);
+                    $item->received_at = now();
+                    $item->save();
+                }
             }
 
             return $item;
@@ -40,11 +52,27 @@ class PurchaseItemService
         // Verifica que el usuario tenga permiso para actualizar este detalle de compra
         Gate::authorize('update', $item);
 
-        $validated['subtotal'] = $this->calcularSubtotal(
-            array_merge($item->only(['quantity', 'unit_cost']), $validated)
-        );
-
         return DB::transaction(function () use ($item, $validated) {
+            $purchase = Purchase::lockForUpdate()->findOrFail($item->id_purchase);
+            $item = PurchaseItem::where('id_purchase', $purchase->id_purchase)->lockForUpdate()->findOrFail($item->id);
+            $validated['subtotal'] = $this->calcularSubtotal(
+                array_merge($item->only(['quantity', 'unit_cost']), $validated)
+            );
+
+            if (isset($validated['id_purchase']) && $validated['id_purchase'] !== $item->id_purchase) {
+                throw new BusinessException('No se puede cambiar la compra de un detalle.');
+            }
+
+            if ($purchase->usesReceiptFlow() || ($purchase->purchase_status === 'pendiente' && ! $item->inventoryMovement()->exists())) {
+                if ($item->received_at !== null) {
+                    throw new BusinessException('No se puede modificar un detalle recibido.');
+                }
+
+                $item->update($validated);
+
+                return $item;
+            }
+
             $oldQuantity = $item->quantity;
             $oldProductId = $item->product_id;
 
@@ -74,6 +102,19 @@ class PurchaseItemService
         Gate::authorize('delete', $item);
 
         DB::transaction(function () use ($item) {
+            $purchase = Purchase::lockForUpdate()->findOrFail($item->id_purchase);
+            $item = PurchaseItem::where('id_purchase', $purchase->id_purchase)->lockForUpdate()->findOrFail($item->id);
+
+            if ($purchase->usesReceiptFlow() || ($purchase->purchase_status === 'pendiente' && ! $item->inventoryMovement()->exists())) {
+                if ($item->received_at !== null) {
+                    throw new BusinessException('No se puede eliminar un detalle recibido.');
+                }
+
+                $item->delete();
+
+                return;
+            }
+
             $product = Product::lockForUpdate()->find($item->product_id);
 
             if ($product) {
@@ -93,6 +134,70 @@ class PurchaseItemService
         Gate::authorize('view', $item);
 
         return $item;
+    }
+
+    /** @return LengthAwarePaginator<int, PurchaseItem> */
+    public function pendingReceipts(string $barcode, int $perPage = 10): LengthAwarePaginator
+    {
+        Gate::authorize('receive', PurchaseItem::class);
+        $start = Purchase::receivingStartsAt();
+
+        if ($start === null) {
+            throw new BusinessException('La recepción no está habilitada: falta la fecha de inicio.');
+        }
+
+        $product = app(ProductService::class)->getByBarcode($barcode);
+
+        return PurchaseItem::query()->with('product')
+            ->where('product_id', $product->id)
+            ->whereNull('received_at')
+            ->whereHas('purchase', fn ($query) => $query
+                ->where('purchase_status', 'pendiente')->where('created_at', '>', $start))
+            ->whereDoesntHave('inventoryMovement')
+            ->orderBy('id')->paginate(max(1, min($perPage, 50)))->withQueryString();
+    }
+
+    public function receive(PurchaseItem $item, string $barcode, int $quantity): PurchaseItem
+    {
+        Gate::authorize('receive', PurchaseItem::class);
+
+        return DB::transaction(function () use ($item, $barcode, $quantity): PurchaseItem {
+            $purchase = Purchase::lockForUpdate()->findOrFail($item->id_purchase);
+            $item = PurchaseItem::where('id_purchase', $purchase->id_purchase)->lockForUpdate()->findOrFail($item->id);
+
+            if (! $purchase->usesReceiptFlow()) {
+                throw new BusinessException('Esta compra está excluida de recepción hasta su conciliación.');
+            }
+
+            if ($item->received_at !== null || $item->inventoryMovement()->exists()) {
+                throw new BusinessException('Este detalle ya fue recibido o tiene movimientos registrados.');
+            }
+
+            if ($purchase->purchase_status !== 'pendiente') {
+                throw new BusinessException('La compra no está pendiente de recepción.');
+            }
+
+            $product = Product::lockForUpdate()->findOrFail($item->product_id);
+            Gate::authorize('view', $product);
+
+            if (! hash_equals((string) $product->barcode, $barcode)) {
+                throw ValidationException::withMessages(['barcode' => 'El código no corresponde al producto del detalle seleccionado.']);
+            }
+
+            if ($quantity !== (int) $item->quantity) {
+                throw ValidationException::withMessages(['quantity' => 'La cantidad recibida debe coincidir exactamente con la cantidad del detalle.']);
+            }
+
+            $this->inventory->registrarEntrada($product, $item, $quantity);
+            $item->received_at = now();
+            $item->save();
+
+            if (! $purchase->purchaseItems()->whereNull('received_at')->exists()) {
+                $purchase->update(['purchase_status' => 'recibida']);
+            }
+
+            return $item->load('product');
+        });
     }
 
     public function listByPurchase(Purchase $purchase, array $filters): LengthAwarePaginator

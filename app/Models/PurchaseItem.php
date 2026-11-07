@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use Carbon\CarbonImmutable;
 use Database\Factories\PurchaseItemFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 
+/** @property CarbonImmutable|null $received_at */
 class PurchaseItem extends Model
 {
     /** @use HasFactory<PurchaseItemFactory> */
@@ -39,12 +41,15 @@ class PurchaseItem extends Model
         return [
             'unit_cost' => 'decimal:2',
             'subtotal' => 'decimal:2',
+            'received_at' => 'immutable_datetime',
         ];
     }
 
     /**
      * Compra del item.
      * DER: PurchaseItems (N) — (1) Purchase via id_purchase
+     *
+     * @return BelongsTo<Purchase, $this>
      */
     public function purchase(): BelongsTo
     {
@@ -54,6 +59,8 @@ class PurchaseItem extends Model
     /**
      * Producto comprado.
      * DER: PurchaseItems (N) — (1) Product via product_id
+     *
+     * @return BelongsTo<Product, $this>
      */
     public function product(): BelongsTo
     {

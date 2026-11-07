@@ -43,6 +43,22 @@ class Product extends Model
         'unit_id',
     ];
 
+    protected static function booted(): void
+    {
+        static::creating(function (Product $product): void {
+            if ($product->barcode !== null && $product->barcode !== '') {
+                return;
+            }
+
+            do {
+                $barcode = (string) random_int(1000000000, 9999999999)
+                    .(string) random_int(1000000000, 9999999999);
+            } while (static::withTrashed()->where('barcode', $barcode)->exists());
+
+            $product->barcode = $barcode;
+        });
+    }
+
     protected function casts(): array
     {
         return [

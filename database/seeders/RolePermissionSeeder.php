@@ -67,6 +67,9 @@ class RolePermissionSeeder extends Seeder
             'view suppliers',
             'create suppliers',
             'update suppliers',
+            'view categories',
+            'view brands',
+            'view units',   
         ]);
 
         $this->call(PurchaseReceiptPermissionSeeder::class);

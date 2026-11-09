@@ -15,7 +15,7 @@ test('registra la compra con su detalle, aplica el descuento y suma el stock', f
         'id_purchase' => 'PUR-900',
         'user_id' => User::factory()->create()->id,
         'id_supplier' => $supplier->id_supplier,
-        'purchase_status' => 'pendiente',
+        'purchase_status' => 'recibida',
         'items' => [
             ['product_id' => $product->id, 'quantity' => 2, 'unit_cost' => 6000],
         ],

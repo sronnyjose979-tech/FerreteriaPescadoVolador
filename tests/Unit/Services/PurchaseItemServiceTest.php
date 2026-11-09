@@ -15,6 +15,7 @@ function compraAbierta(): Purchase
 {
     return Purchase::factory()->create([
         'user_id' => User::factory()->create()->id,
+        'purchase_status' => 'recibida',
         'id_supplier' => Supplier::factory()->create()->id_supplier,
     ]);
 }
@@ -83,9 +84,9 @@ test('al cambiar solo la cantidad recalcula el subtotal y ajusta el inventario',
     Gate::shouldReceive('authorize')->once()->with('update', $item)->andReturn(Response::allow());
     $inventario = Mockery::mock(InventoryMovementService::class);
     $inventario->shouldReceive('registrarSalida')->once()
-        ->with(Mockery::on(fn (Product $p) => $p->is($product)), $item, 2)->ordered();
+        ->with(Mockery::on(fn (Product $p) => $p->is($product)), Mockery::on(fn (PurchaseItem $i) => $i->is($item)), 2)->ordered();
     $inventario->shouldReceive('registrarEntrada')->once()
-        ->with(Mockery::on(fn (Product $p) => $p->is($product)), $item, 4)->ordered();
+        ->with(Mockery::on(fn (Product $p) => $p->is($product)), Mockery::on(fn (PurchaseItem $i) => $i->is($item)), 4)->ordered();
 
     $actualizado = (new PurchaseItemService($inventario))->actualizar($item, ['quantity' => 4]);
 

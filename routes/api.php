@@ -33,6 +33,8 @@ Route::middleware(['auth:sanctum', EnsureTokenHasAbility::class])->group(functio
 
     // PUNTO DE VENTA
     // crud de productos
+    Route::get('/products/by-barcode', [ProductController::class, 'byBarcode'])->name('products.by-barcode');
+    Route::get('/products/{product}/barcode', [ProductController::class, 'barcode'])->name('products.barcode');
     Route::get('/products/inventory-summary', [ProductController::class, 'inventorySummary'])->name('products.inventory-summary');
     Route::apiResource('/products', ProductController::class);
     // crud de categorias
@@ -52,6 +54,8 @@ Route::middleware(['auth:sanctum', EnsureTokenHasAbility::class])->group(functio
     // CRUD DE SUPPLIER
     Route::apiResource('suppliers', SupplierController::class);
     // CRUD DE PURCHASEITEM
+    Route::get('purchase-receipts', [PurchaseItemController::class, 'pendingReceipts'])->name('purchases.receipts');
+    Route::post('purchase-items/{purchase_item}/receive', [PurchaseItemController::class, 'receive'])->name('purchases.receive');
     Route::apiResource('purchase-items', PurchaseItemController::class);
     // CRUD DE CUSTOMER
     Route::apiResource('/customers', CustomerController::class);

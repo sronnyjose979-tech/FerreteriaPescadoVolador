@@ -33,7 +33,9 @@ class EnsureTokenHasAbility
             return $next($request);
         }
 
-        $ability = $action.' '.Str::before($routeName, '.');
+        $ability = in_array($routeName, ['purchases.receipts', 'purchases.receive'], true)
+            ? 'receive purchases'
+            : $action.' '.Str::before($routeName, '.');
 
         if ($request->user()?->tokenCant($ability)) {
             throw new MissingAbilityException($ability);

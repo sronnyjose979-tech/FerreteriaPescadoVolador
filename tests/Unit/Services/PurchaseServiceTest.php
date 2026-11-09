@@ -16,7 +16,7 @@ function datosDeCompra(): array
     return [
         'id_purchase' => 'PUR-500',
         'id_supplier' => Supplier::factory()->create()->id_supplier,
-        'purchase_status' => 'pendiente',
+        'purchase_status' => 'recibida',
     ];
 }
 

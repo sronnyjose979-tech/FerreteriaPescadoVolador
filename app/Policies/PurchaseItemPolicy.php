@@ -7,6 +7,11 @@ use App\Models\User;
 
 class PurchaseItemPolicy
 {
+    public function receive(User $user): bool
+    {
+        return $user->can('receive purchases');
+    }
+
     /**
      * Determine whether the user can view any models.
      */

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\CarbonImmutable;
 use Database\Factories\PurchaseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -10,6 +11,30 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Purchase extends Model
 {
+    public static function receivingStartsAt(): ?CarbonImmutable
+    {
+        $value = config('purchases.receiving_starts_at');
+
+        if (! is_string($value) || $value === '') {
+            return null;
+        }
+
+        try {
+            $date = CarbonImmutable::createFromFormat('!Y-m-d H:i:s', $value, 'UTC');
+        } catch (\InvalidArgumentException) {
+            return null;
+        }
+
+        return $date && $date->format('Y-m-d H:i:s') === $value ? $date : null;
+    }
+
+    public function usesReceiptFlow(): bool
+    {
+        $start = static::receivingStartsAt();
+
+        return $start !== null && $this->created_at?->gt($start) === true;
+    }
+
     /** @use HasFactory<PurchaseFactory> */
     use HasFactory;
 

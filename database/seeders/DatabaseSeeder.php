@@ -1,7 +1,7 @@
 <?php
 
 namespace Database\Seeders;
-
+use Illuminate\Support\Facades\Schema;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Customer;
@@ -27,6 +27,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+
+    Schema::disableForeignKeyConstraints();
         InventoryMovement::truncate();
         Payment::truncate();
         SaleItem::truncate();
@@ -39,6 +41,8 @@ class DatabaseSeeder extends Seeder
         Unit::truncate();
         Customer::truncate();
         Supplier::truncate();
+
+
 
         // CREAMOS LOS USUARIOS
         $admin = User::factory()->create([
@@ -55,6 +59,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->call([
+                     
 
             CategorySeeder::class,
             BrandSeeder::class,
@@ -69,6 +74,8 @@ class DatabaseSeeder extends Seeder
             PaymentSeeder::class,
             InventoryMovementSeeder::class,
         ]);
+
+                Schema::enableForeignKeyConstraints();
 
         $this->call(RolePermissionSeeder::class);
 

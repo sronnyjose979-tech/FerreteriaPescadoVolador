@@ -27,6 +27,9 @@ test('emite un token con las capacidades del rol que vence en dos horas', functi
         'view suppliers',
         'create suppliers',
         'update suppliers',
+        'view categories',
+        'view brands',
+        'view units',
     ]);
 });
 

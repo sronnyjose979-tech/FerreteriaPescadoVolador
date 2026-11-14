@@ -67,10 +67,7 @@ jobs:
 
   deploy:
     needs: [api, web]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/ci-fallo'
     runs-on: ubuntu-latest
     steps:
-      - name: Solicitar despliegue en Render
-        env:
-          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
-        run: curl -fsS -X POST "$RENDER_DEPLOY_HOOK"
+      - run: echo "Las verificaciones pasaron. Aquí se solicitaría el despliegue."

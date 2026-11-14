@@ -7,3 +7,6 @@ test('returns a successful response', function () {
 
     $response->assertOk();
 });
+test('demuestra que una prueba fallida bloquea el despliegue', function () {
+    expect(false)->toBeTrue();
+});

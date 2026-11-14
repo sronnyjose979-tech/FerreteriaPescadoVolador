@@ -2,7 +2,7 @@ name: CI del Backend
 
 on:
   push:
-    branches: [main]
+    branches: [ci-fallo]
   pull_request:
     branches: [main]
 

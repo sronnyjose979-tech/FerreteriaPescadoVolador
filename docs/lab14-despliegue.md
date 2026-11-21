@@ -118,7 +118,7 @@ Vite incorpora `VITE_API_URL` al compilar. Si la URL cambia, hay que generar y p
 En el backend configuramos [`.github/workflows/ci.yml`][ci] con tres trabajos:
 
 1. **`api`.** Prepara PHP y Node.js, instala las dependencias, genera un `.env` temporal, compila los recursos de Laravel y ejecuta `php artisan test`. Las pruebas usan SQLite en memoria, aisladas de MySQL en Aiven. [Configuración de pruebas][phpunit].
-2. **`web`.** Descarga la rama `main` de `FrontFerreteria` en la carpeta temporal `web/`. Después instala las dependencias con `npm ci` y compila el proyecto con `npm run build`. El acceso al repositorio se realiza mediante `FRONTEND_READ_TOKEN`.
+2. **`web`.** Descarga la rama `main` de `Front_Ferreteria` en la carpeta temporal `web/`. Después instala las dependencias con `npm ci` y compila el proyecto con `npm run build`. El acceso al repositorio se realiza mediante `FRONTEND_READ_TOKEN`.
 3. **`deploy`.** En un push a `main` del backend, solicita el despliegue a Render mediante el hook si `api` y `web` fueron exitosos. Si uno de esos trabajos falla, GitHub Actions omite el despliegue.
 
 Para crear `FRONTEND_READ_TOKEN`, en la cuenta de GitHub usamos **Settings → Developer settings → Personal access tokens → Fine-grained tokens**. Limitamos el token al repositorio del frontend y damos permiso de lectura a **Contents**. En el repositorio del backend lo guardamos en **Settings → Secrets and variables → Actions → New repository secret**.

@@ -50,7 +50,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          repository: sronnyjose979-tech/FrontFerreteria
+          repository: ismaeltorrentes-lang/Ferreteria_Front
           ref: main
           token: ${{ secrets.FRONTEND_READ_TOKEN }}
           path: web

@@ -415,6 +415,8 @@ Number of signers: 1
 
 El paquete debe instalarse en un dispositivo o emulador para comprobar el inicio de sesión y las operaciones contra la API pública. Para su distribución, se adjunta a la entrega o se publica en GitHub Releases.
 
+[Descargar APK firmado de Pescado Volador v1.0.0](https://github.com/sronnyjose979-tech/FerreteriaPescadoVolador/releases/tag/v1.0.0)
+
 ## 7. Resumen de artefactos y verificaciones
 
 | Elemento | Resultado |

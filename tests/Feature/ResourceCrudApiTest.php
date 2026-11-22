@@ -142,7 +142,7 @@ test('el admin actualiza cada recurso y el cambio queda guardado', function (str
     'marcas' => [...$registros['marcas'], ['brand_name' => 'Marca editada']],
     'unidades' => [...$registros['unidades'], ['unit_name' => 'Unidad editada']],
     'proveedores' => [...$registros['proveedores'], ['supplier_phone' => '22223333']],
-    'compras' => [...$registros['compras'], ['purchase_status' => 'recibida']],
+    'compras' => [...$registros['compras'], ['purchase_total' => 123.45]],
     'detalles de compra' => [...$registros['detalles de compra'], ['quantity' => 5]],
     'clientes' => [...$registros['clientes'], ['telephone_number' => '88887777']],
     'ventas' => [...$registros['ventas'], ['status' => 'completado']],

@@ -11,11 +11,16 @@ use App\Services\PurchaseItemService;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Support\Facades\Gate;
 
+beforeEach(function () {
+    config(['purchases.receiving_starts_at' => '2026-10-01 00:00:00']);
+});
+
 function compraAbierta(): Purchase
 {
     return Purchase::factory()->create([
         'user_id' => User::factory()->create()->id,
         'purchase_status' => 'recibida',
+        'created_at' => '2026-09-30 12:00:00',
         'id_supplier' => Supplier::factory()->create()->id_supplier,
     ]);
 }

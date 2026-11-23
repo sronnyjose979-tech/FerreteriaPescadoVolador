@@ -54,19 +54,21 @@ class RolePermissionSeeder extends Seeder
         $roleCajero->givePermissionTo([
             'view products',
             'view sales',
+            'view sale-items',
             'create sales',
+            'update sales',
+            'create sale-items',
+            'update sale-items',
             'view customers',
         ]);
 
         // SOLO LE DAMOS PERMISOS LIMITADOS AL BODEGUERO
         $roleBodeguero->givePermissionTo([
             'view products',
-            'create products',
             'update products',
             'view purchases',
             'view suppliers',
             'create suppliers',
-            'update suppliers',
             'view categories',
             'view brands',
             'view units',   

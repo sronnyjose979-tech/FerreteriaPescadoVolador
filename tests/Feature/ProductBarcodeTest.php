@@ -6,7 +6,7 @@ use Illuminate\Database\UniqueConstraintViolationException;
 use Laravel\Sanctum\Sanctum;
 
 test('crea productos sin código con identificadores únicos y conserva el stock', function (?string $barcode) {
-    actingAsRole('bodeguero');
+    actingAsRole('admin');
     $payload = Product::factory()->make(['barcode' => $barcode, 'stock_quantity' => 12, 'minimum_stock' => 1])->getAttributes();
 
     $first = $this->postJson('/api/products', $payload)->assertCreated();

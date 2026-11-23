@@ -58,7 +58,11 @@ test('inicia sesión con un token que expira en dos horas y lleva las capacidade
     expect($response->json('abilities'))->toEqualCanonicalizing([
         'view products',
         'view sales',
+        'view sale-items',
         'create sales',
+        'create sale-items',
+        'update sales',
+        'update sale-items',
         'view customers',
     ]);
     $this->getJson('/api/products', ['Authorization' => 'Bearer '.$response->json('token')])

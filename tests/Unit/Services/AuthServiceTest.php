@@ -20,13 +20,10 @@ test('emite un token con las capacidades del rol que vence en dos horas', functi
     expect($token->accessToken->expires_at->toDateTimeString())->toBe('2026-09-22 10:00:00');
     expect($token->accessToken->abilities)->toEqualCanonicalizing([
         'view products',
-        'create products',
         'update products',
         'view purchases',
         'receive purchases',
         'view suppliers',
-        'create suppliers',
-        'update suppliers',
         'view categories',
         'view brands',
         'view units',

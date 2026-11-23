@@ -33,7 +33,7 @@ class PurchaseItemService
 
             $item = PurchaseItem::create($validated);
 
-            if ($purchase->purchase_status !== 'pendiente') {
+            if (in_array($purchase->purchase_status, ['confirmada', 'recibida'], true)) {
                 $product = Product::lockForUpdate()->find($validated['product_id']);
 
                 if ($product) {

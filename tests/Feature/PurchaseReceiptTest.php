@@ -7,6 +7,7 @@ use App\Models\PurchaseItem;
 use App\Models\Supplier;
 use App\Models\User;
 use App\Services\InventoryMovementService;
+use Database\Seeders\InventoryMovementSeeder;
 use Database\Seeders\PurchaseReceiptPermissionSeeder;
 use Laravel\Sanctum\Sanctum;
 
@@ -38,6 +39,67 @@ test('una compra pendiente nueva no aumenta existencias ni registra entradas', f
     expect($product->fresh()->stock_quantity)->toBe(10);
     expect(PurchaseItem::first()->received_at)->toBeNull();
     $this->assertDatabaseCount('inventory_movements', 0);
+});
+
+test('las compras canceladas nuevas o antiguas no generan entradas ni cambian existencias', function () {
+    actingAsRole('admin');
+    $product = Product::factory()->create(['stock_quantity' => 10]);
+    $supplier = Supplier::factory()->create();
+
+    $this->postJson('/api/purchases', [
+        'id_purchase' => 'CANCELLED-1', 'id_supplier' => $supplier->id_supplier,
+        'purchase_status' => 'cancelada',
+        'items' => [['product_id' => $product->id, 'quantity' => 4, 'unit_cost' => 100]],
+    ])->assertCreated();
+
+    $historicalPurchase = Purchase::factory()->create([
+        'purchase_status' => 'cancelada',
+        'created_at' => '2026-09-30 12:00:00',
+        'user_id' => User::factory()->create()->id,
+        'id_supplier' => $supplier->id_supplier,
+    ]);
+    $response = $this->postJson('/api/purchase-items', [
+        'id_purchase' => $historicalPurchase->id_purchase,
+        'product_id' => $product->id,
+        'quantity' => 3,
+        'unit_cost' => 100,
+    ])->assertCreated();
+
+    expect($product->fresh()->stock_quantity)->toBe(10);
+    expect(PurchaseItem::where('id_purchase', 'CANCELLED-1')->first()->received_at)->toBeNull();
+    expect(PurchaseItem::find($response->json('data.ID Detalle'))->received_at)->toBeNull();
+    $this->assertDatabaseCount('inventory_movements', 0);
+});
+
+test('el seeder deja pendientes disponibles y excluye canceladas de las entradas', function () {
+    actingAsRole('bodeguero');
+    $product = Product::factory()->create(['barcode' => '000987', 'stock_quantity' => 10]);
+    $pending = pendingPurchaseForReceipt($product);
+    $cancelled = pendingPurchaseForReceipt($product);
+    $cancelled->purchase->update(['purchase_status' => 'cancelada']);
+    $received = pendingPurchaseForReceipt($product);
+    $received->purchase->update(['purchase_status' => 'recibida']);
+
+    $this->seed(InventoryMovementSeeder::class);
+
+    $this->getJson('/api/purchase-receipts?'.http_build_query(['barcode' => $product->barcode, 'per_page' => 20]))
+        ->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $pending->id);
+    expect($pending->fresh()->received_at)->toBeNull();
+    expect($pending->inventoryMovement()->exists())->toBeFalse();
+    expect($cancelled->inventoryMovement()->exists())->toBeFalse();
+    expect($received->fresh()->received_at)->not->toBeNull();
+    expect($received->inventoryMovement()->exists())->toBeTrue();
+    expect($product->fresh()->stock_quantity)->toBe(10);
+
+    $this->postJson("/api/purchase-items/{$pending->id}/receive", ['barcode' => $product->barcode, 'quantity' => 4])
+        ->assertOk();
+    $this->postJson("/api/purchase-items/{$pending->id}/receive", ['barcode' => $product->barcode, 'quantity' => 4])
+        ->assertConflict();
+
+    expect($product->fresh()->stock_quantity)->toBe(14);
+    expect($pending->fresh()->received_at)->not->toBeNull();
+    expect($pending->purchase->fresh()->purchase_status)->toBe('recibida');
+    $this->assertDatabaseCount('inventory_movements', 2);
 });
 
 test('el bodeguero selecciona entre compras del mismo código y recibe cada detalle una sola vez', function () {

@@ -68,7 +68,6 @@ class RolePermissionSeeder extends Seeder
             'update products',
             'view purchases',
             'view suppliers',
-            'create suppliers',
             'view categories',
             'view brands',
             'view units',   

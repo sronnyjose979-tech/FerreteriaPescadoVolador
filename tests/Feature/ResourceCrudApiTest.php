@@ -99,6 +99,22 @@ test('el admin crea el recurso con 201, Location y el registro guardado', functi
     ], 'inventory_movements', 'ID Movimiento'],
 ]);
 
+test('el bodeguero recibe 403 al crear un proveedor', function () {
+    actingAsRole('bodeguero');
+
+    $response = $this->postJson('/api/suppliers', [
+        'id_supplier' => 'SUP-901',
+        'supplier_first_name' => 'Juan',
+        'supplier_last_name' => 'Madrigal',
+        'supplier_phone' => '22223333',
+        'supplier_address' => 'San Pedro, Montes de Oca',
+        'supplier_type' => 'Proveedor de herramientas',
+        'supplier_email' => 'ventas@proveedor.example.com',
+    ]);
+
+    $response->assertForbidden();
+    $this->assertDatabaseMissing('suppliers', ['id_supplier' => 'SUP-901']);
+});
 test('el admin lista cada recurso con paginación y orden descendente', function (string $uri, Model $registro) {
     actingAsRole('admin');
 

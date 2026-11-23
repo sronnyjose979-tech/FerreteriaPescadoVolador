@@ -79,7 +79,7 @@ class PurchaseService
                     'subtotal' => $subtotal,
                 ]);
 
-                if ($purchase->purchase_status !== 'pendiente') {
+                if (in_array($purchase->purchase_status, ['confirmada', 'recibida'], true)) {
                     $product = Product::lockForUpdate()->find($item['product_id']);
 
                     if ($product) {

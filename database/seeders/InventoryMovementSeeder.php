@@ -17,10 +17,14 @@ class InventoryMovementSeeder extends Seeder
     {
         InventoryMovement::truncate();
 
-        // 1. Crear un movimiento de compra por cada PurchaseItem
-        $purchaseItems = PurchaseItem::all();
+        // 1. Crear movimientos de entrada solo para compras ya recibidas
+        $purchaseItems = PurchaseItem::query()
+            ->whereHas('purchase', fn ($query) => $query->whereIn('purchase_status', ['confirmada', 'recibida']))
+            ->get();
 
         foreach ($purchaseItems as $purchaseItem) {
+            $purchaseItem->forceFill(['received_at' => $purchaseItem->received_at ?? now()])->save();
+
             InventoryMovement::create([
                 'product_id' => $purchaseItem->product_id,
                 'user_id' => User::inRandomOrder()->value('id'),
